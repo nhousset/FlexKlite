@@ -5,25 +5,27 @@ require_once 'auth.php';
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Administration - Kanban JSON</title>
+    <title>Administration - Kanban</title>
     <link rel="stylesheet" href="style.css?<?= time() ?>">
     <style>
-        .admin-grid { display: flex; gap: 20px; flex-wrap: wrap; }
-        .admin-card { background: white; padding: 20px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); flex: 1; min-width: 250px; }
-        .admin-card h3 { margin-top: 0; color: #5e6c84; font-size: 14px; text-transform: uppercase; border-bottom: 2px solid #eef2f5; padding-bottom: 10px;}
-        .item-list { list-style: none; padding: 0; margin: 0 0 15px 0; }
-        .item-list li { display: flex; justify-content: space-between; padding: 8px; background: #f4f5f7; margin-bottom: 5px; border-radius: 4px; font-size: 13px; }
-        .item-list li button { background: none; border: none; color: #d32f2f; cursor: pointer; font-weight: bold; }
+        .admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .admin-card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #ebecf0;}
+        .admin-card h3 { margin-top: 0; color: #091e42; font-size: 16px; font-weight: 600; border-bottom: 2px solid #f4f5f7; padding-bottom: 12px; margin-bottom: 20px;}
+        .item-list { list-style: none; padding: 0; margin: 0 0 20px 0; }
+        .item-list li { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #f4f5f7; margin-bottom: 8px; border-radius: 4px; font-size: 14px; border: 1px solid #ebecf0;}
+        .item-list li button { background: #ffebee; border: none; color: #d32f2f; cursor: pointer; font-weight: bold; border-radius: 4px; padding: 4px 8px; transition: background 0.2s;}
+        .item-list li button:hover { background: #ffcdd2; }
         .add-group { display: flex; gap: 10px; }
-        .add-group input { flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; }
+        .add-group input { flex: 1; padding: 10px; border: 1px solid #dfe1e6; border-radius: 4px; font-size: 14px;}
+        .add-group input:focus { outline: none; border-color: var(--primary); }
     </style>
 </head>
 <body>
 
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h1 style="margin: 0;">Administration des données</h1>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+        <h1 style="margin: 0;">Administration des listes</h1>
         <div>
-            <a href="index.php" class="btn" style="background: #5e6c84; text-decoration: none; margin-right: 10px;">Retour au Kanban</a>
+            <a href="index.php" class="btn" style="background: #ebecf0; color: #42526e; text-decoration: none; margin-right: 10px;">Retour au Tableau</a>
             <button onclick="saveSettings()" class="btn" style="background: #00875a;">Enregistrer les modifications</button>
         </div>
     </div>
@@ -60,7 +62,6 @@ require_once 'auth.php';
     <script>
         let settingsData = { projets: [], acteurs: [], priorites: [] };
 
-        // Charger les données
         fetch('api.php?action=get_settings')
             .then(res => res.json())
             .then(data => {
@@ -103,7 +104,7 @@ require_once 'auth.php';
             })
             .then(res => res.json())
             .then(resData => {
-                if(resData.success) alert('Paramètres enregistrés avec succès !');
+                if(resData.success) alert('Paramètres mis à jour avec succès !');
             });
         }
     </script>
