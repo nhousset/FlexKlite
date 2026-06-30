@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  flexicaf:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: flexKlite_app
+    restart: unless-stopped
+    ports:
+      - "7010:80" 
+    volumes:
+      - ./src/db:/var/www/html/db
