@@ -130,6 +130,9 @@ require_once 'auth.php';
 
         <textarea id="new-note-text" style="width:100%; height:120px; margin-bottom:12px; padding: 10px; border: 1px solid #dfe1e6; border-radius: 4px; font-family:inherit; box-sizing: border-box; resize: vertical;" placeholder="Saisir les détails abordés..."></textarea>
         <button class="btn" style="width: 100%; padding: 12px; font-size: 15px;" onclick="submitNote()">Enregistrer</button>
+
+        <h4 style="margin-top: 40px; font-size:15px; color: #172b4d; border-bottom: 2px solid #ebecf0; padding-bottom: 10px;">Historique des notes</h4>
+        <div id="panel-notes-list"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
@@ -182,7 +185,7 @@ require_once 'auth.php';
                 group: 'kanban-board',
                 animation: 200,
                 ghostClass: 'sortable-ghost',
-                delay: 100, // Evite de déclencher le drag accidentellement au clic
+                delay: 100,
                 delayOnTouchOnly: true,
                 onEnd: function (evt) {
                     const fromColumn = evt.from.dataset.status;
@@ -239,23 +242,19 @@ require_once 'auth.php';
         function showContextMenu(e, column, index, task) {
             const menu = document.getElementById('context-menu');
             
-            // Positionne le menu à l'emplacement de la souris
             menu.style.display = 'block';
             menu.style.left = e.pageX + 'px';
             menu.style.top = e.pageY + 'px';
             
-            // On stocke la référence de la tâche cliquée
             currentTaskRef = { column, index, task };
         }
 
-        // Cacher le menu contextuel au clic ailleurs
         document.addEventListener('click', () => {
             document.getElementById('context-menu').style.display = 'none';
         });
 
-        // Action quand on clique sur "Ajouter une note" dans le menu contextuel
         document.getElementById('menu-add-note').addEventListener('click', (e) => {
-            e.stopPropagation(); // Évite la fermeture immédiate
+            e.stopPropagation();
             document.getElementById('context-menu').style.display = 'none';
             openAddNotePanel();
         });
@@ -265,11 +264,33 @@ require_once 'auth.php';
             const task = currentTaskRef.task;
             document.getElementById('panel-title').innerText = task.titre;
             
-            // Réinitialisation du formulaire
             document.getElementById('new-note-text').value = '';
             document.getElementById('new-note-reunion').value = '';
-            document.getElementById('new-note-date').valueAsDate = new Date(); // Date du jour
+            document.getElementById('new-note-date').valueAsDate = new Date(); 
             
+            // Remplissage de l'historique dans le panneau
+            const listContainer = document.getElementById('panel-notes-list');
+            listContainer.innerHTML = '';
+            
+            if (task.notes && task.notes.length > 0) {
+                task.notes.forEach(note => {
+                    const item = document.createElement('div');
+                    item.className = 'note-item';
+                    
+                    const badge = note.reunion ? `<span class="badge-reunion">${note.reunion}</span>` : '';
+                    
+                    item.innerHTML = `
+                        <div class="note-date">
+                            🗓️ ${note.date} ${badge}
+                        </div>
+                        <div style="white-space: pre-wrap;">${note.texte}</div>
+                    `;
+                    listContainer.appendChild(item);
+                });
+            } else {
+                listContainer.innerHTML = '<p style="font-size:14px; color:#888; font-style: italic;">Aucun historique de suivi pour cette tâche.</p>';
+            }
+
             document.getElementById('details-panel').classList.add('open');
         }
 
@@ -298,10 +319,10 @@ require_once 'auth.php';
             .then(res => res.json())
             .then(resData => {
                 if(resData.success) {
-                    closePanel();
+                    // Met à jour la tâche courante et rafraichit le panneau sans le fermer
+                    currentTaskRef.task = resData.task;
+                    openAddNotePanel(); 
                     loadBoard();
-                    // Optionnel : ouvrir la modale pour voir la note fraîchement ajoutée
-                    // openHistoryModal(resData.task);
                 }
             });
         }
