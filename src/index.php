@@ -40,9 +40,9 @@ require_once 'auth.php';
             </div>
 
             <?php 
-            include 'views/kanban.php';
-            include 'views/liste.php';
-            include 'views/kpi.php';
+            include 'src/kanban.php';
+            include 'src/liste.php';
+            include 'src/kpi.php';
             ?>
 
         </div>
@@ -214,7 +214,7 @@ require_once 'auth.php';
 
                     Object.keys(data).forEach(status => {
                         const container = document.querySelector(`[data-status="${status}"]`);
-                        if(container) container.innerHTML = ''; // Sécurité
+                        if(container) container.innerHTML = ''; 
                         
                         data[status].forEach((task, index) => {
                             
