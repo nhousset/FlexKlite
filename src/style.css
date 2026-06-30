@@ -1,34 +1,42 @@
 :root {
-    --bg-color: #f0f2f5;
-    --board-bg: #ffffff;
-    --column-bg: #f7f9fa;
-    --text-color: #172b4d;
+    /* Couleurs de fond façon Image 2 */
+    --bg-color: #f4f5f7;
+    --column-bg: #ebecf0;
+    --card-bg: #ffffff;
+    --text-main: #172b4d;
+    --text-muted: #5e6c84;
     --primary: #0052cc;
     --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    
+    /* Couleurs des bordures de colonnes façon Image 1 */
+    --col-todo: #ffab00;
+    --col-inprogress: #0052cc;
+    --col-blocked: #ff5630;
+    --col-done: #36b37e;
 }
 
 body { 
     font-family: var(--font-main); 
     background: var(--bg-color); 
-    color: var(--text-color); 
+    color: var(--text-main); 
     margin: 0; 
-    padding: 20px; 
+    padding: 20px 40px; 
 }
 
-h1 { font-size: 24px; margin-bottom: 20px; font-weight: 600; color: #091e42; }
+h1 { font-size: 24px; margin-bottom: 20px; font-weight: 700; color: #091e42; }
 
 /* Conteneurs et formulaires */
 .forms-container { 
     background: white; 
-    padding: 20px; 
+    padding: 16px 20px; 
     border-radius: 8px; 
-    margin-bottom: 25px; 
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
+    margin-bottom: 30px; 
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
     display: flex;
     align-items: center;
 }
 
-.forms-container form { display: flex; gap: 10px; flex-wrap: wrap; width: 100%; align-items: center;}
+.forms-container form { display: flex; gap: 12px; flex-wrap: wrap; width: 100%; align-items: center;}
 
 .forms-container input, .forms-container select { 
     padding: 8px 12px; 
@@ -37,6 +45,7 @@ h1 { font-size: 24px; margin-bottom: 20px; font-weight: 600; color: #091e42; }
     font-family: var(--font-main);
     font-size: 14px;
     background-color: #fafbfc;
+    color: var(--text-main);
 }
 
 .forms-container input:focus, .forms-container select:focus {
@@ -52,79 +61,114 @@ h1 { font-size: 24px; margin-bottom: 20px; font-weight: 600; color: #091e42; }
     padding: 8px 16px; 
     border-radius: 4px; 
     cursor: pointer; 
-    font-weight: 500;
+    font-weight: 600;
     font-size: 14px;
     transition: background 0.2s;
 }
 
 .btn:hover { background: #0047b3; }
 
-/* Grille Kanban */
-.board { display: flex; gap: 20px; align-items: flex-start; overflow-x: auto; padding-bottom: 20px;}
+/* Grille Kanban (Style Image 2 pour les colonnes) */
+.board { display: flex; gap: 24px; align-items: flex-start; overflow-x: auto; padding-bottom: 20px;}
 
 .column { 
     background: var(--column-bg); 
-    border-radius: 10px; 
+    border-radius: 8px; 
     width: 320px; 
     min-width: 320px;
     padding: 16px; 
     min-height: 600px; 
-    box-shadow: 0 2px 4px rgba(0,0,0,0.04); 
-    border: 1px solid #ebecf0;
+    /* Bordure supérieure de couleur façon Image 1 */
+    border-top: 4px solid transparent; 
 }
+
+/* Couleurs spécifiques par statut */
+#todo { border-top-color: var(--col-todo); }
+#in_progress { border-top-color: var(--col-inprogress); }
+#blocked { border-top-color: var(--col-blocked); }
+#done { border-top-color: var(--col-done); }
 
 .column h3 { 
     margin: 0 0 16px 0; 
-    font-size: 14px; 
-    text-transform: uppercase; 
-    color: #5e6c84; 
-    letter-spacing: 0.5px; 
-    font-weight: 700;
+    font-size: 15px; 
+    color: var(--text-main); 
+    font-weight: 600;
 }
 
 .list { min-height: 500px; }
 
-/* Design des Post-its */
+/* Design des cartes (Mix Image 1 & 2 : blanc pur, ombres douces) */
 .card { 
+    background: var(--card-bg);
     padding: 16px; 
-    margin-bottom: 16px; 
-    /* Effet papier légèrement corné en bas à droite */
-    border-radius: 2px 2px 15px 2px / 2px 2px 5px 2px; 
-    box-shadow: 2px 4px 6px rgba(0,0,0,0.12); 
+    margin-bottom: 12px; 
+    border-radius: 8px; 
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05); 
+    border: 1px solid #dfe1e6;
     cursor: grab; 
-    transition: transform 0.15s ease, box-shadow 0.15s ease; 
+    transition: box-shadow 0.2s ease, transform 0.2s ease; 
     position: relative;
-    border: 1px solid rgba(0,0,0,0.05);
 }
 
 .card:hover { 
-    transform: translateY(-2px) rotate(-1deg); 
-    box-shadow: 4px 8px 12px rgba(0,0,0,0.15); 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.08); 
+    transform: translateY(-1px);
 }
-.card:active { cursor: grabbing; transform: scale(1.05); }
+.card:active { cursor: grabbing; }
 
-/* Couleurs standardisées Kanban (Classes dynamiques) */
-.color-yellow { background-color: #fff9c4; color: #333; } /* Tâche standard */
-.color-blue   { background-color: #e3f2fd; color: #333; } /* Étude / Tech */
-.color-orange { background-color: #ffe0b2; color: #333; } /* Urgence */
-.color-pink   { background-color: #fce4ec; color: #333; } /* Bug */
-.color-green  { background-color: #e8f5e9; color: #333; } /* Validé */
-.color-grey   { background-color: #f5f5f5; color: #555; } /* En attente */
+/* Les tags façon "Pilules" (Image 2) */
+.tags-container { 
+    display: flex; 
+    gap: 6px; 
+    margin-bottom: 12px; 
+    flex-wrap: wrap; 
+}
 
-/* Intérieur de la carte */
-.card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-.tag-project { font-size: 11px; font-weight: 700; background: rgba(255,255,255,0.6); padding: 3px 8px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); }
-.prio { font-size: 12px; font-weight: 800; color: #d32f2f; }
+.tag { 
+    font-size: 11px; 
+    font-weight: 600; 
+    padding: 4px 8px; 
+    border-radius: 12px; 
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
 
-.card-title { font-size: 14px; font-weight: 600; line-height: 1.4; margin-bottom: 12px; word-wrap: break-word;}
+.tag-project { background: #e3f2fd; color: #0d47a1; }
+.tag-prio { background: #ffebee; color: #c62828; }
 
-.card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: rgba(0,0,0,0.6); border-top: 1px solid rgba(0,0,0,0.1); padding-top: 8px; font-weight: 500;}
+/* Couleurs des pilules de type de tâche */
+.tag-color-yellow { background: #fff8e1; color: #f57f17; }
+.tag-color-blue   { background: #e8eaf6; color: #3f51b5; }
+.tag-color-orange { background: #fff3e0; color: #e65100; }
+.tag-color-pink   { background: #fce4ec; color: #c2185b; }
+.tag-color-green  { background: #e8f5e9; color: #2e7d32; }
+.tag-color-grey   { background: #f5f5f5; color: #616161; }
 
-/* Panneau latéral des notes */
+.card-title { 
+    font-size: 14px; 
+    font-weight: 500; 
+    line-height: 1.5; 
+    margin-bottom: 16px; 
+    word-wrap: break-word;
+    color: var(--text-main);
+}
+
+/* Footer de la carte (Image 2) */
+.card-footer { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    font-size: 12px; 
+    color: var(--text-muted);
+}
+
+.card-footer span { display: flex; align-items: center; gap: 4px; }
+
+/* Panneau latéral (inchangé structurellement mais adapté aux couleurs) */
 #details-panel { position: fixed; right: -450px; top: 0; width: 400px; height: 100%; background: white; box-shadow: -5px 0 15px rgba(0,0,0,0.1); padding: 30px; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; z-index: 1000; box-sizing: border-box;}
 #details-panel.open { right: 0; }
-.close-panel { float: right; cursor: pointer; font-weight: bold; font-size: 18px; color: #5e6c84;}
-.close-panel:hover { color: #172b4d; }
-
-.note-item { background: #f4f5f7; padding: 12px; margin-bottom: 12px; border-radius: 6px; border-left: 4px solid var(--primary); font-size: 13px; line-height: 1.5; }
-.note-date { font-weight: 600; color: #5e6c84; margin-bottom: 6px; font-size: 11px; text-transform: uppercase;}
+.close-panel { float: right; cursor: pointer; font-weight: bold; font-size: 18px; color: var(--text-muted);}
+.close-panel:hover { color: var(--text-main); }
+.note-item { background: var(--bg-color); padding: 12px; margin-bottom: 12px; border-radius: 6px; border-left: 4px solid var(--primary); font-size: 13px; line-height: 1.5; }
+.note-date { font-weight: 600; color: var(--text-muted); margin-bottom: 6px; font-size: 11px; text-transform: uppercase;}
