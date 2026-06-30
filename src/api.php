@@ -6,15 +6,11 @@ $db_dir = __DIR__ . '/db';
 $db_file = $db_dir . '/kanban.json';
 $settings_file = $db_dir . '/settings.json';
 
-// Initialisation Kanban
-if (!is_dir($db_dir)) { 
-    mkdir($db_dir, 0755, true); 
-}
+if (!is_dir($db_dir)) { mkdir($db_dir, 0755, true); }
 if (!file_exists($db_file)) {
     file_put_contents($db_file, json_encode(["todo" => [], "in_progress" => [], "blocked" => [], "done" => []], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
 
-// Initialisation Settings par défaut enrichie
 if (!file_exists($settings_file)) {
     $default_settings = [
         "projets" => ["VIYA 4", "Plateforme", "MCO"],
@@ -25,20 +21,14 @@ if (!file_exists($settings_file)) {
     file_put_contents($settings_file, json_encode($default_settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
 
-// Sécurité pour ajouter la clé "reunions" si on utilise un vieux fichier settings.json
 $current_settings = json_decode(file_get_contents($settings_file), true);
 if (!isset($current_settings['reunions'])) {
     $current_settings['reunions'] = ["Point OPS", "Comité BI", "Coproj", "Point équipe"];
     file_put_contents($settings_file, json_encode($current_settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
 
-function read_db($file) { 
-    return json_decode(file_get_contents($file), true); 
-}
-
-function write_db($file, $data) { 
-    file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)); 
-}
+function read_db($file) { return json_decode(file_get_contents($file), true); }
+function write_db($file, $data) { file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)); }
 
 $action = $_GET['action'] ?? '';
 $kanban = read_db($db_file);
@@ -75,20 +65,24 @@ switch ($action) {
     case 'add_task':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $new_task = [
-                'projet'  => $_POST['projet'] ?? '',
-                'titre'   => $_POST['titre'] ?? '',
-                'prio'    => $_POST['prio'] ?? '',
-                'porteur' => $_POST['porteur'] ?? '',
-                'acteur'  => $_POST['acteur'] ?? '',
-                'couleur' => $_POST['couleur'] ?? 'color-yellow',
-                'maj'     => date('d/m'),
-                'notes'   => []
+                'projet'      => $_POST['projet'] ?? '',
+                'code_projet' => $_POST['code_projet'] ?? '', // Nouveau
+                'titre'       => $_POST['titre'] ?? '',
+                'code_itbm'   => $_POST['code_itbm'] ?? '',   // Nouveau
+                'prio'        => $_POST['prio'] ?? '',
+                'acteur'      => $_POST['acteur'] ?? '',
+                'couleur'     => $_POST['couleur'] ?? 'color-yellow',
+                'date_debut'  => $_POST['date_debut'] ?? '',  // Nouveau
+                'date_fin'    => $_POST['date_fin'] ?? '',    // Nouveau
+                'maj'         => date('d/m'),
+                'notes'       => []
             ];
+            
             if (!empty($_POST['note_initiale'])) {
                 $new_task['notes'][] = [
-                    'date'  => date('d/m/Y'),
+                    'date'    => date('d/m/Y'),
                     'reunion' => '',
-                    'texte' => $_POST['note_initiale']
+                    'texte'   => $_POST['note_initiale']
                 ];
             }
             array_unshift($kanban['todo'], $new_task);
@@ -104,7 +98,6 @@ switch ($action) {
         $texte = $data['text'];
         $reunion = $data['reunion'] ?? '';
         
-        // Formatage de la date (conversion de YYYY-MM-DD vers DD/MM/YYYY)
         $date_saisie = !empty($data['date']) ? date('d/m/Y', strtotime($data['date'])) : date('d/m/Y');
 
         if (!empty($texte) && isset($kanban[$col][$idx])) {
@@ -113,7 +106,6 @@ switch ($action) {
                 'reunion' => $reunion,
                 'texte'   => $texte
             ]);
-            // Mise à jour de la date globale au format court pour la carte
             $kanban[$col][$idx]['maj'] = !empty($data['date']) ? date('d/m', strtotime($data['date'])) : date('d/m');
             
             write_db($db_file, $kanban);
