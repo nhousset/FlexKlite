@@ -66,23 +66,24 @@ switch ($action) {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $new_task = [
                 'projet'      => $_POST['projet'] ?? '',
-                'code_projet' => $_POST['code_projet'] ?? '', // Nouveau
+                'code_projet' => $_POST['code_projet'] ?? '',
                 'titre'       => $_POST['titre'] ?? '',
-                'code_itbm'   => $_POST['code_itbm'] ?? '',   // Nouveau
+                'code_itbm'   => $_POST['code_itbm'] ?? '',
                 'prio'        => $_POST['prio'] ?? '',
                 'acteur'      => $_POST['acteur'] ?? '',
                 'couleur'     => $_POST['couleur'] ?? 'color-yellow',
-                'date_debut'  => $_POST['date_debut'] ?? '',  // Nouveau
-                'date_fin'    => $_POST['date_fin'] ?? '',    // Nouveau
+                'date_debut'  => $_POST['date_debut'] ?? '',
+                'date_fin'    => $_POST['date_fin'] ?? '',
                 'maj'         => date('d/m'),
                 'notes'       => []
             ];
             
             if (!empty($_POST['note_initiale'])) {
                 $new_task['notes'][] = [
-                    'date'    => date('d/m/Y'),
-                    'reunion' => '',
-                    'texte'   => $_POST['note_initiale']
+                    'date'      => date('d/m/Y'),
+                    'reunion'   => '',
+                    'texte'     => $_POST['note_initiale'],
+                    'timestamp' => time() // Permet de trier précisément les notes récentes
                 ];
             }
             array_unshift($kanban['todo'], $new_task);
@@ -102,9 +103,10 @@ switch ($action) {
 
         if (!empty($texte) && isset($kanban[$col][$idx])) {
             array_unshift($kanban[$col][$idx]['notes'], [
-                'date'    => $date_saisie,
-                'reunion' => $reunion,
-                'texte'   => $texte
+                'date'      => $date_saisie,
+                'reunion'   => $reunion,
+                'texte'     => $texte,
+                'timestamp' => time() // Permet de trier précisément les notes récentes
             ]);
             $kanban[$col][$idx]['maj'] = !empty($data['date']) ? date('d/m', strtotime($data['date'])) : date('d/m');
             
