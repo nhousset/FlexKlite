@@ -1,4 +1,7 @@
 <?php
+// Protection de l'API : impossible d'appeler ce fichier sans être connecté
+require_once 'auth.php';
+
 header('Content-Type: application/json');
 
 $db_dir = __DIR__ . '/db';
@@ -91,3 +94,4 @@ switch ($action) {
         }
         break;
 }
+?>
