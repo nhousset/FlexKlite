@@ -98,7 +98,7 @@ h1 { font-size: 24px; margin-bottom: 20px; font-weight: 700; color: #091e42; }
     margin-bottom: 16px; 
     border-radius: 2px 2px 15px 2px / 2px 2px 5px 2px; 
     box-shadow: 2px 4px 6px rgba(0,0,0,0.12); 
-    cursor: grab; 
+    cursor: pointer; 
     transition: transform 0.15s ease, box-shadow 0.15s ease; 
     position: relative;
     border: 1px solid rgba(0,0,0,0.05);
@@ -108,7 +108,6 @@ h1 { font-size: 24px; margin-bottom: 20px; font-weight: 700; color: #091e42; }
     transform: translateY(-2px) rotate(-1deg); 
     box-shadow: 4px 8px 12px rgba(0,0,0,0.15); 
 }
-.card:active { cursor: grabbing; transform: scale(1.02); }
 
 /* Application des couleurs */
 .color-yellow { background-color: #fff9c4; color: #172b4d; }
@@ -159,76 +158,113 @@ h1 { font-size: 24px; margin-bottom: 20px; font-weight: 700; color: #091e42; }
 
 .card-footer span { display: flex; align-items: center; gap: 4px; }
 
-/* Panneau latéral élargi */
-#details-panel { 
-    position: fixed; 
-    right: -650px; /* Ajusté pour la nouvelle largeur */
-    top: 0; 
-    width: 600px; /* Plus large */
-    max-width: 90vw;
-    height: 100%; 
+/* Menu Contextuel (Clic Droit) */
+#context-menu {
+    position: absolute;
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    padding: 8px 0;
+    display: none;
+    z-index: 3000;
+    min-width: 180px;
+    border: 1px solid #dfe1e6;
+}
+
+.context-menu-item {
+    padding: 10px 16px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #172b4d;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s;
+}
+
+.context-menu-item:hover {
+    background: #f4f5f7;
+    color: var(--primary);
+}
+
+/* Modale pour le tableau d'historique (Clic Gauche) */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(9, 30, 66, 0.54);
+    display: none; justify-content: center; align-items: center;
+    z-index: 4000;
+}
+
+.modal-content {
     background: white; 
-    box-shadow: -5px 0 15px rgba(0,0,0,0.1); 
-    padding: 40px; 
-    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-    overflow-y: auto; 
-    z-index: 1000; 
-    box-sizing: border-box;
+    border-radius: 8px; 
+    padding: 24px;
+    width: 90%; 
+    max-width: 900px; 
+    max-height: 85vh; 
+    overflow-y: auto;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    position: relative;
+}
+
+.modal-close {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-weight: bold;
+}
+.modal-close:hover { color: var(--text-main); }
+
+.notes-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+.notes-table th {
+    background: #f4f5f7;
+    padding: 12px;
+    text-align: left;
+    color: #5e6c84;
+    font-weight: 600;
+    border-bottom: 2px solid #dfe1e6;
+}
+
+.notes-table td {
+    padding: 12px;
+    border-bottom: 1px solid #dfe1e6;
+    vertical-align: top;
+    color: var(--text-main);
+}
+
+.notes-table tr:hover { background: #fafbfc; }
+
+.badge-reunion {
+    background: #e3f2fd; color: #0d47a1;
+    padding: 3px 8px; border-radius: 4px;
+    font-size: 12px; font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Panneau latéral pour l'ajout exclusif de note */
+#details-panel { 
+    position: fixed; right: -500px; top: 0; width: 450px; height: 100%; 
+    background: white; box-shadow: -5px 0 15px rgba(0,0,0,0.1); 
+    padding: 40px; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    overflow-y: auto; z-index: 2000; box-sizing: border-box;
 }
 
 #details-panel.open { right: 0; }
 .close-panel { float: right; cursor: pointer; font-weight: bold; font-size: 22px; color: var(--text-muted);}
 .close-panel:hover { color: var(--text-main); }
 
-/* Nouveaux formulaires de suivi */
-.note-meta-inputs {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 12px;
-}
-
+.note-meta-inputs { display: flex; gap: 12px; margin-bottom: 12px; }
 .note-meta-inputs input, .note-meta-inputs select {
-    padding: 10px;
-    border: 1px solid #dfe1e6;
-    border-radius: 4px;
-    font-family: inherit;
-    font-size: 14px;
-    background: #fafbfc;
-    color: var(--text-main);
+    padding: 10px; border: 1px solid #dfe1e6; border-radius: 4px;
+    font-family: inherit; font-size: 14px; background: #fafbfc; flex: 1;
 }
-
-.note-meta-inputs input:focus, .note-meta-inputs select:focus {
-    outline: none;
-    border-color: var(--primary);
-}
-
-.note-item { 
-    background: var(--bg-color); 
-    padding: 16px; 
-    margin-bottom: 16px; 
-    border-radius: 6px; 
-    border-left: 4px solid var(--primary); 
-    font-size: 14px; 
-    line-height: 1.5; 
-}
-
-.note-date { 
-    font-weight: 600; 
-    color: var(--text-muted); 
-    margin-bottom: 8px; 
-    font-size: 12px; 
-    text-transform: uppercase;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.note-reunion-tag {
-    background: #e3f2fd;
-    color: #0d47a1;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-weight: 700;
-    letter-spacing: normal;
-    text-transform: none;
-}
+.note-meta-inputs input:focus, .note-meta-inputs select:focus { outline: none; border-color: var(--primary); }
