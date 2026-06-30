@@ -1,128 +1,130 @@
 :root {
-    --bg-color: #f4f6f8;
-    --column-bg: #eef2f5;
-    --card-bg: #ffffff;
-    --text-color: #333;
+    --bg-color: #f0f2f5;
+    --board-bg: #ffffff;
+    --column-bg: #f7f9fa;
+    --text-color: #172b4d;
     --primary: #0052cc;
+    --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 body { 
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; 
+    font-family: var(--font-main); 
     background: var(--bg-color); 
     color: var(--text-color); 
     margin: 0; 
     padding: 20px; 
 }
 
-h1 { font-size: 20px; margin-bottom: 20px; }
+h1 { font-size: 24px; margin-bottom: 20px; font-weight: 600; color: #091e42; }
 
+/* Conteneurs et formulaires */
 .forms-container { 
     background: white; 
-    padding: 15px; 
-    border-radius: 6px; 
+    padding: 20px; 
+    border-radius: 8px; 
     margin-bottom: 25px; 
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
+    display: flex;
+    align-items: center;
 }
 
+.forms-container form { display: flex; gap: 10px; flex-wrap: wrap; width: 100%; align-items: center;}
+
 .forms-container input, .forms-container select { 
-    padding: 6px; 
-    margin-right: 10px; 
-    border: 1px solid #ccc; 
+    padding: 8px 12px; 
+    border: 1px solid #dfe1e6; 
     border-radius: 4px; 
+    font-family: var(--font-main);
+    font-size: 14px;
+    background-color: #fafbfc;
+}
+
+.forms-container input:focus, .forms-container select:focus {
+    outline: none;
+    border-color: var(--primary);
+    background-color: #fff;
 }
 
 .btn { 
     background: var(--primary); 
     color: white; 
     border: none; 
-    padding: 6px 12px; 
+    padding: 8px 16px; 
     border-radius: 4px; 
     cursor: pointer; 
+    font-weight: 500;
+    font-size: 14px;
+    transition: background 0.2s;
 }
 
-.board { display: flex; gap: 20px; align-items: flex-start; }
+.btn:hover { background: #0047b3; }
+
+/* Grille Kanban */
+.board { display: flex; gap: 20px; align-items: flex-start; overflow-x: auto; padding-bottom: 20px;}
 
 .column { 
     background: var(--column-bg); 
-    border-radius: 6px; 
+    border-radius: 10px; 
     width: 320px; 
-    padding: 12px; 
-    min-height: 500px; 
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05); 
+    min-width: 320px;
+    padding: 16px; 
+    min-height: 600px; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04); 
+    border: 1px solid #ebecf0;
 }
 
 .column h3 { 
-    margin: 0 0 12px 0; 
-    font-size: 13px; 
+    margin: 0 0 16px 0; 
+    font-size: 14px; 
     text-transform: uppercase; 
-    color: #6b778c; 
+    color: #5e6c84; 
     letter-spacing: 0.5px; 
+    font-weight: 700;
 }
 
-.list { min-height: 450px; }
+.list { min-height: 500px; }
 
+/* Design des Post-its */
 .card { 
-    background: var(--card-bg); 
-    padding: 12px; 
-    margin-bottom: 10px; 
-    border-radius: 4px; 
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
+    padding: 16px; 
+    margin-bottom: 16px; 
+    /* Effet papier légèrement corné en bas à droite */
+    border-radius: 2px 2px 15px 2px / 2px 2px 5px 2px; 
+    box-shadow: 2px 4px 6px rgba(0,0,0,0.12); 
     cursor: grab; 
-    transition: transform 0.1s; 
+    transition: transform 0.15s ease, box-shadow 0.15s ease; 
+    position: relative;
+    border: 1px solid rgba(0,0,0,0.05);
 }
 
-.card:active { cursor: grabbing; }
-
-.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-
-.tag-project { 
-    font-size: 11px; 
-    font-weight: bold; 
-    background: #e3f2fd; 
-    color: #0d47a1; 
-    padding: 2px 6px; 
-    border-radius: 3px; 
+.card:hover { 
+    transform: translateY(-2px) rotate(-1deg); 
+    box-shadow: 4px 8px 12px rgba(0,0,0,0.15); 
 }
+.card:active { cursor: grabbing; transform: scale(1.05); }
 
-.prio { font-size: 11px; font-weight: bold; color: #d32f2f; }
+/* Couleurs standardisées Kanban (Classes dynamiques) */
+.color-yellow { background-color: #fff9c4; color: #333; } /* Tâche standard */
+.color-blue   { background-color: #e3f2fd; color: #333; } /* Étude / Tech */
+.color-orange { background-color: #ffe0b2; color: #333; } /* Urgence */
+.color-pink   { background-color: #fce4ec; color: #333; } /* Bug */
+.color-green  { background-color: #e8f5e9; color: #333; } /* Validé */
+.color-grey   { background-color: #f5f5f5; color: #555; } /* En attente */
 
-.card-title { font-size: 13px; font-weight: 600; line-height: 1.4; margin-bottom: 10px; }
+/* Intérieur de la carte */
+.card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.tag-project { font-size: 11px; font-weight: 700; background: rgba(255,255,255,0.6); padding: 3px 8px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); }
+.prio { font-size: 12px; font-weight: 800; color: #d32f2f; }
 
-.card-footer { 
-    display: flex; 
-    justify-content: space-between; 
-    font-size: 11px; 
-    color: #6b778c; 
-    border-top: 1px solid #f0f0f0; 
-    padding-top: 6px; 
-}
+.card-title { font-size: 14px; font-weight: 600; line-height: 1.4; margin-bottom: 12px; word-wrap: break-word;}
+
+.card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: rgba(0,0,0,0.6); border-top: 1px solid rgba(0,0,0,0.1); padding-top: 8px; font-weight: 500;}
 
 /* Panneau latéral des notes */
-#details-panel { 
-    position: fixed; 
-    right: -400px; 
-    top: 0; 
-    width: 360px; 
-    height: 100%; 
-    background: white; 
-    box-shadow: -2px 0 10px rgba(0,0,0,0.1); 
-    padding: 20px; 
-    transition: right 0.3s ease; 
-    overflow-y: auto; 
-    z-index: 100px; 
-}
-
+#details-panel { position: fixed; right: -450px; top: 0; width: 400px; height: 100%; background: white; box-shadow: -5px 0 15px rgba(0,0,0,0.1); padding: 30px; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; z-index: 1000; box-sizing: border-box;}
 #details-panel.open { right: 0; }
+.close-panel { float: right; cursor: pointer; font-weight: bold; font-size: 18px; color: #5e6c84;}
+.close-panel:hover { color: #172b4d; }
 
-.close-panel { float: right; cursor: pointer; font-weight: bold; }
-
-.note-item { 
-    background: #f8f9fa; 
-    padding: 8px; 
-    margin-bottom: 8px; 
-    border-radius: 4px; 
-    border-left: 3px solid var(--primary); 
-    font-size: 12px; 
-}
-
-.note-date { font-weight: bold; color: #6b778c; margin-bottom: 4px; }
+.note-item { background: #f4f5f7; padding: 12px; margin-bottom: 12px; border-radius: 6px; border-left: 4px solid var(--primary); font-size: 13px; line-height: 1.5; }
+.note-date { font-weight: 600; color: #5e6c84; margin-bottom: 6px; font-size: 11px; text-transform: uppercase;}
