@@ -1,5 +1,4 @@
 <?php 
-// Protection de l'interface : redirection automatique vers logon.php si non connecté
 require_once 'auth.php'; 
 ?>
 <!DOCTYPE html>
@@ -13,18 +12,53 @@ require_once 'auth.php';
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h1 style="margin: 0;">Mon Kanban Chantiers & Suivi</h1>
-        <a href="logout.php" class="btn" style="background: #d32f2f; text-decoration: none; font-size: 12px;">Se déconnecter</a>
+        <div>
+            <a href="admin.php" class="btn" style="background: #0052cc; text-decoration: none; margin-right: 10px; font-size: 12px;">⚙️ Paramètres</a>
+            <a href="logout.php" class="btn" style="background: #d32f2f; text-decoration: none; font-size: 12px;">Se déconnecter</a>
+        </div>
     </div>
+
+    <?php 
+    // Lecture des paramètres pour populer les dropdowns
+    $settings_file = __DIR__ . '/db/settings.json';
+    $settings = file_exists($settings_file) ? json_decode(file_get_contents($settings_file), true) : ["projets" => [], "acteurs" => [], "priorites" => []]; 
+    ?>
 
     <div class="forms-container">
         <form action="api.php?action=add_task" method="POST">
-            <input type="text" name="projet" placeholder="Projet (ex: VIYA 4)" required>
+            
+            <select name="projet" required>
+                <option value="">-- Projet --</option>
+                <?php foreach($settings['projets'] as $p): ?>
+                    <option value="<?= htmlspecialchars($p) ?>"><?= htmlspecialchars($p) ?></option>
+                <?php endforeach; ?>
+            </select>
+
             <input type="text" name="titre" placeholder="Intitulé de la tâche" style="width: 250px;" required>
-            <input type="text" name="prio" placeholder="Prio" style="width: 50px;">
-            <input type="text" name="porteur" placeholder="Porteur" style="width: 80px;">
-            <input type="text" name="acteur" placeholder="Acteur" style="width: 80px;">
-            <input type="text" name="note_initiale" placeholder="Première note de suivi (optionnel)" style="width: 250px;">
-            <button type="submit" class="btn">Ajouter la tâche</button>
+            
+            <select name="prio">
+                <option value="">-- Prio --</option>
+                <?php foreach($settings['priorites'] as $p): ?>
+                    <option value="<?= htmlspecialchars($p) ?>"><?= htmlspecialchars($p) ?></option>
+                <?php endforeach; ?>
+            </select>
+
+            <select name="porteur">
+                <option value="">-- Porteur --</option>
+                <?php foreach($settings['acteurs'] as $a): ?>
+                    <option value="<?= htmlspecialchars($a) ?>"><?= htmlspecialchars($a) ?></option>
+                <?php endforeach; ?>
+            </select>
+
+            <select name="acteur">
+                <option value="">-- Acteur --</option>
+                <?php foreach($settings['acteurs'] as $a): ?>
+                    <option value="<?= htmlspecialchars($a) ?>"><?= htmlspecialchars($a) ?></option>
+                <?php endforeach; ?>
+            </select>
+
+            <input type="text" name="note_initiale" placeholder="Note (optionnel)" style="width: 150px;">
+            <button type="submit" class="btn">Ajouter</button>
         </form>
     </div>
 
@@ -107,7 +141,6 @@ require_once 'auth.php';
                     const fromIndex = evt.oldIndex;
                     const toIndex = evt.newIndex;
 
-                    // Si rien n'a bougé, on ne fait rien
                     if (fromColumn === toColumn && fromIndex === toIndex) return;
 
                     fetch('api.php?action=move', {
@@ -115,7 +148,7 @@ require_once 'auth.php';
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ fromColumn, toColumn, fromIndex, toIndex })
                     }).then(() => {
-                        loadBoard(); // Rafraîchit les index côté client
+                        loadBoard(); 
                         if (document.getElementById('details-panel').classList.contains('open')) {
                             closePanel();
                         }
@@ -175,7 +208,6 @@ require_once 'auth.php';
             });
         }
 
-        // Initialisation au chargement
         window.onload = loadBoard;
     </script>
 </body>
