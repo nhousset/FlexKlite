@@ -20,7 +20,9 @@ require_once 'auth.php';
 
     <?php 
     $settings_file = __DIR__ . '/db/settings.json';
-    $settings = file_exists($settings_file) ? json_decode(file_get_contents($settings_file), true) : ["projets" => [], "acteurs" => [], "priorites" => []]; 
+    // Assurer l'existence de "reunions" pour éviter les erreurs
+    $default = ["projets" => [], "acteurs" => [], "priorites" => [], "reunions" => []];
+    $settings = file_exists($settings_file) ? array_merge($default, json_decode(file_get_contents($settings_file), true)) : $default; 
     ?>
 
     <div class="forms-container">
@@ -84,17 +86,29 @@ require_once 'auth.php';
 
     <div id="details-panel">
         <span class="close-panel" onclick="closePanel()">×</span>
-        <h2 id="panel-title" style="font-size: 18px; margin-top: 0; color: #091e42; line-height: 1.3;"></h2>
-        <p style="font-size: 12px; color:#5e6c84; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #ebecf0;">
+        <h2 id="panel-title" style="font-size: 20px; margin-top: 0; color: #091e42; line-height: 1.3;"></h2>
+        <p style="font-size: 13px; color:#5e6c84; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #ebecf0;">
             Projet : <strong id="panel-project" style="color: #172b4d;"></strong> | 
             Acteur : <strong id="panel-acteur" style="color: #172b4d;"></strong>
         </p>
         
-        <h4 style="margin-bottom: 10px; font-size:14px; color: #172b4d;">Ajouter un point de suivi :</h4>
-        <textarea id="new-note-text" style="width:100%; height:80px; margin-bottom:12px; padding: 10px; border: 1px solid #dfe1e6; border-radius: 4px; font-family:inherit; box-sizing: border-box;"></textarea>
-        <button class="btn" style="width: 100%;" onclick="submitNote()">Enregistrer la note</button>
+        <h4 style="margin-bottom: 10px; font-size:15px; color: #172b4d;">Ajouter un point de suivi :</h4>
         
-        <h4 style="margin-top: 30px; font-size:14px; color: #172b4d;">Historique des notes :</h4>
+        <div class="note-meta-inputs">
+            <input type="date" id="new-note-date" title="Date de la note">
+            
+            <select id="new-note-reunion" style="flex: 1;">
+                <option value="">-- Contexte / Réunion --</option>
+                <?php foreach($settings['reunions'] as $r): ?>
+                    <option value="<?= htmlspecialchars($r) ?>"><?= htmlspecialchars($r) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
+        <textarea id="new-note-text" style="width:100%; height:100px; margin-bottom:12px; padding: 10px; border: 1px solid #dfe1e6; border-radius: 4px; font-family:inherit; box-sizing: border-box; resize: vertical;" placeholder="Détails du point..."></textarea>
+        <button class="btn" style="width: 100%; padding: 12px; font-size: 15px;" onclick="submitNote()">Enregistrer la note</button>
+        
+        <h4 style="margin-top: 40px; font-size:15px; color: #172b4d; border-bottom: 2px solid #ebecf0; padding-bottom: 10px;">Historique des notes</h4>
         <div id="panel-notes-list"></div>
     </div>
 
@@ -112,14 +126,12 @@ require_once 'auth.php';
                         data[status].forEach((task, index) => {
                             const card = document.createElement('div');
                             
-                            // La classe de couleur est appliquée au conteneur principal du Post-it
                             const colorClass = task.couleur ? task.couleur : 'color-yellow';
                             card.className = `card ${colorClass}`;
                             
                             card.dataset.index = index;
                             card.onclick = () => openPanel(status, index, task);
                             
-                            // L'étiquette de type (Bug, Standard...) est supprimée car le fond suffit
                             card.innerHTML = `
                                 <div class="tags-container">
                                     <span class="tag">📁 ${task.projet}</span>
@@ -169,7 +181,12 @@ require_once 'auth.php';
             document.getElementById('panel-title').innerText = task.titre;
             document.getElementById('panel-project').innerText = task.projet;
             document.getElementById('panel-acteur').innerText = task.acteur || 'Non assigné';
+            
+            // Réinitialisation des formulaires
             document.getElementById('new-note-text').value = '';
+            document.getElementById('new-note-reunion').value = '';
+            // Remplir la date par défaut avec la date du jour
+            document.getElementById('new-note-date').valueAsDate = new Date();
             
             const listContainer = document.getElementById('panel-notes-list');
             listContainer.innerHTML = '';
@@ -178,11 +195,20 @@ require_once 'auth.php';
                 task.notes.forEach(note => {
                     const item = document.createElement('div');
                     item.className = 'note-item';
-                    item.innerHTML = `<div class="note-date">${note.date}</div><div>${note.texte}</div>`;
+                    
+                    // Formatage visuel si une réunion est renseignée
+                    const reunionBadge = note.reunion ? `<span class="note-reunion-tag">${note.reunion}</span>` : '';
+                    
+                    item.innerHTML = `
+                        <div class="note-date">
+                            🗓️ ${note.date} ${reunionBadge}
+                        </div>
+                        <div style="white-space: pre-wrap;">${note.texte}</div>
+                    `;
                     listContainer.appendChild(item);
                 });
             } else {
-                listContainer.innerHTML = '<p style="font-size:13px; color:#888; font-style: italic;">Aucun historique de suivi pour cette tâche.</p>';
+                listContainer.innerHTML = '<p style="font-size:14px; color:#888; font-style: italic;">Aucun historique de suivi pour cette tâche.</p>';
             }
             
             document.getElementById('details-panel').classList.add('open');
@@ -194,6 +220,9 @@ require_once 'auth.php';
 
         function submitNote() {
             const text = document.getElementById('new-note-text').value;
+            const date = document.getElementById('new-note-date').value;
+            const reunion = document.getElementById('new-note-reunion').value;
+
             if (!text.trim()) return;
 
             fetch('api.php?action=add_note', {
@@ -202,7 +231,9 @@ require_once 'auth.php';
                 body: JSON.stringify({
                     column: currentTaskRef.column,
                     index: currentTaskRef.index,
-                    text: text
+                    text: text,
+                    date: date,
+                    reunion: reunion
                 })
             })
             .then(res => res.json())
