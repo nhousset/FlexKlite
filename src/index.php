@@ -20,7 +20,6 @@ require_once 'auth.php';
 
     <?php 
     $settings_file = __DIR__ . '/db/settings.json';
-    // Assurer l'existence de "reunions" pour éviter les erreurs
     $default = ["projets" => [], "acteurs" => [], "priorites" => [], "reunions" => []];
     $settings = file_exists($settings_file) ? array_merge($default, json_decode(file_get_contents($settings_file), true)) : $default; 
     ?>
@@ -84,20 +83,44 @@ require_once 'auth.php';
         </div>
     </div>
 
+    <div id="context-menu">
+        <div class="context-menu-item" id="menu-add-note">
+            ➕ Ajouter un point de suivi
+        </div>
+    </div>
+
+    <div id="notes-modal" class="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <span class="modal-close" onclick="closeModal(event)">×</span>
+            <h2 id="modal-title" style="margin-top: 0; color: #091e42;"></h2>
+            <p style="font-size: 13px; color:#5e6c84; margin-bottom: 20px;">
+                Projet : <strong id="modal-project"></strong> | 
+                Acteur : <strong id="modal-acteur"></strong>
+            </p>
+            
+            <table class="notes-table">
+                <thead>
+                    <tr>
+                        <th style="width: 120px;">Date</th>
+                        <th style="width: 150px;">Contexte</th>
+                        <th>Détails du suivi</th>
+                    </tr>
+                </thead>
+                <tbody id="modal-table-body">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
     <div id="details-panel">
         <span class="close-panel" onclick="closePanel()">×</span>
         <h2 id="panel-title" style="font-size: 20px; margin-top: 0; color: #091e42; line-height: 1.3;"></h2>
-        <p style="font-size: 13px; color:#5e6c84; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #ebecf0;">
-            Projet : <strong id="panel-project" style="color: #172b4d;"></strong> | 
-            Acteur : <strong id="panel-acteur" style="color: #172b4d;"></strong>
-        </p>
         
-        <h4 style="margin-bottom: 10px; font-size:15px; color: #172b4d;">Ajouter un point de suivi :</h4>
+        <h4 style="margin-bottom: 10px; margin-top: 30px; font-size:15px; color: #172b4d;">Ajouter un point de suivi :</h4>
         
         <div class="note-meta-inputs">
-            <input type="date" id="new-note-date" title="Date de la note">
-            
-            <select id="new-note-reunion" style="flex: 1;">
+            <input type="date" id="new-note-date" title="Date de la note" style="max-width: 130px;">
+            <select id="new-note-reunion">
                 <option value="">-- Contexte / Réunion --</option>
                 <?php foreach($settings['reunions'] as $r): ?>
                     <option value="<?= htmlspecialchars($r) ?>"><?= htmlspecialchars($r) ?></option>
@@ -105,16 +128,13 @@ require_once 'auth.php';
             </select>
         </div>
 
-        <textarea id="new-note-text" style="width:100%; height:100px; margin-bottom:12px; padding: 10px; border: 1px solid #dfe1e6; border-radius: 4px; font-family:inherit; box-sizing: border-box; resize: vertical;" placeholder="Détails du point..."></textarea>
-        <button class="btn" style="width: 100%; padding: 12px; font-size: 15px;" onclick="submitNote()">Enregistrer la note</button>
-        
-        <h4 style="margin-top: 40px; font-size:15px; color: #172b4d; border-bottom: 2px solid #ebecf0; padding-bottom: 10px;">Historique des notes</h4>
-        <div id="panel-notes-list"></div>
+        <textarea id="new-note-text" style="width:100%; height:120px; margin-bottom:12px; padding: 10px; border: 1px solid #dfe1e6; border-radius: 4px; font-family:inherit; box-sizing: border-box; resize: vertical;" placeholder="Saisir les détails abordés..."></textarea>
+        <button class="btn" style="width: 100%; padding: 12px; font-size: 15px;" onclick="submitNote()">Enregistrer</button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script>
-        let currentTaskRef = { column: null, index: null };
+        let currentTaskRef = { column: null, index: null, task: null };
 
         function loadBoard() {
             fetch('api.php?action=get')
@@ -128,9 +148,16 @@ require_once 'auth.php';
                             
                             const colorClass = task.couleur ? task.couleur : 'color-yellow';
                             card.className = `card ${colorClass}`;
-                            
                             card.dataset.index = index;
-                            card.onclick = () => openPanel(status, index, task);
+                            
+                            // Événement Clic Gauche : Ouvre le tableau
+                            card.addEventListener('click', () => openHistoryModal(task));
+                            
+                            // Événement Clic Droit : Ouvre le menu
+                            card.addEventListener('contextmenu', (e) => {
+                                e.preventDefault();
+                                showContextMenu(e, status, index, task);
+                            });
                             
                             card.innerHTML = `
                                 <div class="tags-container">
@@ -149,11 +176,14 @@ require_once 'auth.php';
                 });
         }
 
+        // --- GESTION DU DRAG & DROP ---
         document.querySelectorAll('.list').forEach(listEl => {
             new Sortable(listEl, {
                 group: 'kanban-board',
                 animation: 200,
                 ghostClass: 'sortable-ghost',
+                delay: 100, // Evite de déclencher le drag accidentellement au clic
+                delayOnTouchOnly: true,
                 onEnd: function (evt) {
                     const fromColumn = evt.from.dataset.status;
                     const toColumn = evt.to.dataset.status;
@@ -168,48 +198,77 @@ require_once 'auth.php';
                         body: JSON.stringify({ fromColumn, toColumn, fromIndex, toIndex })
                     }).then(() => {
                         loadBoard(); 
-                        if (document.getElementById('details-panel').classList.contains('open')) {
-                            closePanel();
-                        }
                     });
                 }
             });
         });
 
-        function openPanel(column, index, task) {
-            currentTaskRef = { column, index };
-            document.getElementById('panel-title').innerText = task.titre;
-            document.getElementById('panel-project').innerText = task.projet;
-            document.getElementById('panel-acteur').innerText = task.acteur || 'Non assigné';
+        // --- GESTION DU CLIC GAUCHE (MODALE TABLEAU) ---
+        function openHistoryModal(task) {
+            document.getElementById('modal-title').innerText = task.titre;
+            document.getElementById('modal-project').innerText = task.projet;
+            document.getElementById('modal-acteur').innerText = task.acteur || 'Non assigné';
             
-            // Réinitialisation des formulaires
-            document.getElementById('new-note-text').value = '';
-            document.getElementById('new-note-reunion').value = '';
-            // Remplir la date par défaut avec la date du jour
-            document.getElementById('new-note-date').valueAsDate = new Date();
-            
-            const listContainer = document.getElementById('panel-notes-list');
-            listContainer.innerHTML = '';
+            const tbody = document.getElementById('modal-table-body');
+            tbody.innerHTML = '';
             
             if (task.notes && task.notes.length > 0) {
                 task.notes.forEach(note => {
-                    const item = document.createElement('div');
-                    item.className = 'note-item';
-                    
-                    // Formatage visuel si une réunion est renseignée
-                    const reunionBadge = note.reunion ? `<span class="note-reunion-tag">${note.reunion}</span>` : '';
-                    
-                    item.innerHTML = `
-                        <div class="note-date">
-                            🗓️ ${note.date} ${reunionBadge}
-                        </div>
-                        <div style="white-space: pre-wrap;">${note.texte}</div>
+                    const tr = document.createElement('tr');
+                    const badge = note.reunion ? `<span class="badge-reunion">${note.reunion}</span>` : '<span style="color:#aaa;">-</span>';
+                    tr.innerHTML = `
+                        <td>${note.date}</td>
+                        <td>${badge}</td>
+                        <td style="white-space: pre-wrap;">${note.texte}</td>
                     `;
-                    listContainer.appendChild(item);
+                    tbody.appendChild(tr);
                 });
             } else {
-                listContainer.innerHTML = '<p style="font-size:14px; color:#888; font-style: italic;">Aucun historique de suivi pour cette tâche.</p>';
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#888; font-style:italic;">Aucun historique de suivi.</td></tr>';
             }
+            
+            document.getElementById('notes-modal').style.display = 'flex';
+        }
+
+        function closeModal(e) {
+            if(e) e.stopPropagation();
+            document.getElementById('notes-modal').style.display = 'none';
+        }
+
+        // --- GESTION DU CLIC DROIT (MENU CONTEXTUEL) ---
+        function showContextMenu(e, column, index, task) {
+            const menu = document.getElementById('context-menu');
+            
+            // Positionne le menu à l'emplacement de la souris
+            menu.style.display = 'block';
+            menu.style.left = e.pageX + 'px';
+            menu.style.top = e.pageY + 'px';
+            
+            // On stocke la référence de la tâche cliquée
+            currentTaskRef = { column, index, task };
+        }
+
+        // Cacher le menu contextuel au clic ailleurs
+        document.addEventListener('click', () => {
+            document.getElementById('context-menu').style.display = 'none';
+        });
+
+        // Action quand on clique sur "Ajouter une note" dans le menu contextuel
+        document.getElementById('menu-add-note').addEventListener('click', (e) => {
+            e.stopPropagation(); // Évite la fermeture immédiate
+            document.getElementById('context-menu').style.display = 'none';
+            openAddNotePanel();
+        });
+
+        // --- GESTION DU PANNEAU D'AJOUT ---
+        function openAddNotePanel() {
+            const task = currentTaskRef.task;
+            document.getElementById('panel-title').innerText = task.titre;
+            
+            // Réinitialisation du formulaire
+            document.getElementById('new-note-text').value = '';
+            document.getElementById('new-note-reunion').value = '';
+            document.getElementById('new-note-date').valueAsDate = new Date(); // Date du jour
             
             document.getElementById('details-panel').classList.add('open');
         }
@@ -239,8 +298,10 @@ require_once 'auth.php';
             .then(res => res.json())
             .then(resData => {
                 if(resData.success) {
-                    openPanel(currentTaskRef.column, currentTaskRef.index, resData.task);
+                    closePanel();
                     loadBoard();
+                    // Optionnel : ouvrir la modale pour voir la note fraîchement ajoutée
+                    // openHistoryModal(resData.task);
                 }
             });
         }
