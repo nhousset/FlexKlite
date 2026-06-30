@@ -40,9 +40,9 @@ require_once 'auth.php';
             </div>
 
             <?php 
-            include 'src/kanban.php';
-            include 'src/liste.php';
-            include 'src/kpi.php';
+            include 'kanban.php';
+            include 'liste.php';
+            include 'kpi.php';
             ?>
 
         </div>
@@ -207,7 +207,7 @@ require_once 'auth.php';
                 .then(res => res.json())
                 .then(data => {
                     const listTableBody = document.getElementById('list-table-body');
-                    listTableBody.innerHTML = '';
+                    if(listTableBody) listTableBody.innerHTML = '';
                     
                     let kpi = { total: 0, status: { todo: 0, in_progress: 0, blocked: 0, done: 0 }, acteur: {}, prio: {} };
                     let allNotesForActivity = [];
@@ -251,29 +251,31 @@ require_once 'auth.php';
                             if(container) container.appendChild(card);
 
                             // 2. VUE LISTE
-                            const tr = document.createElement('tr');
-                            tr.className = 'filter-item';
-                            tr.dataset.search = searchableText;
-                            tr.dataset.projet = pAttr;
-                            tr.dataset.acteur = aAttr;
-                            tr.dataset.statut = status;
-                            tr.dataset.prio = prAttr;
-                            tr.onclick = () => openHistoryModal(task);
-                            
-                            const actLabel = task.acteur || '-';
-                            const prioLabel = task.prio || '-';
-                            const dateFin = task.date_fin ? task.date_fin.split('-').reverse().join('/') : '-';
-                            
-                            tr.innerHTML = `
-                                <td><span class="tag tag-itbm" style="background:none; border:1px solid #dfe1e6;">📁 ${task.projet}</span></td>
-                                <td style="font-weight: 500;">${task.titre}</td>
-                                <td><span class="status-badge status-${status}">${statusLabels[status]}</span></td>
-                                <td>${prioLabel !== '-' ? `🔥 ${prioLabel}` : '-'}</td>
-                                <td>🧑‍💻 ${actLabel}</td>
-                                <td style="color:#5e6c84;">${dateFin}</td>
-                                <td style="color:#5e6c84;">🕒 ${task.maj}</td>
-                            `;
-                            listTableBody.appendChild(tr);
+                            if(listTableBody) {
+                                const tr = document.createElement('tr');
+                                tr.className = 'filter-item';
+                                tr.dataset.search = searchableText;
+                                tr.dataset.projet = pAttr;
+                                tr.dataset.acteur = aAttr;
+                                tr.dataset.statut = status;
+                                tr.dataset.prio = prAttr;
+                                tr.onclick = () => openHistoryModal(task);
+                                
+                                const actLabel = task.acteur || '-';
+                                const prioLabel = task.prio || '-';
+                                const dateFin = task.date_fin ? task.date_fin.split('-').reverse().join('/') : '-';
+                                
+                                tr.innerHTML = `
+                                    <td><span class="tag tag-itbm" style="background:none; border:1px solid #dfe1e6;">📁 ${task.projet}</span></td>
+                                    <td style="font-weight: 500;">${task.titre}</td>
+                                    <td><span class="status-badge status-${status}">${statusLabels[status]}</span></td>
+                                    <td>${prioLabel !== '-' ? `🔥 ${prioLabel}` : '-'}</td>
+                                    <td>🧑‍💻 ${actLabel}</td>
+                                    <td style="color:#5e6c84;">${dateFin}</td>
+                                    <td style="color:#5e6c84;">🕒 ${task.maj}</td>
+                                `;
+                                listTableBody.appendChild(tr);
+                            }
 
                             // 3. KPI
                             kpi.total++;
@@ -304,11 +306,17 @@ require_once 'auth.php';
 
         // --- FILTRAGE CSS ---
         function applyFilters() {
-            const search = document.getElementById('filter-search').value.toLowerCase();
-            const projet = document.getElementById('filter-projet').value;
-            const statut = document.getElementById('filter-statut').value;
-            const prio = document.getElementById('filter-prio').value;
-            const acteur = document.getElementById('filter-acteur').value;
+            const searchEl = document.getElementById('filter-search');
+            const projetEl = document.getElementById('filter-projet');
+            const statutEl = document.getElementById('filter-statut');
+            const prioEl = document.getElementById('filter-prio');
+            const acteurEl = document.getElementById('filter-acteur');
+
+            const search = searchEl ? searchEl.value.toLowerCase() : '';
+            const projet = projetEl ? projetEl.value : '';
+            const statut = statutEl ? statutEl.value : '';
+            const prio = prioEl ? prioEl.value : '';
+            const acteur = acteurEl ? acteurEl.value : '';
 
             document.querySelectorAll('.filter-item').forEach(item => {
                 const text = item.dataset.search;
@@ -332,10 +340,13 @@ require_once 'auth.php';
         }
 
         function renderKPIs(kpi) {
+            const kpiContainer = document.getElementById('kpi-container');
+            if(!kpiContainer) return;
+
             const sortedActors = Object.entries(kpi.acteur).sort((a, b) => b[1] - a[1]);
             const sortedPrios = Object.entries(kpi.prio).sort((a, b) => b[1] - a[1]);
 
-            document.getElementById('kpi-container').innerHTML = `
+            kpiContainer.innerHTML = `
                 <div class="kpi-card" style="display:flex; flex-direction:column; justify-content:center; align-items:center;">
                     <h3>Total des tâches</h3><div class="kpi-value-main">${kpi.total}</div><div class="kpi-value-label">Chantiers actifs et terminés</div>
                 </div>
@@ -361,6 +372,8 @@ require_once 'auth.php';
 
         function renderRecentActivity(notes) {
             const container = document.getElementById('recent-activity-list');
+            if(!container) return;
+
             container.innerHTML = '';
             
             notes.sort((a, b) => b.timestamp - a.timestamp);
