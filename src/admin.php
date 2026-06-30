@@ -57,27 +57,39 @@ require_once 'auth.php';
                 <button class="btn" onclick="addItem('priorites')">Ajouter</button>
             </div>
         </div>
+
+        <div class="admin-card">
+            <h3>Types de Réunions</h3>
+            <ul class="item-list" id="list-reunions"></ul>
+            <div class="add-group">
+                <input type="text" id="input-reunions" placeholder="Point équipe, Coproj...">
+                <button class="btn" onclick="addItem('reunions')">Ajouter</button>
+            </div>
+        </div>
     </div>
 
     <script>
-        let settingsData = { projets: [], acteurs: [], priorites: [] };
+        let settingsData = { projets: [], acteurs: [], priorites: [], reunions: [] };
 
         fetch('api.php?action=get_settings')
             .then(res => res.json())
             .then(data => {
-                settingsData = data;
+                // Fusion pour assurer que la clé existe même si le JSON est ancien
+                settingsData = { ...settingsData, ...data };
                 renderLists();
             });
 
         function renderLists() {
-            ['projets', 'acteurs', 'priorites'].forEach(category => {
+            ['projets', 'acteurs', 'priorites', 'reunions'].forEach(category => {
                 const ul = document.getElementById(`list-${category}`);
                 ul.innerHTML = '';
-                settingsData[category].forEach((item, index) => {
-                    const li = document.createElement('li');
-                    li.innerHTML = `${item} <button onclick="removeItem('${category}', ${index})" title="Supprimer">X</button>`;
-                    ul.appendChild(li);
-                });
+                if(settingsData[category]) {
+                    settingsData[category].forEach((item, index) => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `${item} <button onclick="removeItem('${category}', ${index})" title="Supprimer">X</button>`;
+                        ul.appendChild(li);
+                    });
+                }
             });
         }
 
