@@ -5,21 +5,20 @@ require_once 'auth.php';
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Suivi de Chantiers - Kanban JSON</title>
+    <title>Suivi de Chantiers - Kanban</title>
     <link rel="stylesheet" href="style.css?<?= time() ?>">
 </head>
 <body>
 
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h1 style="margin: 0;">Mon Kanban Chantiers & Suivi</h1>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+        <h1 style="margin: 0;">Tableau Kanban - Suivi des Chantiers</h1>
         <div>
-            <a href="admin.php" class="btn" style="background: #0052cc; text-decoration: none; margin-right: 10px; font-size: 12px;">⚙️ Paramètres</a>
-            <a href="logout.php" class="btn" style="background: #d32f2f; text-decoration: none; font-size: 12px;">Se déconnecter</a>
+            <a href="admin.php" class="btn" style="background: #e3f2fd; color: #0052cc; text-decoration: none; margin-right: 10px;">⚙️ Paramètres</a>
+            <a href="logout.php" class="btn" style="background: #ffebee; color: #d32f2f; text-decoration: none;">Se déconnecter</a>
         </div>
     </div>
 
     <?php 
-    // Lecture des paramètres pour populer les dropdowns
     $settings_file = __DIR__ . '/db/settings.json';
     $settings = file_exists($settings_file) ? json_decode(file_get_contents($settings_file), true) : ["projets" => [], "acteurs" => [], "priorites" => []]; 
     ?>
@@ -36,17 +35,19 @@ require_once 'auth.php';
 
             <input type="text" name="titre" placeholder="Intitulé de la tâche" style="width: 250px;" required>
             
+            <select name="couleur">
+                <option value="color-yellow">🟨 Standard</option>
+                <option value="color-blue">🟦 Étude/Tech</option>
+                <option value="color-orange">🟧 Urgence</option>
+                <option value="color-pink">🟥 Bug/Bloquant</option>
+                <option value="color-green">🟩 Validé</option>
+                <option value="color-grey">⬜ En attente</option>
+            </select>
+
             <select name="prio">
                 <option value="">-- Prio --</option>
                 <?php foreach($settings['priorites'] as $p): ?>
                     <option value="<?= htmlspecialchars($p) ?>"><?= htmlspecialchars($p) ?></option>
-                <?php endforeach; ?>
-            </select>
-
-            <select name="porteur">
-                <option value="">-- Porteur --</option>
-                <?php foreach($settings['acteurs'] as $a): ?>
-                    <option value="<?= htmlspecialchars($a) ?>"><?= htmlspecialchars($a) ?></option>
                 <?php endforeach; ?>
             </select>
 
@@ -58,7 +59,7 @@ require_once 'auth.php';
             </select>
 
             <input type="text" name="note_initiale" placeholder="Note (optionnel)" style="width: 150px;">
-            <button type="submit" class="btn">Ajouter</button>
+            <button type="submit" class="btn">Ajouter la tâche</button>
         </form>
     </div>
 
@@ -82,15 +83,18 @@ require_once 'auth.php';
     </div>
 
     <div id="details-panel">
-        <span class="close-panel" onclick="closePanel()">X</span>
-        <h2 id="panel-title" style="font-size: 16px; margin-top: 0;"></h2>
-        <p style="font-size: 12px; color:#6b778c;">Projet : <span id="panel-project"></span> | Acteur : <span id="panel-acteur"></span></p>
+        <span class="close-panel" onclick="closePanel()">×</span>
+        <h2 id="panel-title" style="font-size: 18px; margin-top: 0; color: #091e42; line-height: 1.3;"></h2>
+        <p style="font-size: 12px; color:#5e6c84; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #ebecf0;">
+            Projet : <strong id="panel-project" style="color: #172b4d;"></strong> | 
+            Acteur : <strong id="panel-acteur" style="color: #172b4d;"></strong>
+        </p>
         
-        <h4 style="margin-bottom: 8px; font-size:13px;">Ajouter un point de suivi :</h4>
-        <textarea id="new-note-text" style="width:100%; height:60px; margin-bottom:8px; font-family:inherit;"></textarea>
-        <button class="btn" onclick="submitNote()">Enregistrer la note</button>
+        <h4 style="margin-bottom: 10px; font-size:14px; color: #172b4d;">Ajouter un point de suivi :</h4>
+        <textarea id="new-note-text" style="width:100%; height:80px; margin-bottom:12px; padding: 10px; border: 1px solid #dfe1e6; border-radius: 4px; font-family:inherit; box-sizing: border-box;"></textarea>
+        <button class="btn" style="width: 100%;" onclick="submitNote()">Enregistrer la note</button>
         
-        <h4 style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 15px; font-size:13px;">Historique des notes :</h4>
+        <h4 style="margin-top: 30px; font-size:14px; color: #172b4d;">Historique des notes :</h4>
         <div id="panel-notes-list"></div>
     </div>
 
@@ -98,7 +102,6 @@ require_once 'auth.php';
     <script>
         let currentTaskRef = { column: null, index: null };
 
-        // Charger et afficher les données
         function loadBoard() {
             fetch('api.php?action=get')
                 .then(res => res.json())
@@ -108,7 +111,11 @@ require_once 'auth.php';
                         container.innerHTML = '';
                         data[status].forEach((task, index) => {
                             const card = document.createElement('div');
-                            card.className = 'card';
+                            
+                            // Application dynamique de la classe de couleur (Jaune par défaut si absent)
+                            const colorClass = task.couleur ? task.couleur : 'color-yellow';
+                            card.className = `card ${colorClass}`;
+                            
                             card.dataset.index = index;
                             card.onclick = () => openPanel(status, index, task);
                             
@@ -119,7 +126,7 @@ require_once 'auth.php';
                                 </div>
                                 <div class="card-title">${task.titre}</div>
                                 <div class="card-footer">
-                                    <span>${task.acteur || task.porteur || ''}</span>
+                                    <span>${task.acteur || task.porteur || 'Non assigné'}</span>
                                     <span>MAJ: ${task.maj}</span>
                                 </div>
                             `;
@@ -129,11 +136,10 @@ require_once 'auth.php';
                 });
         }
 
-        // Configuration du Drag & Drop
         document.querySelectorAll('.list').forEach(listEl => {
             new Sortable(listEl, {
                 group: 'kanban-board',
-                animation: 150,
+                animation: 200,
                 ghostClass: 'sortable-ghost',
                 onEnd: function (evt) {
                     const fromColumn = evt.from.dataset.status;
@@ -157,7 +163,6 @@ require_once 'auth.php';
             });
         });
 
-        // Gestion du panneau latéral de suivi
         function openPanel(column, index, task) {
             currentTaskRef = { column, index };
             document.getElementById('panel-title').innerText = task.titre;
@@ -172,11 +177,11 @@ require_once 'auth.php';
                 task.notes.forEach(note => {
                     const item = document.createElement('div');
                     item.className = 'note-item';
-                    item.innerHTML = `<div class="note-date">Le ${note.date}</div><div>${note.texte}</div>`;
+                    item.innerHTML = `<div class="note-date">${note.date}</div><div>${note.texte}</div>`;
                     listContainer.appendChild(item);
                 });
             } else {
-                listContainer.innerHTML = '<p style="font-size:12px; color:#888; italic">Aucun historique de suivi.</p>';
+                listContainer.innerHTML = '<p style="font-size:13px; color:#888; font-style: italic;">Aucun historique de suivi pour cette tâche.</p>';
             }
             
             document.getElementById('details-panel').classList.add('open');
