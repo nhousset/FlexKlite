@@ -14,14 +14,22 @@ if (!file_exists($db_file)) {
     file_put_contents($db_file, json_encode(["todo" => [], "in_progress" => [], "blocked" => [], "done" => []], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
 
-// Initialisation Settings par défaut
+// Initialisation Settings par défaut enrichie
 if (!file_exists($settings_file)) {
     $default_settings = [
-        "projets" => ["VIYA 4", "Plateforme", "MCO", "Arida"],
-        "acteurs" => ["Nicolas H.", "Kevin L.", "Thomas", "Raphaël", "David M."],
-        "priorites" => ["1", "2", "3", "En attente"]
+        "projets" => ["VIYA 4", "Plateforme", "MCO"],
+        "acteurs" => ["Nicolas H.", "Kevin L.", "David M."],
+        "priorites" => ["1", "2", "3", "En attente"],
+        "reunions" => ["Point OPS", "Comité BI", "Coproj", "Point équipe"]
     ];
     file_put_contents($settings_file, json_encode($default_settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+}
+
+// Sécurité pour ajouter la clé "reunions" si on utilise un vieux fichier settings.json
+$current_settings = json_decode(file_get_contents($settings_file), true);
+if (!isset($current_settings['reunions'])) {
+    $current_settings['reunions'] = ["Point OPS", "Comité BI", "Coproj", "Point équipe"];
+    file_put_contents($settings_file, json_encode($current_settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
 
 function read_db($file) { 
@@ -72,13 +80,14 @@ switch ($action) {
                 'prio'    => $_POST['prio'] ?? '',
                 'porteur' => $_POST['porteur'] ?? '',
                 'acteur'  => $_POST['acteur'] ?? '',
-                'couleur' => $_POST['couleur'] ?? 'color-yellow', // Ajout de la couleur ici
+                'couleur' => $_POST['couleur'] ?? 'color-yellow',
                 'maj'     => date('d/m'),
                 'notes'   => []
             ];
             if (!empty($_POST['note_initiale'])) {
                 $new_task['notes'][] = [
-                    'date'  => date('d/m'),
+                    'date'  => date('d/m/Y'),
+                    'reunion' => '',
                     'texte' => $_POST['note_initiale']
                 ];
             }
@@ -93,13 +102,20 @@ switch ($action) {
         $col = $data['column'];
         $idx = (int)$data['index'];
         $texte = $data['text'];
+        $reunion = $data['reunion'] ?? '';
+        
+        // Formatage de la date (conversion de YYYY-MM-DD vers DD/MM/YYYY)
+        $date_saisie = !empty($data['date']) ? date('d/m/Y', strtotime($data['date'])) : date('d/m/Y');
 
         if (!empty($texte) && isset($kanban[$col][$idx])) {
             array_unshift($kanban[$col][$idx]['notes'], [
-                'date'  => date('d/m'),
-                'texte' => $texte
+                'date'    => $date_saisie,
+                'reunion' => $reunion,
+                'texte'   => $texte
             ]);
-            $kanban[$col][$idx]['maj'] = date('d/m');
+            // Mise à jour de la date globale au format court pour la carte
+            $kanban[$col][$idx]['maj'] = !empty($data['date']) ? date('d/m', strtotime($data['date'])) : date('d/m');
+            
             write_db($db_file, $kanban);
             echo json_encode(['success' => true, 'task' => $kanban[$col][$idx]]);
         } else {
