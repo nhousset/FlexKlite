@@ -22,35 +22,7 @@ body {
 
 h1 { font-size: 24px; margin-bottom: 20px; font-weight: 700; color: #091e42; }
 
-/* Conteneurs et formulaires */
-.forms-container { 
-    background: white; 
-    padding: 16px 20px; 
-    border-radius: 8px; 
-    margin-bottom: 30px; 
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
-    display: flex;
-    align-items: center;
-}
-
-.forms-container form { display: flex; gap: 12px; flex-wrap: wrap; width: 100%; align-items: center;}
-
-.forms-container input, .forms-container select { 
-    padding: 8px 12px; 
-    border: 1px solid #dfe1e6; 
-    border-radius: 4px; 
-    font-family: var(--font-main);
-    font-size: 14px;
-    background-color: #fafbfc;
-    color: var(--text-main);
-}
-
-.forms-container input:focus, .forms-container select:focus {
-    outline: none;
-    border-color: var(--primary);
-    background-color: #fff;
-}
-
+/* Boutons globaux */
 .btn { 
     background: var(--primary); 
     color: white; 
@@ -138,6 +110,7 @@ h1 { font-size: 24px; margin-bottom: 20px; font-weight: 700; color: #091e42; }
 }
 
 .tag-prio { color: #c62828; }
+.tag-itbm { background: #e3f2fd; color: #0d47a1; }
 
 .card-title { 
     font-size: 14px; 
@@ -187,7 +160,7 @@ h1 { font-size: 24px; margin-bottom: 20px; font-weight: 700; color: #091e42; }
     color: var(--primary);
 }
 
-/* Modale pour le tableau d'historique (Clic Gauche) */
+/* Base des Modales */
 .modal-overlay {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(9, 30, 66, 0.54);
@@ -198,7 +171,7 @@ h1 { font-size: 24px; margin-bottom: 20px; font-weight: 700; color: #091e42; }
 .modal-content {
     background: white; 
     border-radius: 8px; 
-    padding: 24px;
+    padding: 30px;
     width: 90%; 
     max-width: 900px; 
     max-height: 85vh; 
@@ -218,39 +191,54 @@ h1 { font-size: 24px; margin-bottom: 20px; font-weight: 700; color: #091e42; }
 }
 .modal-close:hover { color: var(--text-main); }
 
-.notes-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-    font-size: 14px;
+/* Styles spécifiques au formulaire de la modale d'ajout */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 25px;
 }
 
-.notes-table th {
-    background: #f4f5f7;
-    padding: 12px;
-    text-align: left;
-    color: #5e6c84;
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    font-size: 13px;
     font-weight: 600;
-    border-bottom: 2px solid #dfe1e6;
-}
-
-.notes-table td {
-    padding: 12px;
-    border-bottom: 1px solid #dfe1e6;
-    vertical-align: top;
     color: var(--text-main);
 }
 
-.notes-table tr:hover { background: #fafbfc; }
-
-.badge-reunion {
-    background: #e3f2fd; color: #0d47a1;
-    padding: 3px 8px; border-radius: 4px;
-    font-size: 12px; font-weight: 600;
-    white-space: nowrap;
+.form-group input, .form-group select, .form-group textarea {
+    padding: 10px 12px;
+    border: 1px solid #dfe1e6;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 14px;
+    background: #fafbfc;
+    color: var(--text-main);
 }
 
-/* Panneau latéral (Modifié pour 50% de l'écran) */
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: white;
+}
+
+/* Tableau Historique */
+.notes-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+.notes-table th { background: #f4f5f7; padding: 12px; text-align: left; color: #5e6c84; font-weight: 600; border-bottom: 2px solid #dfe1e6; }
+.notes-table td { padding: 12px; border-bottom: 1px solid #dfe1e6; vertical-align: top; color: var(--text-main); }
+.notes-table tr:hover { background: #fafbfc; }
+.badge-reunion { background: #e3f2fd; color: #0d47a1; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+
+/* Panneau latéral */
 #details-panel { 
     position: fixed; right: -50vw; top: 0; width: 50vw; height: 100%; 
     background: white; box-shadow: -5px 0 15px rgba(0,0,0,0.1); 
@@ -259,8 +247,25 @@ h1 { font-size: 24px; margin-bottom: 20px; font-weight: 700; color: #091e42; }
 }
 
 #details-panel.open { right: 0; }
-.close-panel { float: right; cursor: pointer; font-weight: bold; font-size: 22px; color: var(--text-muted);}
-.close-panel:hover { color: var(--text-main); }
+
+.task-meta-info {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: #5e6c84;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #ebecf0;
+}
+
+.task-meta-info div {
+    background: #f4f5f7;
+    padding: 6px 12px;
+    border-radius: 4px;
+}
+
+.task-meta-info strong { color: #172b4d; }
 
 .note-meta-inputs { display: flex; gap: 12px; margin-bottom: 12px; }
 .note-meta-inputs input, .note-meta-inputs select {
@@ -269,24 +274,13 @@ h1 { font-size: 24px; margin-bottom: 20px; font-weight: 700; color: #091e42; }
 }
 .note-meta-inputs input:focus, .note-meta-inputs select:focus { outline: none; border-color: var(--primary); }
 
-/* Blocs d'historique dans le panneau latéral */
 .note-item { 
-    background: #f4f5f7; 
-    padding: 16px; 
-    margin-bottom: 12px; 
-    border-radius: 6px; 
-    border-left: 4px solid var(--primary); 
-    font-size: 14px; 
-    line-height: 1.5; 
-    color: var(--text-main);
+    background: #f4f5f7; padding: 16px; margin-bottom: 12px; 
+    border-radius: 6px; border-left: 4px solid var(--primary); 
+    font-size: 14px; line-height: 1.5; color: var(--text-main);
 }
 
 .note-date { 
-    font-weight: 600; 
-    color: var(--text-muted); 
-    margin-bottom: 8px; 
-    font-size: 12px; 
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    font-weight: 600; color: var(--text-muted); margin-bottom: 8px; 
+    font-size: 12px; display: flex; align-items: center; gap: 8px;
 }
