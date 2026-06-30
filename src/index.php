@@ -12,7 +12,11 @@ require_once 'auth.php';
 
     <div class="main-header">
         <h1 style="margin: 0;">Gestion des Chantiers & Suivi</h1>
-        <div style="display: flex; gap: 10px;">
+        <div class="header-actions">
+            <div class="search-box">
+                <span>🔍</span>
+                <input type="text" id="filter-search" placeholder="Recherche rapide (Titre, Code...)" onkeyup="applyFilters()">
+            </div>
             <button onclick="openAddTaskModal()" class="btn" style="background: #00875a;">➕ Nouvelle Tâche</button>
             <a href="admin.php" class="btn" style="background: #e3f2fd; color: #0052cc; text-decoration: none;">⚙️ Paramètres</a>
             <a href="logout.php" class="btn" style="background: #ffebee; color: #d32f2f; text-decoration: none;">Se déconnecter</a>
@@ -29,25 +33,6 @@ require_once 'auth.php';
         
         <div class="main-content">
             
-            <div class="filter-bar">
-                <div class="search-box">
-                    <span>🔍</span>
-                    <input type="text" id="filter-search" placeholder="Recherche rapide (Titre, ITBM, Code Projet...)" onkeyup="applyFilters()">
-                </div>
-                <select id="filter-projet" onchange="applyFilters()">
-                    <option value="">Tous les projets</option>
-                    <?php foreach($settings['projets'] as $p): ?>
-                        <option value="<?= htmlspecialchars($p) ?>"><?= htmlspecialchars($p) ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <select id="filter-acteur" onchange="applyFilters()">
-                    <option value="">Tous les acteurs</option>
-                    <?php foreach($settings['acteurs'] as $a): ?>
-                        <option value="<?= htmlspecialchars($a) ?>"><?= htmlspecialchars($a) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
             <div class="tabs-header">
                 <button class="tab-btn active" onclick="switchTab('tab-kanban', this)">🗂️ Vue Kanban</button>
                 <button class="tab-btn" onclick="switchTab('tab-list', this)">📋 Vue Liste (Excel)</button>
@@ -80,13 +65,52 @@ require_once 'auth.php';
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th style="width: 15%;">Projet</th>
-                                <th style="width: 30%;">Tâche</th>
-                                <th style="width: 10%;">Statut</th>
-                                <th style="width: 10%;">Priorité</th>
-                                <th style="width: 15%;">Acteur</th>
-                                <th style="width: 10%;">Échéance</th>
-                                <th style="width: 10%;">Dernière MAJ</th>
+                                <th style="width: 15%;">
+                                    <div>Projet</div>
+                                    <select id="filter-projet" class="table-filter" onchange="applyFilters()">
+                                        <option value="">Tous</option>
+                                        <?php foreach($settings['projets'] as $p): ?>
+                                            <option value="<?= htmlspecialchars($p) ?>"><?= htmlspecialchars($p) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </th>
+                                <th style="width: 30%;">
+                                    <div style="margin-top: 15px;">Tâche</div>
+                                </th>
+                                <th style="width: 12%;">
+                                    <div>Statut</div>
+                                    <select id="filter-statut" class="table-filter" onchange="applyFilters()">
+                                        <option value="">Tous</option>
+                                        <option value="todo">À Faire</option>
+                                        <option value="in_progress">En Cours</option>
+                                        <option value="blocked">Bloqué</option>
+                                        <option value="done">Terminé</option>
+                                    </select>
+                                </th>
+                                <th style="width: 10%;">
+                                    <div>Priorité</div>
+                                    <select id="filter-prio" class="table-filter" onchange="applyFilters()">
+                                        <option value="">Toutes</option>
+                                        <?php foreach($settings['priorites'] as $p): ?>
+                                            <option value="<?= htmlspecialchars($p) ?>"><?= htmlspecialchars($p) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </th>
+                                <th style="width: 13%;">
+                                    <div>Acteur</div>
+                                    <select id="filter-acteur" class="table-filter" onchange="applyFilters()">
+                                        <option value="">Tous</option>
+                                        <?php foreach($settings['acteurs'] as $a): ?>
+                                            <option value="<?= htmlspecialchars($a) ?>"><?= htmlspecialchars($a) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </th>
+                                <th style="width: 10%;">
+                                    <div style="margin-top: 15px;">Échéance</div>
+                                </th>
+                                <th style="width: 10%;">
+                                    <div style="margin-top: 15px;">Dernière MAJ</div>
+                                </th>
                             </tr>
                         </thead>
                         <tbody id="list-table-body"></tbody>
@@ -106,7 +130,10 @@ require_once 'auth.php';
                 </div>
         </aside>
 
-    </div> <div id="add-task-modal" class="modal-overlay" onclick="closeAddTaskModal(event)">
+    </div>
+
+
+    <div id="add-task-modal" class="modal-overlay" onclick="closeAddTaskModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 700px;">
             <span class="modal-close" onclick="closeAddTaskModal(event)">×</span>
             <h2 style="margin-top: 0; color: #091e42; margin-bottom: 25px;">Créer une nouvelle tâche</h2>
@@ -245,7 +272,6 @@ require_once 'auth.php';
         let currentTaskRef = { column: null, index: null, task: null };
         const statusLabels = { todo: 'À Faire', in_progress: 'En Cours', blocked: 'Bloqué / En attente', done: 'Terminé' };
 
-        // Navigation par onglets
         function switchTab(tabId, btn) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -253,7 +279,6 @@ require_once 'auth.php';
             btn.classList.add('active');
         }
 
-        // Chargement et Rendu Principal
         function loadBoard() {
             fetch('api.php?action=get')
                 .then(res => res.json())
@@ -262,7 +287,7 @@ require_once 'auth.php';
                     listTableBody.innerHTML = '';
                     
                     let kpi = { total: 0, status: { todo: 0, in_progress: 0, blocked: 0, done: 0 }, acteur: {}, prio: {} };
-                    let allNotesForActivity = []; // Pour la sidebar de droite
+                    let allNotesForActivity = [];
 
                     Object.keys(data).forEach(status => {
                         const container = document.querySelector(`[data-status="${status}"]`);
@@ -270,10 +295,11 @@ require_once 'auth.php';
                         
                         data[status].forEach((task, index) => {
                             
-                            // Attributs de filtrage (Search en minuscules pour faciliter la correspondance)
+                            // Attributs pour le filtrage
                             const searchableText = `${task.titre} ${task.projet} ${task.code_projet||''} ${task.code_itbm||''}`.toLowerCase();
                             const pAttr = task.projet || '';
                             const aAttr = task.acteur || '';
+                            const prAttr = task.prio || '';
 
                             // 1. VUE KANBAN
                             const card = document.createElement('div');
@@ -282,6 +308,8 @@ require_once 'auth.php';
                             card.dataset.search = searchableText;
                             card.dataset.projet = pAttr;
                             card.dataset.acteur = aAttr;
+                            card.dataset.statut = status;
+                            card.dataset.prio = prAttr;
                             
                             card.addEventListener('click', () => openHistoryModal(task));
                             card.addEventListener('contextmenu', (e) => { e.preventDefault(); showContextMenu(e, status, index, task); });
@@ -306,6 +334,8 @@ require_once 'auth.php';
                             tr.dataset.search = searchableText;
                             tr.dataset.projet = pAttr;
                             tr.dataset.acteur = aAttr;
+                            tr.dataset.statut = status;
+                            tr.dataset.prio = prAttr;
                             tr.onclick = () => openHistoryModal(task);
                             
                             const actLabel = task.acteur || '-';
@@ -335,12 +365,9 @@ require_once 'auth.php';
                             if (task.notes && task.notes.length > 0) {
                                 task.notes.forEach(note => {
                                     allNotesForActivity.push({
-                                        taskTitle: task.titre,
-                                        projet: task.projet,
-                                        texte: note.texte,
-                                        date: note.date,
-                                        reunion: note.reunion,
-                                        timestamp: note.timestamp || 0 // Défaut pour les anciennes notes
+                                        taskTitle: task.titre, projet: task.projet,
+                                        texte: note.texte, date: note.date, reunion: note.reunion,
+                                        timestamp: note.timestamp || 0 
                                     });
                                 });
                             }
@@ -349,26 +376,32 @@ require_once 'auth.php';
 
                     renderKPIs(kpi);
                     renderRecentActivity(allNotesForActivity);
-                    applyFilters(); // Réapplique le filtre après un rafraîchissement
+                    applyFilters(); // Maintient les filtres actifs au rechargement
                 });
         }
 
-        // --- FILTRAGE CSS SANS CASSER LE DRAG & DROP ---
+        // --- FILTRAGE CSS ---
         function applyFilters() {
             const search = document.getElementById('filter-search').value.toLowerCase();
             const projet = document.getElementById('filter-projet').value;
+            const statut = document.getElementById('filter-statut').value;
+            const prio = document.getElementById('filter-prio').value;
             const acteur = document.getElementById('filter-acteur').value;
 
             document.querySelectorAll('.filter-item').forEach(item => {
                 const text = item.dataset.search;
                 const p = item.dataset.projet;
+                const s = item.dataset.statut;
+                const pr = item.dataset.prio;
                 const a = item.dataset.acteur;
                 
                 const matchSearch = search === '' || text.includes(search);
                 const matchProjet = projet === '' || p === projet;
+                const matchStatut = statut === '' || s === statut;
+                const matchPrio = prio === '' || pr === prio;
                 const matchActeur = acteur === '' || a === acteur;
 
-                if (matchSearch && matchProjet && matchActeur) {
+                if (matchSearch && matchProjet && matchStatut && matchPrio && matchActeur) {
                     item.style.display = item.tagName === 'TR' ? 'table-row' : 'block';
                 } else {
                     item.style.display = 'none';
@@ -376,7 +409,6 @@ require_once 'auth.php';
             });
         }
 
-        // Rendu KPI
         function renderKPIs(kpi) {
             const sortedActors = Object.entries(kpi.acteur).sort((a, b) => b[1] - a[1]);
             const sortedPrios = Object.entries(kpi.prio).sort((a, b) => b[1] - a[1]);
@@ -405,15 +437,11 @@ require_once 'auth.php';
             `;
         }
 
-        // Rendu Activité Récente (Triée par Timestamp)
         function renderRecentActivity(notes) {
             const container = document.getElementById('recent-activity-list');
             container.innerHTML = '';
             
-            // Tri décroissant sur le timestamp (Les plus récents en premier)
             notes.sort((a, b) => b.timestamp - a.timestamp);
-            
-            // On ne garde que les 5 plus récents
             const top5 = notes.slice(0, 5);
 
             if(top5.length === 0) {
@@ -437,31 +465,23 @@ require_once 'auth.php';
             });
         }
 
-        // Configuration du Drag & Drop Kanban
+        // Kanban Drag & Drop
         document.querySelectorAll('.list').forEach(listEl => {
             new Sortable(listEl, {
-                group: 'kanban-board',
-                animation: 200,
-                ghostClass: 'sortable-ghost',
-                delay: 100, delayOnTouchOnly: true,
+                group: 'kanban-board', animation: 200, ghostClass: 'sortable-ghost', delay: 100, delayOnTouchOnly: true,
                 onEnd: function (evt) {
-                    const fromColumn = evt.from.dataset.status;
-                    const toColumn = evt.to.dataset.status;
-                    const fromIndex = evt.oldIndex;
-                    const toIndex = evt.newIndex;
-
+                    const fromColumn = evt.from.dataset.status; const toColumn = evt.to.dataset.status;
+                    const fromIndex = evt.oldIndex; const toIndex = evt.newIndex;
                     if (fromColumn === toColumn && fromIndex === toIndex) return;
-
                     fetch('api.php?action=move', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ fromColumn, toColumn, fromIndex, toIndex })
                     }).then(() => loadBoard());
                 }
             });
         });
 
-        // ================= GESTION DES FENÊTRES / ACTIONS =================
+        // ================= ACTIONS =================
         function openAddTaskModal() { document.getElementById('add-task-modal').style.display = 'flex'; }
         function closeAddTaskModal(e) { if(e) e.stopPropagation(); document.getElementById('add-task-modal').style.display = 'none'; }
 
@@ -477,7 +497,6 @@ require_once 'auth.php';
             
             const tbody = document.getElementById('modal-table-body');
             tbody.innerHTML = '';
-            
             if (task.notes && task.notes.length > 0) {
                 task.notes.forEach(note => {
                     const tr = document.createElement('tr');
@@ -488,7 +507,6 @@ require_once 'auth.php';
             } else {
                 tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#888; font-style:italic;">Aucun historique.</td></tr>';
             }
-            
             document.getElementById('notes-modal').style.display = 'flex';
         }
         function closeModal(e) { if(e) e.stopPropagation(); document.getElementById('notes-modal').style.display = 'none'; }
@@ -538,7 +556,7 @@ require_once 'auth.php';
                     listContainer.appendChild(item);
                 });
             } else {
-                listContainer.innerHTML = '<p style="font-size:14px; color:#888; font-style: italic;">Aucun historique de suivi pour cette tâche.</p>';
+                listContainer.innerHTML = '<p style="font-size:14px; color:#888; font-style: italic;">Aucun historique.</p>';
             }
             document.getElementById('details-panel').classList.add('open');
         }
