@@ -72,6 +72,7 @@ switch ($action) {
                 'prio'    => $_POST['prio'] ?? '',
                 'porteur' => $_POST['porteur'] ?? '',
                 'acteur'  => $_POST['acteur'] ?? '',
+                'couleur' => $_POST['couleur'] ?? 'color-yellow', // Ajout de la couleur ici
                 'maj'     => date('d/m'),
                 'notes'   => []
             ];
