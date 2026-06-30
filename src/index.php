@@ -5,13 +5,13 @@ require_once 'auth.php';
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Suivi de Chantiers - Kanban</title>
+    <title>Suivi de Chantiers - IHMT</title>
     <link rel="stylesheet" href="style.css?<?= time() ?>">
 </head>
 <body>
 
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-        <h1 style="margin: 0;">Tableau Kanban - Suivi des Chantiers</h1>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h1 style="margin: 0;">Gestion des Chantiers & Suivi</h1>
         <div style="display: flex; gap: 10px;">
             <button onclick="openAddTaskModal()" class="btn" style="background: #00875a;">➕ Nouvelle Tâche</button>
             <a href="admin.php" class="btn" style="background: #e3f2fd; color: #0052cc; text-decoration: none;">⚙️ Paramètres</a>
@@ -19,11 +19,64 @@ require_once 'auth.php';
         </div>
     </div>
 
+    <div class="tabs-header">
+        <button class="tab-btn active" onclick="switchTab('tab-kanban', this)">🗂️ Vue Kanban</button>
+        <button class="tab-btn" onclick="switchTab('tab-list', this)">📋 Vue Liste (Excel)</button>
+        <button class="tab-btn" onclick="switchTab('tab-kpi', this)">📊 Tableau de Bord</button>
+    </div>
+
     <?php 
     $settings_file = __DIR__ . '/db/settings.json';
     $default = ["projets" => [], "acteurs" => [], "priorites" => [], "reunions" => []];
     $settings = file_exists($settings_file) ? array_merge($default, json_decode(file_get_contents($settings_file), true)) : $default; 
     ?>
+
+    <div id="tab-kanban" class="tab-content active">
+        <div class="board">
+            <div class="column" id="todo">
+                <h3>À Faire</h3>
+                <div class="list" data-status="todo"></div>
+            </div>
+            <div class="column" id="in_progress">
+                <h3>En Cours</h3>
+                <div class="list" data-status="in_progress"></div>
+            </div>
+            <div class="column" id="blocked">
+                <h3>En attente / Bloqué</h3>
+                <div class="list" data-status="blocked"></div>
+            </div>
+            <div class="column" id="done">
+                <h3>Terminé</h3>
+                <div class="list" data-status="done"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-list" class="tab-content">
+        <div class="data-table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">Projet</th>
+                        <th style="width: 30%;">Tâche</th>
+                        <th style="width: 10%;">Statut</th>
+                        <th style="width: 10%;">Priorité</th>
+                        <th style="width: 15%;">Acteur</th>
+                        <th style="width: 10%;">Échéance</th>
+                        <th style="width: 10%;">Dernière MAJ</th>
+                    </tr>
+                </thead>
+                <tbody id="list-table-body">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="tab-kpi" class="tab-content">
+        <div class="kpi-grid" id="kpi-container">
+            </div>
+    </div>
+
 
     <div id="add-task-modal" class="modal-overlay" onclick="closeAddTaskModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 700px;">
@@ -115,29 +168,8 @@ require_once 'auth.php';
         </div>
     </div>
 
-    <div class="board">
-        <div class="column" id="todo">
-            <h3>À Faire</h3>
-            <div class="list" data-status="todo"></div>
-        </div>
-        <div class="column" id="in_progress">
-            <h3>En Cours</h3>
-            <div class="list" data-status="in_progress"></div>
-        </div>
-        <div class="column" id="blocked">
-            <h3>En attente / Bloqué</h3>
-            <div class="list" data-status="blocked"></div>
-        </div>
-        <div class="column" id="done">
-            <h3>Terminé</h3>
-            <div class="list" data-status="done"></div>
-        </div>
-    </div>
-
     <div id="context-menu">
-        <div class="context-menu-item" id="menu-add-note">
-            ➕ Ajouter un point de suivi
-        </div>
+        <div class="context-menu-item" id="menu-add-note">➕ Ajouter un point de suivi</div>
     </div>
 
     <div id="notes-modal" class="modal-overlay" onclick="closeModal(event)">
@@ -160,8 +192,7 @@ require_once 'auth.php';
                         <th>Détails du suivi</th>
                     </tr>
                 </thead>
-                <tbody id="modal-table-body">
-                    </tbody>
+                <tbody id="modal-table-body"></tbody>
             </table>
         </div>
     </div>
@@ -200,17 +231,41 @@ require_once 'auth.php';
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script>
         let currentTaskRef = { column: null, index: null, task: null };
+        const statusLabels = { todo: 'À Faire', in_progress: 'En Cours', blocked: 'Bloqué / En attente', done: 'Terminé' };
 
+        // Gestion de la navigation
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        // Chargement global et construction des 3 vues
         function loadBoard() {
             fetch('api.php?action=get')
                 .then(res => res.json())
                 .then(data => {
+                    const listTableBody = document.getElementById('list-table-body');
+                    listTableBody.innerHTML = '';
+                    
+                    // Initialisation des compteurs KPI
+                    let kpi = {
+                        total: 0,
+                        status: { todo: 0, in_progress: 0, blocked: 0, done: 0 },
+                        acteur: {},
+                        prio: {}
+                    };
+
                     Object.keys(data).forEach(status => {
                         const container = document.querySelector(`[data-status="${status}"]`);
                         container.innerHTML = '';
+                        
                         data[status].forEach((task, index) => {
-                            const card = document.createElement('div');
                             
+                            // ================= 1. VUE KANBAN =================
+                            const card = document.createElement('div');
                             const colorClass = task.couleur ? task.couleur : 'color-yellow';
                             card.className = `card ${colorClass}`;
                             card.dataset.index = index;
@@ -221,7 +276,6 @@ require_once 'auth.php';
                                 showContextMenu(e, status, index, task);
                             });
                             
-                            // Affichage des tags conditionnels
                             let extraTags = '';
                             if(task.code_itbm) extraTags += `<span class="tag tag-itbm">🎫 ${task.code_itbm}</span>`;
                             if(task.prio) extraTags += `<span class="tag tag-prio">🔥 Prio ${task.prio}</span>`;
@@ -238,12 +292,84 @@ require_once 'auth.php';
                                 </div>
                             `;
                             container.appendChild(card);
+
+                            // ================= 2. VUE LISTE =================
+                            const tr = document.createElement('tr');
+                            tr.onclick = () => openHistoryModal(task);
+                            
+                            const actLabel = task.acteur || '-';
+                            const prioLabel = task.prio || '-';
+                            const dateFin = task.date_fin ? task.date_fin.split('-').reverse().join('/') : '-';
+                            
+                            tr.innerHTML = `
+                                <td><span class="tag tag-itbm" style="background:none; border:1px solid #dfe1e6;">📁 ${task.projet}</span></td>
+                                <td style="font-weight: 500;">${task.titre}</td>
+                                <td><span class="status-badge status-${status}">${statusLabels[status]}</span></td>
+                                <td>${prioLabel !== '-' ? `🔥 ${prioLabel}` : '-'}</td>
+                                <td>🧑‍💻 ${actLabel}</td>
+                                <td style="color:#5e6c84;">${dateFin}</td>
+                                <td style="color:#5e6c84;">🕒 ${task.maj}</td>
+                            `;
+                            listTableBody.appendChild(tr);
+
+                            // ================= 3. DONNÉES KPI =================
+                            kpi.total++;
+                            kpi.status[status]++;
+                            
+                            const acteur = task.acteur || 'Non assigné';
+                            kpi.acteur[acteur] = (kpi.acteur[acteur] || 0) + 1;
+                            
+                            const prio = task.prio || 'Aucune';
+                            kpi.prio[prio] = (kpi.prio[prio] || 0) + 1;
                         });
                     });
+
+                    // Rendu du Dashboard KPI
+                    renderKPIs(kpi);
                 });
         }
 
-        // --- GESTION DU DRAG & DROP ---
+        // Rendu HTML du Dashboard KPI
+        function renderKPIs(kpi) {
+            // Tri des acteurs et priorités pour afficher les plus chargés en premier
+            const sortedActors = Object.entries(kpi.acteur).sort((a, b) => b[1] - a[1]);
+            const sortedPrios = Object.entries(kpi.prio).sort((a, b) => b[1] - a[1]);
+
+            let html = `
+                <div class="kpi-card" style="display:flex; flex-direction:column; justify-content:center; align-items:center;">
+                    <h3>Total des tâches</h3>
+                    <div class="kpi-value-main">${kpi.total}</div>
+                    <div class="kpi-value-label">Chantiers actifs et terminés</div>
+                </div>
+
+                <div class="kpi-card">
+                    <h3>Par Statut</h3>
+                    <ul class="kpi-list">
+                        <li><span>À Faire</span> <span class="kpi-count">${kpi.status.todo}</span></li>
+                        <li><span>En Cours</span> <span class="kpi-count">${kpi.status.in_progress}</span></li>
+                        <li><span>En attente / Bloqué</span> <span class="kpi-count">${kpi.status.blocked}</span></li>
+                        <li><span>Terminé</span> <span class="kpi-count">${kpi.status.done}</span></li>
+                    </ul>
+                </div>
+
+                <div class="kpi-card">
+                    <h3>Charge par Acteur</h3>
+                    <ul class="kpi-list">
+                        ${sortedActors.map(([actor, count]) => `<li><span>${actor}</span> <span class="kpi-count">${count}</span></li>`).join('')}
+                    </ul>
+                </div>
+
+                <div class="kpi-card">
+                    <h3>Par Priorité</h3>
+                    <ul class="kpi-list">
+                        ${sortedPrios.map(([prio, count]) => `<li><span>${prio === 'Aucune' ? 'Non définie' : prio}</span> <span class="kpi-count">${count}</span></li>`).join('')}
+                    </ul>
+                </div>
+            `;
+            document.getElementById('kpi-container').innerHTML = html;
+        }
+
+        // Initialisation Drag & Drop
         document.querySelectorAll('.list').forEach(listEl => {
             new Sortable(listEl, {
                 group: 'kanban-board',
@@ -263,41 +389,25 @@ require_once 'auth.php';
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ fromColumn, toColumn, fromIndex, toIndex })
-                    }).then(() => {
-                        loadBoard(); 
-                    });
+                    }).then(() => loadBoard());
                 }
             });
         });
 
-        // --- GESTION DES MODALES ---
-        function openAddTaskModal() {
-            document.getElementById('add-task-modal').style.display = 'flex';
-        }
-
-        function closeAddTaskModal(e) {
-            if(e) e.stopPropagation();
-            document.getElementById('add-task-modal').style.display = 'none';
-        }
+        // Modales et Menus (Fonctions existantes conservées)
+        function openAddTaskModal() { document.getElementById('add-task-modal').style.display = 'flex'; }
+        function closeAddTaskModal(e) { if(e) e.stopPropagation(); document.getElementById('add-task-modal').style.display = 'none'; }
 
         function openHistoryModal(task) {
             document.getElementById('modal-title').innerText = task.titre;
             document.getElementById('modal-project').innerText = task.projet;
             document.getElementById('modal-acteur').innerText = task.acteur || 'Non assigné';
             
-            if(task.code_projet) {
-                document.getElementById('modal-code-projet').innerText = task.code_projet;
-                document.getElementById('modal-code-projet-container').style.display = 'block';
-            } else {
-                document.getElementById('modal-code-projet-container').style.display = 'none';
-            }
+            document.getElementById('modal-code-projet').innerText = task.code_projet || '';
+            document.getElementById('modal-code-projet-container').style.display = task.code_projet ? 'block' : 'none';
 
-            if(task.code_itbm) {
-                document.getElementById('modal-itbm').innerText = task.code_itbm;
-                document.getElementById('modal-itbm-container').style.display = 'block';
-            } else {
-                document.getElementById('modal-itbm-container').style.display = 'none';
-            }
+            document.getElementById('modal-itbm').innerText = task.code_itbm || '';
+            document.getElementById('modal-itbm-container').style.display = task.code_itbm ? 'block' : 'none';
             
             const tbody = document.getElementById('modal-table-body');
             tbody.innerHTML = '';
@@ -314,18 +424,14 @@ require_once 'auth.php';
                     tbody.appendChild(tr);
                 });
             } else {
-                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#888; font-style:italic;">Aucun historique de suivi.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#888; font-style:italic;">Aucun historique.</td></tr>';
             }
             
             document.getElementById('notes-modal').style.display = 'flex';
         }
 
-        function closeModal(e) {
-            if(e) e.stopPropagation();
-            document.getElementById('notes-modal').style.display = 'none';
-        }
+        function closeModal(e) { if(e) e.stopPropagation(); document.getElementById('notes-modal').style.display = 'none'; }
 
-        // --- GESTION DU CLIC DROIT ---
         function showContextMenu(e, column, index, task) {
             const menu = document.getElementById('context-menu');
             menu.style.display = 'block';
@@ -334,9 +440,7 @@ require_once 'auth.php';
             currentTaskRef = { column, index, task };
         }
 
-        document.addEventListener('click', () => {
-            document.getElementById('context-menu').style.display = 'none';
-        });
+        document.addEventListener('click', () => { document.getElementById('context-menu').style.display = 'none'; });
 
         document.getElementById('menu-add-note').addEventListener('click', (e) => {
             e.stopPropagation();
@@ -344,28 +448,18 @@ require_once 'auth.php';
             openAddNotePanel();
         });
 
-        // --- GESTION DU PANNEAU LATÉRAL ---
         function openAddNotePanel() {
             const task = currentTaskRef.task;
             document.getElementById('panel-title').innerText = task.titre;
             
-            // Remplissage des métadonnées
             document.getElementById('panel-project').innerText = task.projet;
             document.getElementById('panel-acteur').innerText = task.acteur || 'Non assigné';
             
-            if(task.code_projet) {
-                document.getElementById('panel-code-projet').innerText = task.code_projet;
-                document.getElementById('panel-code-projet-container').style.display = 'block';
-            } else {
-                document.getElementById('panel-code-projet-container').style.display = 'none';
-            }
+            document.getElementById('panel-code-projet').innerText = task.code_projet || '';
+            document.getElementById('panel-code-projet-container').style.display = task.code_projet ? 'block' : 'none';
 
-            if(task.code_itbm) {
-                document.getElementById('panel-itbm').innerText = task.code_itbm;
-                document.getElementById('panel-itbm-container').style.display = 'block';
-            } else {
-                document.getElementById('panel-itbm-container').style.display = 'none';
-            }
+            document.getElementById('panel-itbm').innerText = task.code_itbm || '';
+            document.getElementById('panel-itbm-container').style.display = task.code_itbm ? 'block' : 'none';
 
             if(task.date_debut || task.date_fin) {
                 const debut = task.date_debut ? task.date_debut.split('-').reverse().join('/') : '?';
@@ -376,12 +470,10 @@ require_once 'auth.php';
                 document.getElementById('panel-dates-container').style.display = 'none';
             }
 
-            // Init formulaires
             document.getElementById('new-note-text').value = '';
             document.getElementById('new-note-reunion').value = '';
             document.getElementById('new-note-date').valueAsDate = new Date(); 
             
-            // Remplissage de l'historique
             const listContainer = document.getElementById('panel-notes-list');
             listContainer.innerHTML = '';
             
@@ -397,15 +489,13 @@ require_once 'auth.php';
                     listContainer.appendChild(item);
                 });
             } else {
-                listContainer.innerHTML = '<p style="font-size:14px; color:#888; font-style: italic;">Aucun historique de suivi pour cette tâche.</p>';
+                listContainer.innerHTML = '<p style="font-size:14px; color:#888; font-style: italic;">Aucun historique de suivi.</p>';
             }
 
             document.getElementById('details-panel').classList.add('open');
         }
 
-        function closePanel() {
-            document.getElementById('details-panel').classList.remove('open');
-        }
+        function closePanel() { document.getElementById('details-panel').classList.remove('open'); }
 
         function submitNote() {
             const text = document.getElementById('new-note-text').value;
