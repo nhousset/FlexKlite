@@ -1,5 +1,4 @@
 :root {
-    /* Couleurs de fond de l'app */
     --bg-color: #f4f5f7;
     --column-bg: #ebecf0;
     --text-main: #172b4d;
@@ -7,7 +6,6 @@
     --primary: #0052cc;
     --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     
-    /* Couleurs des bordures de colonnes */
     --col-todo: #ffab00;
     --col-inprogress: #0052cc;
     --col-blocked: #ff5630;
@@ -94,11 +92,10 @@ h1 { font-size: 24px; margin-bottom: 20px; font-weight: 700; color: #091e42; }
 
 .list { min-height: 500px; }
 
-/* --- NOUVEAU DESIGN POST-IT --- */
+/* Design Post-it */
 .card { 
     padding: 16px; 
     margin-bottom: 16px; 
-    /* Effet papier corné asymétrique */
     border-radius: 2px 2px 15px 2px / 2px 2px 5px 2px; 
     box-shadow: 2px 4px 6px rgba(0,0,0,0.12); 
     cursor: grab; 
@@ -113,7 +110,7 @@ h1 { font-size: 24px; margin-bottom: 20px; font-weight: 700; color: #091e42; }
 }
 .card:active { cursor: grabbing; transform: scale(1.02); }
 
-/* Application des couleurs sur tout le fond du Post-it */
+/* Application des couleurs */
 .color-yellow { background-color: #fff9c4; color: #172b4d; }
 .color-blue   { background-color: #e3f2fd; color: #172b4d; }
 .color-orange { background-color: #ffe0b2; color: #172b4d; }
@@ -121,7 +118,6 @@ h1 { font-size: 24px; margin-bottom: 20px; font-weight: 700; color: #091e42; }
 .color-green  { background-color: #e8f5e9; color: #172b4d; }
 .color-grey   { background-color: #f5f5f5; color: #172b4d; }
 
-/* Tags translucides pour bien s'intégrer au fond coloré */
 .tags-container { 
     display: flex; 
     gap: 6px; 
@@ -137,7 +133,7 @@ h1 { font-size: 24px; margin-bottom: 20px; font-weight: 700; color: #091e42; }
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    background: rgba(255, 255, 255, 0.65); /* Fond semi-transparent */
+    background: rgba(255, 255, 255, 0.65);
     color: #172b4d;
     border: 1px solid rgba(0,0,0,0.1);
 }
@@ -152,7 +148,6 @@ h1 { font-size: 24px; margin-bottom: 20px; font-weight: 700; color: #091e42; }
     word-wrap: break-word;
 }
 
-/* Footer de la carte */
 .card-footer { 
     display: flex; 
     justify-content: space-between; 
@@ -164,10 +159,76 @@ h1 { font-size: 24px; margin-bottom: 20px; font-weight: 700; color: #091e42; }
 
 .card-footer span { display: flex; align-items: center; gap: 4px; }
 
-/* Panneau latéral */
-#details-panel { position: fixed; right: -450px; top: 0; width: 400px; height: 100%; background: white; box-shadow: -5px 0 15px rgba(0,0,0,0.1); padding: 30px; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; z-index: 1000; box-sizing: border-box;}
+/* Panneau latéral élargi */
+#details-panel { 
+    position: fixed; 
+    right: -650px; /* Ajusté pour la nouvelle largeur */
+    top: 0; 
+    width: 600px; /* Plus large */
+    max-width: 90vw;
+    height: 100%; 
+    background: white; 
+    box-shadow: -5px 0 15px rgba(0,0,0,0.1); 
+    padding: 40px; 
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    overflow-y: auto; 
+    z-index: 1000; 
+    box-sizing: border-box;
+}
+
 #details-panel.open { right: 0; }
-.close-panel { float: right; cursor: pointer; font-weight: bold; font-size: 18px; color: var(--text-muted);}
+.close-panel { float: right; cursor: pointer; font-weight: bold; font-size: 22px; color: var(--text-muted);}
 .close-panel:hover { color: var(--text-main); }
-.note-item { background: var(--bg-color); padding: 12px; margin-bottom: 12px; border-radius: 6px; border-left: 4px solid var(--primary); font-size: 13px; line-height: 1.5; }
-.note-date { font-weight: 600; color: var(--text-muted); margin-bottom: 6px; font-size: 11px; text-transform: uppercase;}
+
+/* Nouveaux formulaires de suivi */
+.note-meta-inputs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.note-meta-inputs input, .note-meta-inputs select {
+    padding: 10px;
+    border: 1px solid #dfe1e6;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 14px;
+    background: #fafbfc;
+    color: var(--text-main);
+}
+
+.note-meta-inputs input:focus, .note-meta-inputs select:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.note-item { 
+    background: var(--bg-color); 
+    padding: 16px; 
+    margin-bottom: 16px; 
+    border-radius: 6px; 
+    border-left: 4px solid var(--primary); 
+    font-size: 14px; 
+    line-height: 1.5; 
+}
+
+.note-date { 
+    font-weight: 600; 
+    color: var(--text-muted); 
+    margin-bottom: 8px; 
+    font-size: 12px; 
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.note-reunion-tag {
+    background: #e3f2fd;
+    color: #0d47a1;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+    letter-spacing: normal;
+    text-transform: none;
+}
