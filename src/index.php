@@ -1,3 +1,7 @@
+<?php 
+// Protection de l'interface : redirection automatique vers logon.php si non connecté
+require_once 'auth.php'; 
+?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -7,7 +11,10 @@
 </head>
 <body>
 
-    <h1>Mon Kanban Chantiers & Suivi</h1>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1 style="margin: 0;">Mon Kanban Chantiers & Suivi</h1>
+        <a href="logout.php" class="btn" style="background: #d32f2f; text-decoration: none; font-size: 12px;">Se déconnecter</a>
+    </div>
 
     <div class="forms-container">
         <form action="api.php?action=add_task" method="POST">
@@ -100,6 +107,7 @@
                     const fromIndex = evt.oldIndex;
                     const toIndex = evt.newIndex;
 
+                    // Si rien n'a bougé, on ne fait rien
                     if (fromColumn === toColumn && fromIndex === toIndex) return;
 
                     fetch('api.php?action=move', {
@@ -107,7 +115,7 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ fromColumn, toColumn, fromIndex, toIndex })
                     }).then(() => {
-                        loadBoard(); 
+                        loadBoard(); // Rafraîchit les index côté client
                         if (document.getElementById('details-panel').classList.contains('open')) {
                             closePanel();
                         }
@@ -167,6 +175,7 @@
             });
         }
 
+        // Initialisation au chargement
         window.onload = loadBoard;
     </script>
 </body>
