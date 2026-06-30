@@ -39,88 +39,11 @@ require_once 'auth.php';
                 <button class="tab-btn" onclick="switchTab('tab-kpi', this)">📊 Tableau de Bord</button>
             </div>
 
-            <div id="tab-kanban" class="tab-content active">
-                <div class="board">
-                    <div class="column" id="todo">
-                        <h3>À Faire</h3>
-                        <div class="list" data-status="todo"></div>
-                    </div>
-                    <div class="column" id="in_progress">
-                        <h3>En Cours</h3>
-                        <div class="list" data-status="in_progress"></div>
-                    </div>
-                    <div class="column" id="blocked">
-                        <h3>En attente / Bloqué</h3>
-                        <div class="list" data-status="blocked"></div>
-                    </div>
-                    <div class="column" id="done">
-                        <h3>Terminé</h3>
-                        <div class="list" data-status="done"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="tab-list" class="tab-content">
-                <div class="data-table-container">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 15%;">
-                                    <div>Projet</div>
-                                    <select id="filter-projet" class="table-filter" onchange="applyFilters()">
-                                        <option value="">Tous</option>
-                                        <?php foreach($settings['projets'] as $p): ?>
-                                            <option value="<?= htmlspecialchars($p) ?>"><?= htmlspecialchars($p) ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </th>
-                                <th style="width: 30%;">
-                                    <div style="margin-top: 15px;">Tâche</div>
-                                </th>
-                                <th style="width: 12%;">
-                                    <div>Statut</div>
-                                    <select id="filter-statut" class="table-filter" onchange="applyFilters()">
-                                        <option value="">Tous</option>
-                                        <option value="todo">À Faire</option>
-                                        <option value="in_progress">En Cours</option>
-                                        <option value="blocked">Bloqué</option>
-                                        <option value="done">Terminé</option>
-                                    </select>
-                                </th>
-                                <th style="width: 10%;">
-                                    <div>Priorité</div>
-                                    <select id="filter-prio" class="table-filter" onchange="applyFilters()">
-                                        <option value="">Toutes</option>
-                                        <?php foreach($settings['priorites'] as $p): ?>
-                                            <option value="<?= htmlspecialchars($p) ?>"><?= htmlspecialchars($p) ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </th>
-                                <th style="width: 13%;">
-                                    <div>Acteur</div>
-                                    <select id="filter-acteur" class="table-filter" onchange="applyFilters()">
-                                        <option value="">Tous</option>
-                                        <?php foreach($settings['acteurs'] as $a): ?>
-                                            <option value="<?= htmlspecialchars($a) ?>"><?= htmlspecialchars($a) ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </th>
-                                <th style="width: 10%;">
-                                    <div style="margin-top: 15px;">Échéance</div>
-                                </th>
-                                <th style="width: 10%;">
-                                    <div style="margin-top: 15px;">Dernière MAJ</div>
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody id="list-table-body"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div id="tab-kpi" class="tab-content">
-                <div class="kpi-grid" id="kpi-container"></div>
-            </div>
+            <?php 
+            include 'views/kanban.php';
+            include 'views/liste.php';
+            include 'views/kpi.php';
+            ?>
 
         </div>
 
@@ -291,11 +214,10 @@ require_once 'auth.php';
 
                     Object.keys(data).forEach(status => {
                         const container = document.querySelector(`[data-status="${status}"]`);
-                        container.innerHTML = '';
+                        if(container) container.innerHTML = ''; // Sécurité
                         
                         data[status].forEach((task, index) => {
                             
-                            // Attributs pour le filtrage
                             const searchableText = `${task.titre} ${task.projet} ${task.code_projet||''} ${task.code_itbm||''}`.toLowerCase();
                             const pAttr = task.projet || '';
                             const aAttr = task.acteur || '';
@@ -326,7 +248,7 @@ require_once 'auth.php';
                                     <span title="Dernière mise à jour">🕒 ${task.maj}</span>
                                 </div>
                             `;
-                            container.appendChild(card);
+                            if(container) container.appendChild(card);
 
                             // 2. VUE LISTE
                             const tr = document.createElement('tr');
@@ -361,7 +283,7 @@ require_once 'auth.php';
                             const prio = task.prio || 'Aucune';
                             kpi.prio[prio] = (kpi.prio[prio] || 0) + 1;
 
-                            // 4. RÉCOLTE DES NOTES (Activité Récente)
+                            // 4. RÉCOLTE DES NOTES
                             if (task.notes && task.notes.length > 0) {
                                 task.notes.forEach(note => {
                                     allNotesForActivity.push({
@@ -376,7 +298,7 @@ require_once 'auth.php';
 
                     renderKPIs(kpi);
                     renderRecentActivity(allNotesForActivity);
-                    applyFilters(); // Maintient les filtres actifs au rechargement
+                    applyFilters();
                 });
         }
 
@@ -556,7 +478,7 @@ require_once 'auth.php';
                     listContainer.appendChild(item);
                 });
             } else {
-                listContainer.innerHTML = '<p style="font-size:14px; color:#888; font-style: italic;">Aucun historique.</p>';
+                listContainer.innerHTML = '<p style="font-size:14px; color:#888; font-style: italic;">Aucun historique de suivi.</p>';
             }
             document.getElementById('details-panel').classList.add('open');
         }
