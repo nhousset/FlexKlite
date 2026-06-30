@@ -102,6 +102,19 @@ require_once 'auth.php';
     <script>
         let currentTaskRef = { column: null, index: null };
 
+        // Fonction pour traduire la classe de couleur en texte pour la pilule
+        function getTypeLabel(colorClass) {
+            const labels = {
+                'color-yellow': 'Standard',
+                'color-blue': 'Étude / Tech',
+                'color-orange': 'Urgence',
+                'color-pink': 'Bug',
+                'color-green': 'Validé',
+                'color-grey': 'En attente'
+            };
+            return labels[colorClass] || 'Tâche';
+        }
+
         function loadBoard() {
             fetch('api.php?action=get')
                 .then(res => res.json())
@@ -111,23 +124,24 @@ require_once 'auth.php';
                         container.innerHTML = '';
                         data[status].forEach((task, index) => {
                             const card = document.createElement('div');
-                            
-                            // Application dynamique de la classe de couleur (Jaune par défaut si absent)
-                            const colorClass = task.couleur ? task.couleur : 'color-yellow';
-                            card.className = `card ${colorClass}`;
-                            
+                            card.className = 'card';
                             card.dataset.index = index;
                             card.onclick = () => openPanel(status, index, task);
                             
+                            const colorClass = task.couleur ? task.couleur : 'color-yellow';
+                            const typeLabel = getTypeLabel(colorClass);
+                            
+                            // Nouveau template avec tags en pilules et emojis/icônes
                             card.innerHTML = `
-                                <div class="card-header">
-                                    <span class="tag-project">${task.projet}</span>
-                                    ${task.prio ? `<span class="prio">Prio ${task.prio}</span>` : ''}
+                                <div class="tags-container">
+                                    <span class="tag tag-project">📁 ${task.projet}</span>
+                                    <span class="tag tag-${colorClass}">${typeLabel}</span>
+                                    ${task.prio ? `<span class="tag tag-prio">🔥 Prio ${task.prio}</span>` : ''}
                                 </div>
                                 <div class="card-title">${task.titre}</div>
                                 <div class="card-footer">
-                                    <span>${task.acteur || task.porteur || 'Non assigné'}</span>
-                                    <span>MAJ: ${task.maj}</span>
+                                    <span title="Assigné à">🧑‍💻 ${task.acteur || task.porteur || 'Non assigné'}</span>
+                                    <span title="Dernière mise à jour">🕒 ${task.maj}</span>
                                 </div>
                             `;
                             container.appendChild(card);
