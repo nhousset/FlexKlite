@@ -12,8 +12,9 @@ require_once 'auth.php';
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
         <h1 style="margin: 0;">Tableau Kanban - Suivi des Chantiers</h1>
-        <div>
-            <a href="admin.php" class="btn" style="background: #e3f2fd; color: #0052cc; text-decoration: none; margin-right: 10px;">⚙️ Paramètres</a>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="openAddTaskModal()" class="btn" style="background: #00875a;">➕ Nouvelle Tâche</button>
+            <a href="admin.php" class="btn" style="background: #e3f2fd; color: #0052cc; text-decoration: none;">⚙️ Paramètres</a>
             <a href="logout.php" class="btn" style="background: #ffebee; color: #d32f2f; text-decoration: none;">Se déconnecter</a>
         </div>
     </div>
@@ -24,44 +25,94 @@ require_once 'auth.php';
     $settings = file_exists($settings_file) ? array_merge($default, json_decode(file_get_contents($settings_file), true)) : $default; 
     ?>
 
-    <div class="forms-container">
-        <form action="api.php?action=add_task" method="POST">
+    <div id="add-task-modal" class="modal-overlay" onclick="closeAddTaskModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 700px;">
+            <span class="modal-close" onclick="closeAddTaskModal(event)">×</span>
+            <h2 style="margin-top: 0; color: #091e42; margin-bottom: 25px;">Créer une nouvelle tâche</h2>
             
-            <select name="projet" required>
-                <option value="">-- Projet --</option>
-                <?php foreach($settings['projets'] as $p): ?>
-                    <option value="<?= htmlspecialchars($p) ?>"><?= htmlspecialchars($p) ?></option>
-                <?php endforeach; ?>
-            </select>
+            <form action="api.php?action=add_task" method="POST">
+                <div class="form-grid">
+                    
+                    <div class="form-group full-width">
+                        <label>Intitulé de la tâche *</label>
+                        <input type="text" name="titre" required>
+                    </div>
 
-            <input type="text" name="titre" placeholder="Intitulé de la tâche" style="width: 250px;" required>
-            
-            <select name="couleur">
-                <option value="color-yellow">🟨 Standard</option>
-                <option value="color-blue">🟦 Étude/Tech</option>
-                <option value="color-orange">🟧 Urgence</option>
-                <option value="color-pink">🟥 Bug/Bloquant</option>
-                <option value="color-green">🟩 Validé</option>
-                <option value="color-grey">⬜ En attente</option>
-            </select>
+                    <div class="form-group">
+                        <label>Type / Couleur</label>
+                        <select name="couleur">
+                            <option value="color-yellow">🟨 Standard</option>
+                            <option value="color-blue">🟦 Étude/Tech</option>
+                            <option value="color-orange">🟧 Urgence</option>
+                            <option value="color-pink">🟥 Bug/Bloquant</option>
+                            <option value="color-green">🟩 Validé</option>
+                            <option value="color-grey">⬜ En attente</option>
+                        </select>
+                    </div>
 
-            <select name="prio">
-                <option value="">-- Prio --</option>
-                <?php foreach($settings['priorites'] as $p): ?>
-                    <option value="<?= htmlspecialchars($p) ?>"><?= htmlspecialchars($p) ?></option>
-                <?php endforeach; ?>
-            </select>
+                    <div class="form-group">
+                        <label>Projet *</label>
+                        <select name="projet" required>
+                            <option value="">-- Sélectionner --</option>
+                            <?php foreach($settings['projets'] as $p): ?>
+                                <option value="<?= htmlspecialchars($p) ?>"><?= htmlspecialchars($p) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
 
-            <select name="acteur">
-                <option value="">-- Acteur --</option>
-                <?php foreach($settings['acteurs'] as $a): ?>
-                    <option value="<?= htmlspecialchars($a) ?>"><?= htmlspecialchars($a) ?></option>
-                <?php endforeach; ?>
-            </select>
+                    <div class="form-group">
+                        <label>Code Projet (Optionnel)</label>
+                        <input type="text" name="code_projet" placeholder="Ex: PRJ-2026">
+                    </div>
 
-            <input type="text" name="note_initiale" placeholder="Note (optionnel)" style="width: 150px;">
-            <button type="submit" class="btn">Ajouter la tâche</button>
-        </form>
+                    <div class="form-group">
+                        <label>Code ITBM (Optionnel)</label>
+                        <input type="text" name="code_itbm" placeholder="Ex: TSK0123456">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Acteur / Porteur</label>
+                        <select name="acteur">
+                            <option value="">-- Non assigné --</option>
+                            <?php foreach($settings['acteurs'] as $a): ?>
+                                <option value="<?= htmlspecialchars($a) ?>"><?= htmlspecialchars($a) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Priorité</label>
+                        <select name="prio">
+                            <option value="">-- Non définie --</option>
+                            <?php foreach($settings['priorites'] as $p): ?>
+                                <option value="<?= htmlspecialchars($p) ?>"><?= htmlspecialchars($p) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Date de début</label>
+                        <input type="date" name="date_debut">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Date de fin / Échéance</label>
+                        <input type="date" name="date_fin">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Note de suivi initiale (Optionnelle)</label>
+                        <textarea name="note_initiale" rows="3" placeholder="Saisir le contexte initial de création..."></textarea>
+                    </div>
+
+                </div>
+                
+                <div style="text-align: right; border-top: 1px solid #dfe1e6; padding-top: 20px;">
+                    <button type="button" class="btn" style="background: #ebecf0; color: #42526e; margin-right: 10px;" onclick="closeAddTaskModal(event)">Annuler</button>
+                    <button type="submit" class="btn" style="background: #00875a; padding: 10px 20px;">Créer la tâche</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <div class="board">
@@ -93,10 +144,13 @@ require_once 'auth.php';
         <div class="modal-content" onclick="event.stopPropagation()">
             <span class="modal-close" onclick="closeModal(event)">×</span>
             <h2 id="modal-title" style="margin-top: 0; color: #091e42;"></h2>
-            <p style="font-size: 13px; color:#5e6c84; margin-bottom: 20px;">
-                Projet : <strong id="modal-project"></strong> | 
-                Acteur : <strong id="modal-acteur"></strong>
-            </p>
+            
+            <div class="task-meta-info">
+                <div>Projet : <strong id="modal-project"></strong></div>
+                <div id="modal-code-projet-container" style="display:none;">Code Projet : <strong id="modal-code-projet"></strong></div>
+                <div id="modal-itbm-container" style="display:none;">ITBM : <strong id="modal-itbm"></strong></div>
+                <div>Acteur : <strong id="modal-acteur"></strong></div>
+            </div>
             
             <table class="notes-table">
                 <thead>
@@ -114,9 +168,17 @@ require_once 'auth.php';
 
     <div id="details-panel">
         <span class="close-panel" onclick="closePanel()">×</span>
-        <h2 id="panel-title" style="font-size: 20px; margin-top: 0; color: #091e42; line-height: 1.3;"></h2>
+        <h2 id="panel-title" style="font-size: 22px; margin-top: 0; color: #091e42; line-height: 1.3; margin-bottom: 15px;"></h2>
         
-        <h4 style="margin-bottom: 10px; margin-top: 30px; font-size:15px; color: #172b4d;">Ajouter un point de suivi :</h4>
+        <div class="task-meta-info">
+            <div>Projet : <strong id="panel-project"></strong></div>
+            <div id="panel-code-projet-container" style="display:none;">Code Projet : <strong id="panel-code-projet"></strong></div>
+            <div id="panel-itbm-container" style="display:none;">ITBM : <strong id="panel-itbm"></strong></div>
+            <div>Acteur : <strong id="panel-acteur"></strong></div>
+            <div id="panel-dates-container" style="display:none;">Dates : <strong id="panel-dates"></strong></div>
+        </div>
+        
+        <h4 style="margin-bottom: 10px; margin-top: 20px; font-size:15px; color: #172b4d;">Ajouter un point de suivi :</h4>
         
         <div class="note-meta-inputs">
             <input type="date" id="new-note-date" title="Date de la note" style="max-width: 130px;">
@@ -153,23 +215,25 @@ require_once 'auth.php';
                             card.className = `card ${colorClass}`;
                             card.dataset.index = index;
                             
-                            // Événement Clic Gauche : Ouvre le tableau
                             card.addEventListener('click', () => openHistoryModal(task));
-                            
-                            // Événement Clic Droit : Ouvre le menu
                             card.addEventListener('contextmenu', (e) => {
                                 e.preventDefault();
                                 showContextMenu(e, status, index, task);
                             });
                             
+                            // Affichage des tags conditionnels
+                            let extraTags = '';
+                            if(task.code_itbm) extraTags += `<span class="tag tag-itbm">🎫 ${task.code_itbm}</span>`;
+                            if(task.prio) extraTags += `<span class="tag tag-prio">🔥 Prio ${task.prio}</span>`;
+
                             card.innerHTML = `
                                 <div class="tags-container">
                                     <span class="tag">📁 ${task.projet}</span>
-                                    ${task.prio ? `<span class="tag tag-prio">🔥 Prio ${task.prio}</span>` : ''}
+                                    ${extraTags}
                                 </div>
                                 <div class="card-title">${task.titre}</div>
                                 <div class="card-footer">
-                                    <span title="Assigné à">🧑‍💻 ${task.acteur || task.porteur || 'Non assigné'}</span>
+                                    <span title="Assigné à">🧑‍💻 ${task.acteur || 'Non assigné'}</span>
                                     <span title="Dernière mise à jour">🕒 ${task.maj}</span>
                                 </div>
                             `;
@@ -206,11 +270,34 @@ require_once 'auth.php';
             });
         });
 
-        // --- GESTION DU CLIC GAUCHE (MODALE TABLEAU) ---
+        // --- GESTION DES MODALES ---
+        function openAddTaskModal() {
+            document.getElementById('add-task-modal').style.display = 'flex';
+        }
+
+        function closeAddTaskModal(e) {
+            if(e) e.stopPropagation();
+            document.getElementById('add-task-modal').style.display = 'none';
+        }
+
         function openHistoryModal(task) {
             document.getElementById('modal-title').innerText = task.titre;
             document.getElementById('modal-project').innerText = task.projet;
             document.getElementById('modal-acteur').innerText = task.acteur || 'Non assigné';
+            
+            if(task.code_projet) {
+                document.getElementById('modal-code-projet').innerText = task.code_projet;
+                document.getElementById('modal-code-projet-container').style.display = 'block';
+            } else {
+                document.getElementById('modal-code-projet-container').style.display = 'none';
+            }
+
+            if(task.code_itbm) {
+                document.getElementById('modal-itbm').innerText = task.code_itbm;
+                document.getElementById('modal-itbm-container').style.display = 'block';
+            } else {
+                document.getElementById('modal-itbm-container').style.display = 'none';
+            }
             
             const tbody = document.getElementById('modal-table-body');
             tbody.innerHTML = '';
@@ -238,14 +325,12 @@ require_once 'auth.php';
             document.getElementById('notes-modal').style.display = 'none';
         }
 
-        // --- GESTION DU CLIC DROIT (MENU CONTEXTUEL) ---
+        // --- GESTION DU CLIC DROIT ---
         function showContextMenu(e, column, index, task) {
             const menu = document.getElementById('context-menu');
-            
             menu.style.display = 'block';
             menu.style.left = e.pageX + 'px';
             menu.style.top = e.pageY + 'px';
-            
             currentTaskRef = { column, index, task };
         }
 
@@ -259,16 +344,44 @@ require_once 'auth.php';
             openAddNotePanel();
         });
 
-        // --- GESTION DU PANNEAU D'AJOUT ---
+        // --- GESTION DU PANNEAU LATÉRAL ---
         function openAddNotePanel() {
             const task = currentTaskRef.task;
             document.getElementById('panel-title').innerText = task.titre;
             
+            // Remplissage des métadonnées
+            document.getElementById('panel-project').innerText = task.projet;
+            document.getElementById('panel-acteur').innerText = task.acteur || 'Non assigné';
+            
+            if(task.code_projet) {
+                document.getElementById('panel-code-projet').innerText = task.code_projet;
+                document.getElementById('panel-code-projet-container').style.display = 'block';
+            } else {
+                document.getElementById('panel-code-projet-container').style.display = 'none';
+            }
+
+            if(task.code_itbm) {
+                document.getElementById('panel-itbm').innerText = task.code_itbm;
+                document.getElementById('panel-itbm-container').style.display = 'block';
+            } else {
+                document.getElementById('panel-itbm-container').style.display = 'none';
+            }
+
+            if(task.date_debut || task.date_fin) {
+                const debut = task.date_debut ? task.date_debut.split('-').reverse().join('/') : '?';
+                const fin = task.date_fin ? task.date_fin.split('-').reverse().join('/') : '?';
+                document.getElementById('panel-dates').innerText = `${debut} ➔ ${fin}`;
+                document.getElementById('panel-dates-container').style.display = 'block';
+            } else {
+                document.getElementById('panel-dates-container').style.display = 'none';
+            }
+
+            // Init formulaires
             document.getElementById('new-note-text').value = '';
             document.getElementById('new-note-reunion').value = '';
             document.getElementById('new-note-date').valueAsDate = new Date(); 
             
-            // Remplissage de l'historique dans le panneau
+            // Remplissage de l'historique
             const listContainer = document.getElementById('panel-notes-list');
             listContainer.innerHTML = '';
             
@@ -276,13 +389,9 @@ require_once 'auth.php';
                 task.notes.forEach(note => {
                     const item = document.createElement('div');
                     item.className = 'note-item';
-                    
                     const badge = note.reunion ? `<span class="badge-reunion">${note.reunion}</span>` : '';
-                    
                     item.innerHTML = `
-                        <div class="note-date">
-                            🗓️ ${note.date} ${badge}
-                        </div>
+                        <div class="note-date">🗓️ ${note.date} ${badge}</div>
                         <div style="white-space: pre-wrap;">${note.texte}</div>
                     `;
                     listContainer.appendChild(item);
@@ -319,7 +428,6 @@ require_once 'auth.php';
             .then(res => res.json())
             .then(resData => {
                 if(resData.success) {
-                    // Met à jour la tâche courante et rafraichit le panneau sans le fermer
                     currentTaskRef.task = resData.task;
                     openAddNotePanel(); 
                     loadBoard();
