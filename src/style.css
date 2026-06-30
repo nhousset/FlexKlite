@@ -1,14 +1,13 @@
 :root {
-    /* Couleurs de fond façon Image 2 */
+    /* Couleurs de fond de l'app */
     --bg-color: #f4f5f7;
     --column-bg: #ebecf0;
-    --card-bg: #ffffff;
     --text-main: #172b4d;
     --text-muted: #5e6c84;
     --primary: #0052cc;
     --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     
-    /* Couleurs des bordures de colonnes façon Image 1 */
+    /* Couleurs des bordures de colonnes */
     --col-todo: #ffab00;
     --col-inprogress: #0052cc;
     --col-blocked: #ff5630;
@@ -68,7 +67,7 @@ h1 { font-size: 24px; margin-bottom: 20px; font-weight: 700; color: #091e42; }
 
 .btn:hover { background: #0047b3; }
 
-/* Grille Kanban (Style Image 2 pour les colonnes) */
+/* Grille Kanban */
 .board { display: flex; gap: 24px; align-items: flex-start; overflow-x: auto; padding-bottom: 20px;}
 
 .column { 
@@ -78,11 +77,9 @@ h1 { font-size: 24px; margin-bottom: 20px; font-weight: 700; color: #091e42; }
     min-width: 320px;
     padding: 16px; 
     min-height: 600px; 
-    /* Bordure supérieure de couleur façon Image 1 */
     border-top: 4px solid transparent; 
 }
 
-/* Couleurs spécifiques par statut */
 #todo { border-top-color: var(--col-todo); }
 #in_progress { border-top-color: var(--col-inprogress); }
 #blocked { border-top-color: var(--col-blocked); }
@@ -97,26 +94,34 @@ h1 { font-size: 24px; margin-bottom: 20px; font-weight: 700; color: #091e42; }
 
 .list { min-height: 500px; }
 
-/* Design des cartes (Mix Image 1 & 2 : blanc pur, ombres douces) */
+/* --- NOUVEAU DESIGN POST-IT --- */
 .card { 
-    background: var(--card-bg);
     padding: 16px; 
-    margin-bottom: 12px; 
-    border-radius: 8px; 
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05); 
-    border: 1px solid #dfe1e6;
+    margin-bottom: 16px; 
+    /* Effet papier corné asymétrique */
+    border-radius: 2px 2px 15px 2px / 2px 2px 5px 2px; 
+    box-shadow: 2px 4px 6px rgba(0,0,0,0.12); 
     cursor: grab; 
-    transition: box-shadow 0.2s ease, transform 0.2s ease; 
+    transition: transform 0.15s ease, box-shadow 0.15s ease; 
     position: relative;
+    border: 1px solid rgba(0,0,0,0.05);
 }
 
 .card:hover { 
-    box-shadow: 0 4px 8px rgba(0,0,0,0.08); 
-    transform: translateY(-1px);
+    transform: translateY(-2px) rotate(-1deg); 
+    box-shadow: 4px 8px 12px rgba(0,0,0,0.15); 
 }
-.card:active { cursor: grabbing; }
+.card:active { cursor: grabbing; transform: scale(1.02); }
 
-/* Les tags façon "Pilules" (Image 2) */
+/* Application des couleurs sur tout le fond du Post-it */
+.color-yellow { background-color: #fff9c4; color: #172b4d; }
+.color-blue   { background-color: #e3f2fd; color: #172b4d; }
+.color-orange { background-color: #ffe0b2; color: #172b4d; }
+.color-pink   { background-color: #fce4ec; color: #172b4d; }
+.color-green  { background-color: #e8f5e9; color: #172b4d; }
+.color-grey   { background-color: #f5f5f5; color: #172b4d; }
+
+/* Tags translucides pour bien s'intégrer au fond coloré */
 .tags-container { 
     display: flex; 
     gap: 6px; 
@@ -126,46 +131,40 @@ h1 { font-size: 24px; margin-bottom: 20px; font-weight: 700; color: #091e42; }
 
 .tag { 
     font-size: 11px; 
-    font-weight: 600; 
+    font-weight: 700; 
     padding: 4px 8px; 
     border-radius: 12px; 
     display: inline-flex;
     align-items: center;
     gap: 4px;
+    background: rgba(255, 255, 255, 0.65); /* Fond semi-transparent */
+    color: #172b4d;
+    border: 1px solid rgba(0,0,0,0.1);
 }
 
-.tag-project { background: #e3f2fd; color: #0d47a1; }
-.tag-prio { background: #ffebee; color: #c62828; }
-
-/* Couleurs des pilules de type de tâche */
-.tag-color-yellow { background: #fff8e1; color: #f57f17; }
-.tag-color-blue   { background: #e8eaf6; color: #3f51b5; }
-.tag-color-orange { background: #fff3e0; color: #e65100; }
-.tag-color-pink   { background: #fce4ec; color: #c2185b; }
-.tag-color-green  { background: #e8f5e9; color: #2e7d32; }
-.tag-color-grey   { background: #f5f5f5; color: #616161; }
+.tag-prio { color: #c62828; }
 
 .card-title { 
     font-size: 14px; 
-    font-weight: 500; 
+    font-weight: 600; 
     line-height: 1.5; 
     margin-bottom: 16px; 
     word-wrap: break-word;
-    color: var(--text-main);
 }
 
-/* Footer de la carte (Image 2) */
+/* Footer de la carte */
 .card-footer { 
     display: flex; 
     justify-content: space-between; 
     align-items: center; 
     font-size: 12px; 
-    color: var(--text-muted);
+    color: rgba(0,0,0,0.6);
+    font-weight: 500;
 }
 
 .card-footer span { display: flex; align-items: center; gap: 4px; }
 
-/* Panneau latéral (inchangé structurellement mais adapté aux couleurs) */
+/* Panneau latéral */
 #details-panel { position: fixed; right: -450px; top: 0; width: 400px; height: 100%; background: white; box-shadow: -5px 0 15px rgba(0,0,0,0.1); padding: 30px; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; z-index: 1000; box-sizing: border-box;}
 #details-panel.open { right: 0; }
 .close-panel { float: right; cursor: pointer; font-weight: bold; font-size: 18px; color: var(--text-muted);}
