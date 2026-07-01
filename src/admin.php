@@ -5,7 +5,7 @@ require_once 'auth.php';
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Administration - Kanban</title>
+    <title>Administration - Paramètres</title>
     <link rel="stylesheet" href="style.css?<?= time() ?>">
     <style>
         .admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
@@ -18,12 +18,16 @@ require_once 'auth.php';
         .add-group { display: flex; gap: 10px; }
         .add-group input { flex: 1; padding: 10px; border: 1px solid #dfe1e6; border-radius: 4px; font-size: 14px;}
         .add-group input:focus { outline: none; border-color: var(--primary); }
+        
+        .form-group-admin label { font-size: 13px; font-weight: 600; color: #172b4d; display: block; margin-bottom: 6px; }
+        .form-group-admin input { width: 100%; padding: 10px; border: 1px solid #dfe1e6; border-radius: 4px; font-size: 14px; box-sizing: border-box; background: #fafbfc;}
+        .form-group-admin input:focus { border-color: var(--primary); outline: none; background: white;}
     </style>
 </head>
 <body>
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-        <h1 style="margin: 0;">Administration des listes</h1>
+        <h1 style="margin: 0;">Administration des paramètres</h1>
         <div>
             <a href="index.php" class="btn" style="background: #ebecf0; color: #42526e; text-decoration: none; margin-right: 10px;">Retour au Tableau</a>
             <button onclick="saveSettings()" class="btn" style="background: #00875a;">Enregistrer les modifications</button>
@@ -31,6 +35,21 @@ require_once 'auth.php';
     </div>
 
     <div class="admin-grid">
+
+        <div class="admin-card" style="grid-column: 1 / -1;">
+            <h3>Paramètres Généraux de l'Application</h3>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <div class="form-group-admin" style="flex: 1; min-width: 250px;">
+                    <label>Titre de l'application (Sera affiché en haut et dans l'onglet)</label>
+                    <input type="text" id="input-app-title" placeholder="Ex: Gestion des Chantiers">
+                </div>
+                <div class="form-group-admin" style="flex: 1; min-width: 250px;">
+                    <label>Nom de l'équipe (Badge mis en évidence)</label>
+                    <input type="text" id="input-team-name" placeholder="Ex: Équipe IHMT">
+                </div>
+            </div>
+        </div>
+
         <div class="admin-card">
             <h3>Projets</h3>
             <ul class="item-list" id="list-projets"></ul>
@@ -69,13 +88,17 @@ require_once 'auth.php';
     </div>
 
     <script>
-        let settingsData = { projets: [], acteurs: [], priorites: [], reunions: [] };
+        let settingsData = { app_title: "", team_name: "", projets: [], acteurs: [], priorites: [], reunions: [] };
 
         fetch('api.php?action=get_settings')
             .then(res => res.json())
             .then(data => {
-                // Fusion pour assurer que la clé existe même si le JSON est ancien
                 settingsData = { ...settingsData, ...data };
+                
+                // Remplissage des champs textes
+                document.getElementById('input-app-title').value = settingsData.app_title || '';
+                document.getElementById('input-team-name').value = settingsData.team_name || '';
+
                 renderLists();
             });
 
@@ -109,6 +132,10 @@ require_once 'auth.php';
         }
 
         function saveSettings() {
+            // Mise à jour des valeurs textes avant sauvegarde
+            settingsData.app_title = document.getElementById('input-app-title').value.trim();
+            settingsData.team_name = document.getElementById('input-team-name').value.trim();
+
             fetch('api.php?action=save_settings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
