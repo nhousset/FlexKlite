@@ -37,6 +37,10 @@ h1 { font-size: 24px; margin-bottom: 0; font-weight: 700; color: #091e42; }
     box-shadow: 0 8px 32px rgba(9, 30, 66, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.5);
     margin-bottom: 30px;
+    /* Propriétés pour fixer le header au scroll */
+    position: sticky;
+    top: 20px;
+    z-index: 1000;
 }
 
 .header-title-wrapper {
@@ -45,7 +49,6 @@ h1 { font-size: 24px; margin-bottom: 0; font-weight: 700; color: #091e42; }
     gap: 16px;
 }
 
-/* Nouveau conteneur pour le logo (Image) */
 .app-logo-container {
     width: 45px;
     height: 45px;
@@ -59,22 +62,10 @@ h1 { font-size: 24px; margin-bottom: 0; font-weight: 700; color: #091e42; }
     overflow: hidden;
 }
 
-.app-logo-container img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-}
+.app-logo-container img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.app-logo-container svg { color: var(--primary); }
 
-/* Fallback si pas d'image */
-.app-logo-container svg {
-    color: var(--primary);
-}
-
-.header-actions {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-}
+.header-actions { display: flex; gap: 12px; align-items: center; }
 
 /* Barre de recherche */
 .search-box {
@@ -108,7 +99,12 @@ h1 { font-size: 24px; margin-bottom: 0; font-weight: 700; color: #091e42; }
 .activity-sidebar {
     width: 320px; background: rgba(255, 255, 255, 0.95); border-radius: 12px; padding: 24px;
     box-shadow: 0 4px 20px rgba(9, 30, 66, 0.05); border: 1px solid rgba(255, 255, 255, 0.5);
-    flex-shrink: 0; position: sticky; top: 20px; max-height: calc(100vh - 40px); overflow-y: auto;
+    flex-shrink: 0; 
+    /* Propriétés pour fixer la sidebar en dessous du header */
+    position: sticky; 
+    top: 120px; 
+    max-height: calc(100vh - 140px); 
+    overflow-y: auto;
 }
 .activity-sidebar h3 { margin: 0 0 20px 0; font-size: 16px; color: #091e42; border-bottom: 2px solid #f4f5f7; padding-bottom: 12px; display: flex; align-items: center; gap: 8px; }
 .activity-item { padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid #ebecf0; }
@@ -189,54 +185,12 @@ h1 { font-size: 24px; margin-bottom: 0; font-weight: 700; color: #091e42; }
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(9, 30, 66, 0.6); backdrop-filter: blur(3px); display: none; justify-content: center; align-items: center; z-index: 4000; }
 .modal-content { background: white; border-radius: 12px; padding: 30px; width: 90%; max-width: 900px; max-height: 85vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative; }
 
-/* ================== NOUVEAUX EN-TÊTES DE PANNEAUX/MODALES ================== */
-.panel-header-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 2px solid #ebecf0;
-    padding-bottom: 15px;
-    margin-bottom: 25px;
-}
-
-.panel-header-title {
-    font-size: 20px;
-    font-weight: 700;
-    color: #091e42;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-/* Le gros bouton de fermeture */
-.close-panel {
-    width: 40px;
-    height: 40px;
-    background: #f4f5f7;
-    color: #5e6c84;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-}
-
-.close-panel:hover {
-    background: #ffebee;
-    color: #d32f2f;
-    transform: scale(1.1);
-}
-
-.btn-modal-add { 
-    background: #e3f2fd; color: #0052cc; border: 1px solid #bbdefb; 
-    padding: 8px 16px; font-size: 14px; font-weight: 600; border-radius: 6px; 
-    cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px;
-}
+/* En-têtes de Panneaux/Modales */
+.panel-header-container { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ebecf0; padding-bottom: 15px; margin-bottom: 25px; }
+.panel-header-title { font-size: 20px; font-weight: 700; color: #091e42; margin: 0; display: flex; align-items: center; gap: 12px; }
+.close-panel { width: 40px; height: 40px; background: #f4f5f7; color: #5e6c84; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+.close-panel:hover { background: #ffebee; color: #d32f2f; transform: scale(1.1); }
+.btn-modal-add { background: #e3f2fd; color: #0052cc; border: 1px solid #bbdefb; padding: 8px 16px; font-size: 14px; font-weight: 600; border-radius: 6px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
 .btn-modal-add:hover { background: #bbdefb; }
 
 /* Formulaires */
