@@ -24,10 +24,8 @@ $team_name = htmlspecialchars($settings['team_name']);
 
     <div class="main-header">
         <div class="header-title-wrapper">
-            
             <div class="app-logo-container">
                 <img src="logo.png" alt="Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                
                 <svg style="display:none; width: 24px; height: 24px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                     <line x1="9" y1="3" x2="9" y2="21"></line>
@@ -59,7 +57,6 @@ $team_name = htmlspecialchars($settings['team_name']);
     <div class="app-layout">
         
         <div class="main-content">
-            
             <div class="tabs-header">
                 <button class="tab-btn active" onclick="switchTab('tab-kanban', this)">🗂️ Vue Kanban</button>
                 <button class="tab-btn" onclick="switchTab('tab-list', this)">📋 Vue Liste (Excel)</button>
@@ -71,7 +68,6 @@ $team_name = htmlspecialchars($settings['team_name']);
             include 'liste.php';
             include 'kpi.php';
             ?>
-
         </div>
 
         <aside class="activity-sidebar">
@@ -167,8 +163,94 @@ $team_name = htmlspecialchars($settings['team_name']);
         </div>
     </div>
 
+    <div id="edit-task-modal" class="modal-overlay" onclick="closeEditTaskModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 700px;">
+            
+            <div class="panel-header-container">
+                <h2 class="panel-header-title">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    Modifier la tâche
+                </h2>
+                <div class="close-panel" onclick="closeEditTaskModal(event)">×</div>
+            </div>
+            
+            <form action="api.php?action=edit_task" method="POST">
+                <input type="hidden" name="column" id="edit_column">
+                <input type="hidden" name="index" id="edit_index">
+
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label>Intitulé de la tâche *</label>
+                        <input type="text" name="titre" id="edit_titre" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Type / Couleur</label>
+                        <select name="couleur" id="edit_couleur">
+                            <option value="color-yellow">🟨 Standard</option>
+                            <option value="color-blue">🟦 Étude/Tech</option>
+                            <option value="color-orange">🟧 Urgence</option>
+                            <option value="color-pink">🟥 Bug/Bloquant</option>
+                            <option value="color-green">🟩 Validé</option>
+                            <option value="color-grey">⬜ En attente</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Projet *</label>
+                        <select name="projet" id="edit_projet" required>
+                            <option value="">-- Sélectionner --</option>
+                            <?php foreach($settings['projets'] as $p): ?>
+                                <option value="<?= htmlspecialchars($p) ?>"><?= htmlspecialchars($p) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Code Projet</label>
+                        <input type="text" name="code_projet" id="edit_code_projet" placeholder="Ex: PRJ-2026">
+                    </div>
+                    <div class="form-group">
+                        <label>Code ITBM</label>
+                        <input type="text" name="code_itbm" id="edit_code_itbm" placeholder="Ex: TSK0123456">
+                    </div>
+                    <div class="form-group">
+                        <label>Acteur / Porteur</label>
+                        <select name="acteur" id="edit_acteur">
+                            <option value="">-- Non assigné --</option>
+                            <?php foreach($settings['acteurs'] as $a): ?>
+                                <option value="<?= htmlspecialchars($a) ?>"><?= htmlspecialchars($a) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Priorité</label>
+                        <select name="prio" id="edit_prio">
+                            <option value="">-- Non définie --</option>
+                            <?php foreach($settings['priorites'] as $p): ?>
+                                <option value="<?= htmlspecialchars($p) ?>"><?= htmlspecialchars($p) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Date de début</label>
+                        <input type="date" name="date_debut" id="edit_date_debut">
+                    </div>
+                    <div class="form-group">
+                        <label>Échéance</label>
+                        <input type="date" name="date_fin" id="edit_date_fin">
+                    </div>
+                </div>
+                <div style="text-align: right; border-top: 1px solid #dfe1e6; padding-top: 20px;">
+                    <button type="button" class="btn" style="background: #ebecf0; color: #42526e; margin-right: 10px;" onclick="closeEditTaskModal(event)">Annuler</button>
+                    <button type="submit" class="btn" style="background: #0052cc; padding: 10px 20px;">Enregistrer les modifications</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="context-menu">
         <div class="context-menu-item" id="menu-add-note">➕ Ajouter un point de suivi</div>
+        <div class="context-menu-item" id="menu-edit-task">✏️ Modifier les paramètres</div>
     </div>
 
     <div id="notes-modal" class="modal-overlay" onclick="closeModal(event)">
@@ -306,7 +388,7 @@ $team_name = htmlspecialchars($settings['team_name']);
                             `;
                             if(container) container.appendChild(card);
 
-                            // 2. VUE LISTE
+                            // 2. VUE LISTE (Mise à jour : Ajout du Clic Droit)
                             if(listTableBody) {
                                 const tr = document.createElement('tr');
                                 tr.className = 'filter-item';
@@ -315,7 +397,15 @@ $team_name = htmlspecialchars($settings['team_name']);
                                 tr.dataset.acteur = aAttr;
                                 tr.dataset.statut = status;
                                 tr.dataset.prio = prAttr;
-                                tr.onclick = () => openHistoryModal(task, status, index);
+                                
+                                // Clic gauche = Historique
+                                tr.addEventListener('click', () => openHistoryModal(task, status, index));
+                                
+                                // Clic droit = Menu Contextuel (COMME DANS LE KANBAN)
+                                tr.addEventListener('contextmenu', (e) => { 
+                                    e.preventDefault(); 
+                                    showContextMenu(e, status, index, task); 
+                                });
                                 
                                 const actLabel = task.acteur || '-';
                                 const prioLabel = task.prio || '-';
@@ -333,15 +423,11 @@ $team_name = htmlspecialchars($settings['team_name']);
                                 listTableBody.appendChild(tr);
                             }
 
-                            // 3. KPI
-                            kpi.total++;
-                            kpi.status[status]++;
-                            const acteur = task.acteur || 'Non assigné';
-                            kpi.acteur[acteur] = (kpi.acteur[acteur] || 0) + 1;
-                            const prio = task.prio || 'Aucune';
-                            kpi.prio[prio] = (kpi.prio[prio] || 0) + 1;
+                            // 3. KPI & ACTIVITÉ
+                            kpi.total++; kpi.status[status]++;
+                            const acteur = task.acteur || 'Non assigné'; kpi.acteur[acteur] = (kpi.acteur[acteur] || 0) + 1;
+                            const prio = task.prio || 'Aucune'; kpi.prio[prio] = (kpi.prio[prio] || 0) + 1;
 
-                            // 4. RÉCOLTE DES NOTES
                             if (task.notes && task.notes.length > 0) {
                                 task.notes.forEach(note => {
                                     allNotesForActivity.push({
@@ -454,6 +540,7 @@ $team_name = htmlspecialchars($settings['team_name']);
             });
         }
 
+        // Kanban Drag & Drop
         document.querySelectorAll('.list').forEach(listEl => {
             new Sortable(listEl, {
                 group: 'kanban-board', animation: 200, ghostClass: 'sortable-ghost', delay: 100, delayOnTouchOnly: true,
@@ -469,9 +556,33 @@ $team_name = htmlspecialchars($settings['team_name']);
             });
         });
 
+        // ================= GESTION DES MODALES D'AJOUT ET D'ÉDITION =================
         function openAddTaskModal() { document.getElementById('add-task-modal').style.display = 'flex'; }
         function closeAddTaskModal(e) { if(e) e.stopPropagation(); document.getElementById('add-task-modal').style.display = 'none'; }
 
+        function openEditTaskModal() {
+            const task = currentTaskRef.task;
+            
+            // On renseigne les infos de position pour l'API
+            document.getElementById('edit_column').value = currentTaskRef.column;
+            document.getElementById('edit_index').value = currentTaskRef.index;
+
+            // On pré-remplit les champs
+            document.getElementById('edit_titre').value = task.titre || '';
+            document.getElementById('edit_couleur').value = task.couleur || 'color-yellow';
+            document.getElementById('edit_projet').value = task.projet || '';
+            document.getElementById('edit_code_projet').value = task.code_projet || '';
+            document.getElementById('edit_code_itbm').value = task.code_itbm || '';
+            document.getElementById('edit_acteur').value = task.acteur || '';
+            document.getElementById('edit_prio').value = task.prio || '';
+            document.getElementById('edit_date_debut').value = task.date_debut || '';
+            document.getElementById('edit_date_fin').value = task.date_fin || '';
+
+            document.getElementById('edit-task-modal').style.display = 'flex';
+        }
+        function closeEditTaskModal(e) { if(e) e.stopPropagation(); document.getElementById('edit-task-modal').style.display = 'none'; }
+
+        // ================= HISTORIQUE ET PANNEAU LATÉRAL =================
         function openHistoryModal(task, column, index) {
             currentTaskRef = { column, index, task };
             
@@ -501,16 +612,24 @@ $team_name = htmlspecialchars($settings['team_name']);
 
         function switchToAddNote() { closeModal(); openAddNotePanel(); }
 
+        // ================= MENU CONTEXTUEL =================
         function showContextMenu(e, column, index, task) {
             const menu = document.getElementById('context-menu');
             menu.style.display = 'block'; menu.style.left = e.pageX + 'px'; menu.style.top = e.pageY + 'px';
             currentTaskRef = { column, index, task };
         }
+        
         document.addEventListener('click', () => { document.getElementById('context-menu').style.display = 'none'; });
+        
+        // Actions du menu
         document.getElementById('menu-add-note').addEventListener('click', (e) => {
             e.stopPropagation(); document.getElementById('context-menu').style.display = 'none'; openAddNotePanel();
         });
+        document.getElementById('menu-edit-task').addEventListener('click', (e) => {
+            e.stopPropagation(); document.getElementById('context-menu').style.display = 'none'; openEditTaskModal();
+        });
 
+        // ================= PANNEAU AJOUT NOTE =================
         function openAddNotePanel() {
             const task = currentTaskRef.task;
             document.getElementById('panel-title').innerText = task.titre;
