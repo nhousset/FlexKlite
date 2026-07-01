@@ -23,14 +23,28 @@ $team_name = htmlspecialchars($settings['team_name']);
 <body>
 
     <div class="main-header">
-        <h1 style="margin: 0; display: flex; align-items: center; gap: 12px;">
-            <?= $app_title ?>
-            <?php if(!empty($team_name)): ?>
-                <span style="font-size: 14px; background: #e3f2fd; color: #0052cc; padding: 4px 12px; border-radius: 16px; font-weight: 700; letter-spacing: 0.5px; border: 1px solid #bbdefb; vertical-align: middle;">
-                    <?= $team_name ?>
-                </span>
-            <?php endif; ?>
-        </h1>
+        <div class="header-title-wrapper">
+            
+            <div class="app-logo-container">
+                <img src="logo.png" alt="Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                
+                <svg style="display:none; width: 24px; height: 24px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="9" y1="3" x2="9" y2="21"></line>
+                    <line x1="15" y1="3" x2="15" y2="21"></line>
+                </svg>
+            </div>
+            
+            <h1 style="margin: 0; display: flex; align-items: center; gap: 12px; font-size: 22px;">
+                <?= $app_title ?>
+                <?php if(!empty($team_name)): ?>
+                    <span style="font-size: 13px; background: #e3f2fd; color: #0052cc; padding: 4px 12px; border-radius: 20px; font-weight: 800; letter-spacing: 0.5px; border: 1px solid #bbdefb;">
+                        <?= $team_name ?>
+                    </span>
+                <?php endif; ?>
+            </h1>
+        </div>
+
         <div class="header-actions">
             <div class="search-box">
                 <span>🔍</span>
@@ -62,17 +76,23 @@ $team_name = htmlspecialchars($settings['team_name']);
 
         <aside class="activity-sidebar">
             <h3>⚡ Activité Récente</h3>
-            <div id="recent-activity-list">
-                </div>
+            <div id="recent-activity-list"></div>
         </aside>
 
     </div>
 
-
     <div id="add-task-modal" class="modal-overlay" onclick="closeAddTaskModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 700px;">
-            <span class="modal-close" onclick="closeAddTaskModal(event)">×</span>
-            <h2 style="margin-top: 0; color: #091e42; margin-bottom: 25px;">Créer une nouvelle tâche</h2>
+            
+            <div class="panel-header-container">
+                <h2 class="panel-header-title">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Créer une nouvelle tâche
+                </h2>
+                <div class="close-panel" onclick="closeAddTaskModal(event)">×</div>
+            </div>
             
             <form action="api.php?action=add_task" method="POST">
                 <div class="form-grid">
@@ -153,10 +173,21 @@ $team_name = htmlspecialchars($settings['team_name']);
 
     <div id="notes-modal" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
-            <button class="btn-modal-add" onclick="switchToAddNote()">➕ Ajouter un point</button>
-            <span class="modal-close" onclick="closeModal(event)">×</span>
             
-            <h2 id="modal-title" style="margin-top: 0; color: #091e42; padding-right: 180px;"></h2>
+            <div class="panel-header-container">
+                <h2 class="panel-header-title">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    Historique de la tâche
+                </h2>
+                <div style="display:flex; gap: 15px; align-items:center;">
+                    <button class="btn-modal-add" onclick="switchToAddNote()">➕ Ajouter un point</button>
+                    <div class="close-panel" onclick="closeModal(event)">×</div>
+                </div>
+            </div>
+            
+            <h3 id="modal-title" style="margin-top: 0; color: #091e42; font-size: 20px; margin-bottom: 20px;"></h3>
             
             <div class="task-meta-info">
                 <div>Projet : <strong id="modal-project"></strong></div>
@@ -175,8 +206,18 @@ $team_name = htmlspecialchars($settings['team_name']);
     </div>
 
     <div id="details-panel">
-        <span class="close-panel" onclick="closePanel()">×</span>
-        <h2 id="panel-title" style="font-size: 22px; margin-top: 0; color: #091e42; line-height: 1.3; margin-bottom: 15px;"></h2>
+        
+        <div class="panel-header-container">
+            <h2 class="panel-header-title">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                </svg>
+                Ajout d'une note
+            </h2>
+            <div class="close-panel" onclick="closePanel()">×</div>
+        </div>
+
+        <h3 id="panel-title" style="font-size: 20px; margin-top: 0; color: #091e42; line-height: 1.3; margin-bottom: 20px;"></h3>
         
         <div class="task-meta-info">
             <div>Projet : <strong id="panel-project"></strong></div>
@@ -186,7 +227,7 @@ $team_name = htmlspecialchars($settings['team_name']);
             <div id="panel-dates-container" style="display:none;">Dates : <strong id="panel-dates"></strong></div>
         </div>
         
-        <h4 style="margin-bottom: 10px; margin-top: 20px; font-size:15px; color: #172b4d;">Ajouter un point de suivi :</h4>
+        <h4 style="margin-bottom: 10px; margin-top: 20px; font-size:15px; color: #172b4d;">Saisir votre point de suivi :</h4>
         
         <div class="note-meta-inputs">
             <input type="date" id="new-note-date" title="Date de la note" style="max-width: 130px;">
@@ -199,7 +240,7 @@ $team_name = htmlspecialchars($settings['team_name']);
         </div>
 
         <textarea id="new-note-text" style="width:100%; height:120px; margin-bottom:12px; padding: 10px; border: 1px solid #dfe1e6; border-radius: 4px; font-family:inherit; box-sizing: border-box; resize: vertical;"></textarea>
-        <button class="btn" style="width: 100%; padding: 12px; font-size: 15px;" onclick="submitNote()">Enregistrer</button>
+        <button class="btn" style="width: 100%; padding: 12px; font-size: 15px;" onclick="submitNote()">Enregistrer la note</button>
 
         <h4 style="margin-top: 40px; font-size:15px; color: #172b4d; border-bottom: 2px solid #ebecf0; padding-bottom: 10px;">Historique des notes</h4>
         <div id="panel-notes-list"></div>
@@ -248,7 +289,6 @@ $team_name = htmlspecialchars($settings['team_name']);
                             card.dataset.statut = status;
                             card.dataset.prio = prAttr;
                             
-                            // On passe status et index pour mémoriser la référence complète
                             card.addEventListener('click', () => openHistoryModal(task, status, index));
                             card.addEventListener('contextmenu', (e) => { e.preventDefault(); showContextMenu(e, status, index, task); });
                             
@@ -320,7 +360,6 @@ $team_name = htmlspecialchars($settings['team_name']);
                 });
         }
 
-        // --- FILTRAGE CSS ---
         function applyFilters() {
             const searchEl = document.getElementById('filter-search');
             const projetEl = document.getElementById('filter-projet');
@@ -389,7 +428,6 @@ $team_name = htmlspecialchars($settings['team_name']);
         function renderRecentActivity(notes) {
             const container = document.getElementById('recent-activity-list');
             if(!container) return;
-
             container.innerHTML = '';
             
             notes.sort((a, b) => b.timestamp - a.timestamp);
@@ -416,7 +454,6 @@ $team_name = htmlspecialchars($settings['team_name']);
             });
         }
 
-        // Kanban Drag & Drop
         document.querySelectorAll('.list').forEach(listEl => {
             new Sortable(listEl, {
                 group: 'kanban-board', animation: 200, ghostClass: 'sortable-ghost', delay: 100, delayOnTouchOnly: true,
@@ -432,13 +469,10 @@ $team_name = htmlspecialchars($settings['team_name']);
             });
         });
 
-        // ================= ACTIONS =================
         function openAddTaskModal() { document.getElementById('add-task-modal').style.display = 'flex'; }
         function closeAddTaskModal(e) { if(e) e.stopPropagation(); document.getElementById('add-task-modal').style.display = 'none'; }
 
-        // Ajout de column et index en paramètres pour pouvoir basculer sur l'édition
         function openHistoryModal(task, column, index) {
-            // Mémorisation de la référence
             currentTaskRef = { column, index, task };
             
             document.getElementById('modal-title').innerText = task.titre;
@@ -465,11 +499,7 @@ $team_name = htmlspecialchars($settings['team_name']);
         }
         function closeModal(e) { if(e) e.stopPropagation(); document.getElementById('notes-modal').style.display = 'none'; }
 
-        // Nouvelle fonction pour le bouton "Ajouter un point" de la modale
-        function switchToAddNote() {
-            closeModal();
-            openAddNotePanel();
-        }
+        function switchToAddNote() { closeModal(); openAddNotePanel(); }
 
         function showContextMenu(e, column, index, task) {
             const menu = document.getElementById('context-menu');
