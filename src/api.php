@@ -11,8 +11,11 @@ if (!file_exists($db_file)) {
     file_put_contents($db_file, json_encode(["todo" => [], "in_progress" => [], "blocked" => [], "done" => []], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
 
+// Initialisation des settings par défaut avec les nouvelles clés
 if (!file_exists($settings_file)) {
     $default_settings = [
+        "app_title" => "Gestion des Chantiers & Suivi",
+        "team_name" => "IHMT",
         "projets" => ["VIYA 4", "Plateforme", "MCO"],
         "acteurs" => ["Nicolas H.", "Kevin L.", "David M."],
         "priorites" => ["1", "2", "3", "En attente"],
@@ -21,9 +24,14 @@ if (!file_exists($settings_file)) {
     file_put_contents($settings_file, json_encode($default_settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
 
+// Rétrocompatibilité : ajoute les clés manquantes si un vieux settings.json existe
 $current_settings = json_decode(file_get_contents($settings_file), true);
-if (!isset($current_settings['reunions'])) {
-    $current_settings['reunions'] = ["Point OPS", "Comité BI", "Coproj", "Point équipe"];
+$needs_update = false;
+if (!isset($current_settings['reunions'])) { $current_settings['reunions'] = ["Point OPS", "Comité BI", "Coproj", "Point équipe"]; $needs_update = true; }
+if (!isset($current_settings['app_title'])) { $current_settings['app_title'] = "Gestion des Chantiers & Suivi"; $needs_update = true; }
+if (!isset($current_settings['team_name'])) { $current_settings['team_name'] = "IHMT"; $needs_update = true; }
+
+if ($needs_update) {
     file_put_contents($settings_file, json_encode($current_settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
 
@@ -83,7 +91,7 @@ switch ($action) {
                     'date'      => date('d/m/Y'),
                     'reunion'   => '',
                     'texte'     => $_POST['note_initiale'],
-                    'timestamp' => time() // Permet de trier précisément les notes récentes
+                    'timestamp' => time()
                 ];
             }
             array_unshift($kanban['todo'], $new_task);
@@ -106,7 +114,7 @@ switch ($action) {
                 'date'      => $date_saisie,
                 'reunion'   => $reunion,
                 'texte'     => $texte,
-                'timestamp' => time() // Permet de trier précisément les notes récentes
+                'timestamp' => time()
             ]);
             $kanban[$col][$idx]['maj'] = !empty($data['date']) ? date('d/m', strtotime($data['date'])) : date('d/m');
             
