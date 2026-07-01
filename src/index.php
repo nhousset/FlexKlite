@@ -53,9 +53,9 @@ $team_name = htmlspecialchars($settings['team_name']);
             </div>
 
             <?php 
-            include 'src/kanban.php';
-            include 'src/liste.php';
-            include 'src/kpi.php';
+            include 'kanban.php';
+            include 'liste.php';
+            include 'kpi.php';
             ?>
 
         </div>
