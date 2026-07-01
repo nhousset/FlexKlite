@@ -14,9 +14,8 @@
 
 body { 
     font-family: var(--font-main); 
-    /* Nouveau background avec un dégradé subtil et moderne */
     background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    background-attachment: fixed; /* Le fond reste fixe au scroll */
+    background-attachment: fixed;
     min-height: 100vh;
     color: var(--text-main); 
     margin: 0; 
@@ -25,12 +24,11 @@ body {
 
 h1 { font-size: 24px; margin-bottom: 0; font-weight: 700; color: #091e42; }
 
-/* --- En-tête Global Moderne (Header) --- */
+/* --- En-tête Global Moderne --- */
 .main-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    /* Effet Glassmorphism (Verre dépoli) */
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -47,16 +45,29 @@ h1 { font-size: 24px; margin-bottom: 0; font-weight: 700; color: #091e42; }
     gap: 16px;
 }
 
-.app-logo {
-    width: 42px;
-    height: 42px;
-    background: linear-gradient(135deg, var(--primary) 0%, #003d99 100%);
-    color: white;
-    border-radius: 10px;
+/* Nouveau conteneur pour le logo (Image) */
+.app-logo-container {
+    width: 45px;
+    height: 45px;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 12px rgba(0, 82, 204, 0.3);
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border: 1px solid #dfe1e6;
+    overflow: hidden;
+}
+
+.app-logo-container img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+/* Fallback si pas d'image */
+.app-logo-container svg {
+    color: var(--primary);
 }
 
 .header-actions {
@@ -65,7 +76,7 @@ h1 { font-size: 24px; margin-bottom: 0; font-weight: 700; color: #091e42; }
     align-items: center;
 }
 
-/* Barre de recherche dans le header */
+/* Barre de recherche */
 .search-box {
     display: flex;
     align-items: center;
@@ -76,44 +87,24 @@ h1 { font-size: 24px; margin-bottom: 0; font-weight: 700; color: #091e42; }
     box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
     transition: border-color 0.2s, box-shadow 0.2s;
 }
-.search-box:focus-within {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.1);
-}
-.search-box input {
-    border: none;
-    background: transparent;
-    padding: 10px 10px;
-    width: 250px;
-    font-size: 14px;
-    color: var(--text-main);
-    outline: none;
-}
+.search-box:focus-within { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.1); }
+.search-box input { border: none; background: transparent; padding: 10px 10px; width: 250px; font-size: 14px; color: var(--text-main); outline: none; }
 
 /* Boutons */
 .btn { 
-    background: var(--primary); 
-    color: white; 
-    border: none; 
-    padding: 10px 18px; 
-    border-radius: 6px; 
-    cursor: pointer; 
-    font-weight: 600;
-    font-size: 14px;
-    transition: background 0.2s, transform 0.1s;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    background: var(--primary); color: white; border: none; padding: 10px 18px; 
+    border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;
+    transition: background 0.2s, transform 0.1s; display: flex; align-items: center; gap: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 .btn:hover { background: #0047b3; transform: translateY(-1px); }
 .btn:active { transform: translateY(0); }
 
-/* Layout Principal (Gauche/Droite) */
+/* Layout Principal */
 .app-layout { display: flex; gap: 25px; align-items: flex-start; }
 .main-content { flex: 1; min-width: 0; }
 
-/* Sidebar d'activité (Droite) */
+/* Sidebar d'activité */
 .activity-sidebar {
     width: 320px; background: rgba(255, 255, 255, 0.95); border-radius: 12px; padding: 24px;
     box-shadow: 0 4px 20px rgba(9, 30, 66, 0.05); border: 1px solid rgba(255, 255, 255, 0.5);
@@ -126,16 +117,9 @@ h1 { font-size: 24px; margin-bottom: 0; font-weight: 700; color: #091e42; }
 .activity-task { font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 8px; line-height: 1.4; }
 .activity-note { font-size: 12px; color: var(--text-muted); background: #f4f5f7; padding: 10px; border-radius: 6px; border-left: 3px solid var(--primary); white-space: pre-wrap; }
 
-/* --- SYSTÈME D'ONGLETS --- */
-.tabs-header { 
-    display: flex; gap: 15px; margin-bottom: 25px; 
-    border-bottom: 2px solid #dfe1e6; padding-bottom: 0;
-}
-.tab-btn { 
-    background: none; border: none; font-size: 15px; font-weight: 600; 
-    color: var(--text-muted); cursor: pointer; padding: 10px 20px; 
-    border-bottom: 3px solid transparent; transition: 0.2s; margin-bottom: -2px; 
-}
+/* Onglets */
+.tabs-header { display: flex; gap: 15px; margin-bottom: 25px; border-bottom: 2px solid #dfe1e6; padding-bottom: 0; }
+.tab-btn { background: none; border: none; font-size: 15px; font-weight: 600; color: var(--text-muted); cursor: pointer; padding: 10px 20px; border-bottom: 3px solid transparent; transition: 0.2s; margin-bottom: -2px; }
 .tab-btn:hover { color: var(--text-main); background: rgba(255, 255, 255, 0.5); border-radius: 6px 6px 0 0;}
 .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
 .tab-content { display: none; }
@@ -143,7 +127,7 @@ h1 { font-size: 24px; margin-bottom: 0; font-weight: 700; color: #091e42; }
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-/* --- ONGLET 1 : GRILLE KANBAN --- */
+/* Grille Kanban */
 .board { display: flex; gap: 24px; align-items: flex-start; overflow-x: auto; padding-bottom: 20px;}
 .column { background: rgba(235, 236, 240, 0.7); border-radius: 10px; width: 320px; min-width: 320px; padding: 16px; min-height: 600px; border-top: 4px solid transparent; backdrop-filter: blur(4px);}
 #todo { border-top-color: var(--col-todo); }
@@ -153,7 +137,7 @@ h1 { font-size: 24px; margin-bottom: 0; font-weight: 700; color: #091e42; }
 .column h3 { margin: 0 0 16px 0; font-size: 15px; color: var(--text-main); font-weight: 600; }
 .list { min-height: 500px; }
 
-/* Design Post-it */
+/* Post-it */
 .card { padding: 16px; margin-bottom: 16px; border-radius: 2px 2px 15px 2px / 2px 2px 5px 2px; box-shadow: 2px 4px 6px rgba(0,0,0,0.08); cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; position: relative; border: 1px solid rgba(0,0,0,0.05); }
 .card:hover { transform: translateY(-2px) rotate(-1deg); box-shadow: 4px 8px 15px rgba(0,0,0,0.12); }
 .color-yellow { background-color: #fff9c4; color: #172b4d; }
@@ -170,23 +154,14 @@ h1 { font-size: 24px; margin-bottom: 0; font-weight: 700; color: #091e42; }
 .card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: rgba(0,0,0,0.6); font-weight: 500; }
 .card-footer span { display: flex; align-items: center; gap: 4px; }
 
-/* --- ONGLET 2 : VUE LISTE (EXCEL AVEC FILTRES) --- */
+/* Vue Liste */
 .data-table-container { background: rgba(255, 255, 255, 0.95); border-radius: 10px; box-shadow: 0 4px 20px rgba(9, 30, 66, 0.05); overflow-x: auto; border: 1px solid rgba(255,255,255,0.5);}
 .data-table { width: 100%; border-collapse: collapse; min-width: 1000px; text-align: left; }
-.data-table th { 
-    background: #fafbfc; padding: 12px 16px; font-size: 12px; color: var(--text-muted); 
-    font-weight: 700; border-bottom: 2px solid #dfe1e6; text-transform: uppercase;
-    vertical-align: top;
-}
+.data-table th { background: #fafbfc; padding: 12px 16px; font-size: 12px; color: var(--text-muted); font-weight: 700; border-bottom: 2px solid #dfe1e6; text-transform: uppercase; vertical-align: top;}
 .data-table td { padding: 14px 16px; font-size: 14px; border-bottom: 1px solid #ebecf0; vertical-align: middle; }
 .data-table tr { transition: background 0.2s; cursor: pointer; }
 .data-table tr:hover { background: #f4f5f7; }
-
-/* Style des filtres dans les en-têtes de table */
-.table-filter {
-    width: 100%; margin-top: 8px; padding: 8px 6px; font-size: 12px; border: 1px solid #dfe1e6;
-    border-radius: 4px; background: white; color: var(--text-main); outline: none; font-weight: 500;
-}
+.table-filter { width: 100%; margin-top: 8px; padding: 8px 6px; font-size: 12px; border: 1px solid #dfe1e6; border-radius: 4px; background: white; color: var(--text-main); outline: none; font-weight: 500;}
 .table-filter:focus { border-color: var(--primary); }
 
 .status-badge { font-size: 12px; font-weight: 700; padding: 4px 8px; border-radius: 4px; display: inline-block;}
@@ -195,7 +170,7 @@ h1 { font-size: 24px; margin-bottom: 0; font-weight: 700; color: #091e42; }
 .status-blocked { background: #ffebee; color: #de350b; }
 .status-done { background: #e3fcef; color: #006644; }
 
-/* --- ONGLET 3 : KPI --- */
+/* Vue KPI */
 .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
 .kpi-card { background: rgba(255, 255, 255, 0.95); padding: 24px; border-radius: 12px; box-shadow: 0 4px 20px rgba(9, 30, 66, 0.05); border: 1px solid rgba(255,255,255,0.5); }
 .kpi-card h3 { margin: 0 0 16px 0; font-size: 14px; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid #ebecf0; padding-bottom: 12px;}
@@ -206,18 +181,65 @@ h1 { font-size: 24px; margin-bottom: 0; font-weight: 700; color: #091e42; }
 .kpi-list li:last-child { border-bottom: none; }
 .kpi-count { background: #ebecf0; color: var(--text-main); padding: 2px 10px; border-radius: 12px; font-size: 13px; font-weight: 700;}
 
-/* --- MODALES & MENUS --- */
+/* Modales & Menus */
 #context-menu { position: absolute; background: white; border-radius: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); padding: 8px 0; display: none; z-index: 3000; min-width: 200px; border: 1px solid #dfe1e6; }
 .context-menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #172b4d; display: flex; align-items: center; gap: 10px; transition: background 0.2s; font-weight: 500;}
 .context-menu-item:hover { background: #f4f5f7; color: var(--primary); }
 
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(9, 30, 66, 0.6); backdrop-filter: blur(3px); display: none; justify-content: center; align-items: center; z-index: 4000; }
 .modal-content { background: white; border-radius: 12px; padding: 30px; width: 90%; max-width: 900px; max-height: 85vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative; }
-.modal-close { position: absolute; top: 16px; right: 20px; font-size: 28px; cursor: pointer; color: var(--text-muted); font-weight: bold; line-height: 1;}
-.modal-close:hover { color: var(--text-main); }
-.btn-modal-add { position: absolute; top: 18px; right: 60px; background: #e3f2fd; color: #0052cc; border: 1px solid #bbdefb; padding: 6px 14px; font-size: 13px; font-weight: 600; border-radius: 6px; cursor: pointer; transition: 0.2s;}
+
+/* ================== NOUVEAUX EN-TÊTES DE PANNEAUX/MODALES ================== */
+.panel-header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #ebecf0;
+    padding-bottom: 15px;
+    margin-bottom: 25px;
+}
+
+.panel-header-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #091e42;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Le gros bouton de fermeture */
+.close-panel {
+    width: 40px;
+    height: 40px;
+    background: #f4f5f7;
+    color: #5e6c84;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.close-panel:hover {
+    background: #ffebee;
+    color: #d32f2f;
+    transform: scale(1.1);
+}
+
+.btn-modal-add { 
+    background: #e3f2fd; color: #0052cc; border: 1px solid #bbdefb; 
+    padding: 8px 16px; font-size: 14px; font-weight: 600; border-radius: 6px; 
+    cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px;
+}
 .btn-modal-add:hover { background: #bbdefb; }
 
+/* Formulaires */
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
 .form-group { display: flex; flex-direction: column; gap: 8px; }
 .form-group.full-width { grid-column: 1 / -1; }
