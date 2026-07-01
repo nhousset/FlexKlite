@@ -153,8 +153,10 @@ $team_name = htmlspecialchars($settings['team_name']);
 
     <div id="notes-modal" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
+            <button class="btn-modal-add" onclick="switchToAddNote()">➕ Ajouter un point</button>
             <span class="modal-close" onclick="closeModal(event)">×</span>
-            <h2 id="modal-title" style="margin-top: 0; color: #091e42;"></h2>
+            
+            <h2 id="modal-title" style="margin-top: 0; color: #091e42; padding-right: 180px;"></h2>
             
             <div class="task-meta-info">
                 <div>Projet : <strong id="modal-project"></strong></div>
@@ -246,7 +248,8 @@ $team_name = htmlspecialchars($settings['team_name']);
                             card.dataset.statut = status;
                             card.dataset.prio = prAttr;
                             
-                            card.addEventListener('click', () => openHistoryModal(task));
+                            // On passe status et index pour mémoriser la référence complète
+                            card.addEventListener('click', () => openHistoryModal(task, status, index));
                             card.addEventListener('contextmenu', (e) => { e.preventDefault(); showContextMenu(e, status, index, task); });
                             
                             let extraTags = '';
@@ -272,7 +275,7 @@ $team_name = htmlspecialchars($settings['team_name']);
                                 tr.dataset.acteur = aAttr;
                                 tr.dataset.statut = status;
                                 tr.dataset.prio = prAttr;
-                                tr.onclick = () => openHistoryModal(task);
+                                tr.onclick = () => openHistoryModal(task, status, index);
                                 
                                 const actLabel = task.acteur || '-';
                                 const prioLabel = task.prio || '-';
@@ -433,9 +436,12 @@ $team_name = htmlspecialchars($settings['team_name']);
         function openAddTaskModal() { document.getElementById('add-task-modal').style.display = 'flex'; }
         function closeAddTaskModal(e) { if(e) e.stopPropagation(); document.getElementById('add-task-modal').style.display = 'none'; }
 
-        function openHistoryModal(task) {
-            document.getElementById('modal-title').innerText = task.titre;
+        // Ajout de column et index en paramètres pour pouvoir basculer sur l'édition
+        function openHistoryModal(task, column, index) {
+            // Mémorisation de la référence
+            currentTaskRef = { column, index, task };
             
+            document.getElementById('modal-title').innerText = task.titre;
             document.getElementById('modal-project').innerText = task.projet;
             document.getElementById('modal-acteur').innerText = task.acteur || 'Non assigné';
             document.getElementById('modal-code-projet').innerText = task.code_projet || '';
@@ -458,6 +464,12 @@ $team_name = htmlspecialchars($settings['team_name']);
             document.getElementById('notes-modal').style.display = 'flex';
         }
         function closeModal(e) { if(e) e.stopPropagation(); document.getElementById('notes-modal').style.display = 'none'; }
+
+        // Nouvelle fonction pour le bouton "Ajouter un point" de la modale
+        function switchToAddNote() {
+            closeModal();
+            openAddNotePanel();
+        }
 
         function showContextMenu(e, column, index, task) {
             const menu = document.getElementById('context-menu');
