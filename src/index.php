@@ -1,17 +1,36 @@
 <?php 
 require_once 'auth.php'; 
+
+// Lecture synchrone des paramètres pour générer la page
+$settings_file = __DIR__ . '/db/settings.json';
+$default = [
+    "app_title" => "Gestion des Chantiers", 
+    "team_name" => "IHMT",
+    "projets" => [], "acteurs" => [], "priorites" => [], "reunions" => []
+];
+$settings = file_exists($settings_file) ? array_merge($default, json_decode(file_get_contents($settings_file), true)) : $default; 
+
+$app_title = htmlspecialchars($settings['app_title']);
+$team_name = htmlspecialchars($settings['team_name']);
 ?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Suivi de Chantiers - IHMT</title>
+    <title><?= $app_title ?> - <?= $team_name ?></title>
     <link rel="stylesheet" href="style.css?<?= time() ?>">
 </head>
 <body>
 
     <div class="main-header">
-        <h1 style="margin: 0;">Gestion des Chantiers & Suivi</h1>
+        <h1 style="margin: 0; display: flex; align-items: center; gap: 12px;">
+            <?= $app_title ?>
+            <?php if(!empty($team_name)): ?>
+                <span style="font-size: 14px; background: #e3f2fd; color: #0052cc; padding: 4px 12px; border-radius: 16px; font-weight: 700; letter-spacing: 0.5px; border: 1px solid #bbdefb; vertical-align: middle;">
+                    <?= $team_name ?>
+                </span>
+            <?php endif; ?>
+        </h1>
         <div class="header-actions">
             <div class="search-box">
                 <span>🔍</span>
@@ -22,12 +41,6 @@ require_once 'auth.php';
             <a href="logout.php" class="btn" style="background: #ffebee; color: #d32f2f; text-decoration: none;">Se déconnecter</a>
         </div>
     </div>
-
-    <?php 
-    $settings_file = __DIR__ . '/db/settings.json';
-    $default = ["projets" => [], "acteurs" => [], "priorites" => [], "reunions" => []];
-    $settings = file_exists($settings_file) ? array_merge($default, json_decode(file_get_contents($settings_file), true)) : $default; 
-    ?>
 
     <div class="app-layout">
         
@@ -40,9 +53,9 @@ require_once 'auth.php';
             </div>
 
             <?php 
-            include 'kanban.php';
-            include 'liste.php';
-            include 'kpi.php';
+            include 'src/kanban.php';
+            include 'src/liste.php';
+            include 'src/kpi.php';
             ?>
 
         </div>
