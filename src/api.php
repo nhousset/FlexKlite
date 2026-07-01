@@ -11,7 +11,6 @@ if (!file_exists($db_file)) {
     file_put_contents($db_file, json_encode(["todo" => [], "in_progress" => [], "blocked" => [], "done" => []], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
 
-// Initialisation des settings par défaut avec les nouvelles clés
 if (!file_exists($settings_file)) {
     $default_settings = [
         "app_title" => "Gestion des Chantiers & Suivi",
@@ -24,7 +23,6 @@ if (!file_exists($settings_file)) {
     file_put_contents($settings_file, json_encode($default_settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
 
-// Rétrocompatibilité : ajoute les clés manquantes si un vieux settings.json existe
 $current_settings = json_decode(file_get_contents($settings_file), true);
 $needs_update = false;
 if (!isset($current_settings['reunions'])) { $current_settings['reunions'] = ["Point OPS", "Comité BI", "Coproj", "Point équipe"]; $needs_update = true; }
@@ -96,6 +94,31 @@ switch ($action) {
             }
             array_unshift($kanban['todo'], $new_task);
             write_db($db_file, $kanban);
+        }
+        header('Location: index.php');
+        exit;
+
+    // Nouvelle action pour modifier une tâche
+    case 'edit_task':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $col = $_POST['column'] ?? '';
+            $idx = (int)($_POST['index'] ?? -1);
+
+            if ($col !== '' && $idx !== -1 && isset($kanban[$col][$idx])) {
+                // On met à jour les paramètres mais on conserve les notes existantes
+                $kanban[$col][$idx]['projet']      = $_POST['projet'] ?? '';
+                $kanban[$col][$idx]['code_projet'] = $_POST['code_projet'] ?? '';
+                $kanban[$col][$idx]['titre']       = $_POST['titre'] ?? '';
+                $kanban[$col][$idx]['code_itbm']   = $_POST['code_itbm'] ?? '';
+                $kanban[$col][$idx]['prio']        = $_POST['prio'] ?? '';
+                $kanban[$col][$idx]['acteur']      = $_POST['acteur'] ?? '';
+                $kanban[$col][$idx]['couleur']     = $_POST['couleur'] ?? 'color-yellow';
+                $kanban[$col][$idx]['date_debut']  = $_POST['date_debut'] ?? '';
+                $kanban[$col][$idx]['date_fin']    = $_POST['date_fin'] ?? '';
+                $kanban[$col][$idx]['maj']         = date('d/m');
+                
+                write_db($db_file, $kanban);
+            }
         }
         header('Location: index.php');
         exit;
