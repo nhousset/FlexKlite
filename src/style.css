@@ -185,8 +185,13 @@ h1 { font-size: 24px; margin-bottom: 0; font-weight: 700; color: #091e42; }
 
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(9, 30, 66, 0.54); display: none; justify-content: center; align-items: center; z-index: 4000; }
 .modal-content { background: white; border-radius: 8px; padding: 30px; width: 90%; max-width: 900px; max-height: 85vh; overflow-y: auto; box-shadow: 0 8px 24px rgba(0,0,0,0.2); position: relative; }
+
+/* Bouton d'ajout et fermeture dans la modale d'historique */
 .modal-close { position: absolute; top: 16px; right: 20px; font-size: 24px; cursor: pointer; color: var(--text-muted); font-weight: bold; }
 .modal-close:hover { color: var(--text-main); }
+
+.btn-modal-add { position: absolute; top: 18px; right: 60px; background: #e3f2fd; color: #0052cc; border: 1px solid #bbdefb; padding: 6px 12px; font-size: 13px; font-weight: 600; border-radius: 4px; cursor: pointer; transition: 0.2s;}
+.btn-modal-add:hover { background: #bbdefb; }
 
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
 .form-group { display: flex; flex-direction: column; gap: 8px; }
