@@ -18,6 +18,7 @@ $team_name = htmlspecialchars($settings['team_name']);
     <meta charset="UTF-8">
     <title><?= $app_title ?> - <?= $team_name ?></title>
     <link rel="stylesheet" href="style.css?<?= time() ?>">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 </head>
 <body>
 
@@ -47,20 +48,9 @@ $team_name = htmlspecialchars($settings['team_name']);
                 <span>🔍</span>
                 <input type="text" id="filter-search" placeholder="Recherche rapide..." onkeyup="applyFilters()">
             </div>
-            
             <button onclick="openAddTaskModal()" class="btn-header btn-new-task">➕ Nouvelle Tâche</button>
-            
-            <div class="dropdown">
-                <button class="btn-header dropdown-btn" onclick="toggleHeaderMenu(event)">
-                    ⚙️ Menu <span style="font-size: 10px;">▼</span>
-                </button>
-                <div class="dropdown-menu" id="header-dropdown">
-                    <a href="admin.php" class="dropdown-item">⚙️ Paramètres globaux</a>
-                    <div class="dropdown-divider"></div>
-                    <a href="logout.php" class="dropdown-item text-danger">🚪 Se déconnecter</a>
-                </div>
-            </div>
-
+            <a href="admin.php" class="btn-header">⚙️ Paramètres</a>
+            <a href="logout.php" class="btn-header btn-logout">Se déconnecter</a>
         </div>
     </div>
 
@@ -287,7 +277,7 @@ $team_name = htmlspecialchars($settings['team_name']);
                 <thead>
                     <tr><th style="width: 120px;">Date</th><th style="width: 150px;">Contexte</th><th>Détails du suivi</th></tr>
                 </thead>
-                <tbody id="modal-table-body-history"></tbody>
+                <tbody id="modal-table-body"></tbody>
             </table>
         </div>
     </div>
@@ -336,17 +326,6 @@ $team_name = htmlspecialchars($settings['team_name']);
     <script>
         let currentTaskRef = { column: null, index: null, task: null };
         const statusLabels = { todo: 'À Faire', in_progress: 'En Cours', blocked: 'Bloqué / En attente', done: 'Terminé' };
-
-        function toggleHeaderMenu(e) {
-            e.stopPropagation();
-            document.getElementById('header-dropdown').classList.toggle('show');
-        }
-
-        document.addEventListener('click', () => { 
-            const dropdown = document.getElementById('header-dropdown');
-            if(dropdown && dropdown.classList.contains('show')) dropdown.classList.remove('show');
-            document.getElementById('context-menu').style.display = 'none'; 
-        });
 
         function switchTab(tabId, btn) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -403,7 +382,7 @@ $team_name = htmlspecialchars($settings['team_name']);
                             `;
                             if(container) container.appendChild(card);
 
-                            // Construction du bloc notes
+                            // Construction du bloc des notes
                             let notesHtml = '';
                             if (task.notes && task.notes.length > 0) {
                                 const sortedNotes = [...task.notes].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
@@ -477,77 +456,101 @@ $team_name = htmlspecialchars($settings['team_name']);
                 });
         }
 
-        // --- EXPORT EXCEL ---
-        function exportToExcel() {
-            let tableHTML = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-            <head>
-                <meta charset="utf-8">
-                <style>
-                    td, th { vertical-align: top; border: 1px solid #000000; font-family: Calibri, sans-serif; font-size: 11pt; padding: 5px;}
-                    th { background-color: #4472C4; color: white; font-weight: bold; text-align: center; }
-                    .notes-cell { white-space: pre-wrap; }
-                </style>
-            </head>
-            <body>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Projet</th>
-                            <th>Description</th>
-                            <th>Prio.</th>
-                            <th>Porteur / Acteur</th>
-                            <th>MAJ</th>
-                            <th>Notes</th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
+        // --- GÉNÉRATION EXCEL (XLSX) AVEC FILTRES ---
+        async function exportToExcel() {
+            // Création du classeur Excel
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Suivi des Chantiers');
 
+            // Définition et paramétrage des colonnes
+            worksheet.columns = [
+                { header: 'Projet', key: 'projet', width: 15 },
+                { header: 'Tâche', key: 'tache', width: 45 },
+                { header: 'Statut', key: 'statut', width: 15 },
+                { header: 'Prio.', key: 'prio', width: 10 },
+                { header: 'Acteur', key: 'acteur', width: 18 },
+                { header: 'MAJ', key: 'maj', width: 12 },
+                { header: 'Dernières notes (Historique)', key: 'notes', width: 75 }
+            ];
+
+            // Stylisation de l'en-tête (Bleu foncé, texte blanc)
+            worksheet.getRow(1).eachCell((cell) => {
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4472C4' } };
+                cell.font = { color: { argb: 'FFFFFFFF' }, bold: true, name: 'Calibri', size: 11 };
+                cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
+            });
+
+            // Récupération des données filtrées de la page
             const rows = document.querySelectorAll('#list-table-body tr');
             rows.forEach(row => {
-                // On exporte uniquement les lignes affichées (filtrées)
                 if (row.style.display !== 'none') {
                     const cells = row.querySelectorAll('td');
                     const projet = cells[0].innerText.replace('📁 ', '').trim();
                     const tache = cells[1].innerText.trim();
+                    const statut = cells[2].innerText.trim();
                     const prio = cells[3].innerText.replace('🔥 ', '').trim();
                     const acteur = cells[4].innerText.replace('🧑‍💻 ', '').trim();
                     const maj = cells[5].innerText.replace('🕒 ', '').trim();
 
-                    // Extraction propre des notes via la div dédiée
+                    // Reconstitution du texte des notes avec vrais retours à la ligne
                     let notesText = '';
                     const noteDivs = cells[6].querySelectorAll('.note-entry');
                     if (noteDivs.length > 0) {
                         const noteLines = Array.from(noteDivs).map(div => div.innerText.trim());
-                        notesText = noteLines.join('<br style="mso-data-placement:same-cell;" />');
+                        notesText = noteLines.join('\n');
                     } else {
                         notesText = cells[6].innerText.trim();
+                        if (notesText === 'Aucune note') notesText = '';
                     }
 
-                    // Formatage du fond pour la colonne MAJ (comme sur le screenshot)
-                    let majStyle = 'background-color: #00B0F0; color: white; font-weight: bold; text-align: center;';
+                    // Ajout de la ligne dans le fichier
+                    const excelRow = worksheet.addRow({
+                        projet: projet,
+                        tache: tache,
+                        statut: statut,
+                        prio: prio !== '-' ? prio : '',
+                        acteur: acteur !== '-' ? acteur : '',
+                        maj: maj,
+                        notes: notesText
+                    });
 
-                    tableHTML += `<tr>
-                        <td>${projet}</td>
-                        <td>${tache}</td>
-                        <td style="text-align: center;">${prio !== '-' ? prio : ''}</td>
-                        <td>${acteur !== '-' ? acteur : ''}</td>
-                        <td style="${majStyle}">${maj}</td>
-                        <td class="notes-cell">${notesText !== 'Aucune note' ? notesText : ''}</td>
-                    </tr>`;
+                    // Stylisation des cellules de la ligne
+                    excelRow.eachCell((cell, colNumber) => {
+                        cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
+                        cell.alignment = { vertical: 'top', wrapText: true };
+                        cell.font = { name: 'Calibri', size: 11 };
+                        
+                        // Style spécifique pour la colonne MAJ (colonne 6) -> Fond bleu clair
+                        if (colNumber === 6) {
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF00B0F0' } };
+                            cell.font = { color: { argb: 'FFFFFFFF' }, bold: true, name: 'Calibri', size: 11 };
+                            cell.alignment = { vertical: 'top', horizontal: 'center' };
+                        }
+                        
+                        // Centrer certains éléments
+                        if ([1, 3, 4, 5].includes(colNumber)) {
+                            cell.alignment = { vertical: 'top', horizontal: 'center' };
+                        }
+                    });
                 }
             });
 
-            tableHTML += `</tbody></table></body></html>`;
+            // Ajout des filtres natifs Excel
+            worksheet.autoFilter = {
+                from: 'A1',
+                to: { row: 1, column: 7 }
+            };
 
-            const blob = new Blob([tableHTML], { type: 'application/vnd.ms-excel' });
-            const url = URL.createObjectURL(blob);
+            // Création et téléchargement du fichier
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `Suivi_Chantiers_${new Date().toISOString().split('T')[0]}.xls`;
-            document.body.appendChild(a);
+            a.download = `Suivi_Chantiers_${new Date().toISOString().split('T')[0]}.xlsx`;
             a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            window.URL.revokeObjectURL(url);
         }
 
         // --- GESTION DU TRI DYNAMIQUE ---
@@ -692,7 +695,6 @@ $team_name = htmlspecialchars($settings['team_name']);
             });
         }
 
-        // Kanban Drag & Drop
         document.querySelectorAll('.list').forEach(listEl => {
             new Sortable(listEl, {
                 group: 'kanban-board', animation: 200, ghostClass: 'sortable-ghost', delay: 100, delayOnTouchOnly: true,
@@ -744,8 +746,7 @@ $team_name = htmlspecialchars($settings['team_name']);
             document.getElementById('modal-itbm').innerText = task.code_itbm || '';
             document.getElementById('modal-itbm-container').style.display = task.code_itbm ? 'block' : 'none';
             
-            const tbody = document.getElementById('modal-table-body-history');
-            if(!tbody) return;
+            const tbody = document.getElementById('modal-table-body');
             tbody.innerHTML = '';
             if (task.notes && task.notes.length > 0) {
                 task.notes.forEach(note => {
