@@ -54,7 +54,6 @@ $team_name = htmlspecialchars($settings['team_name']);
     </div>
 
     <div class="app-layout">
-        
         <div class="main-content">
             <div class="tabs-header">
                 <button class="tab-btn active" onclick="switchTab('tab-kanban', this)">🗂️ Vue Kanban</button>
@@ -73,7 +72,6 @@ $team_name = htmlspecialchars($settings['team_name']);
             <h3>⚡ Activité Récente</h3>
             <div id="recent-activity-list"></div>
         </aside>
-
     </div>
 
     <div id="add-task-modal" class="modal-overlay" onclick="closeAddTaskModal(event)">
@@ -383,22 +381,22 @@ $team_name = htmlspecialchars($settings['team_name']);
                             `;
                             if(container) container.appendChild(card);
 
-                            // Construction du bloc des 5 dernières notes pour la vue Liste
+                            // Construction du bloc des 5 dernières notes
                             let notesHtml = '';
                             if (task.notes && task.notes.length > 0) {
                                 const sortedNotes = [...task.notes].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
                                 const top5 = sortedNotes.slice(0, 5);
                                 notesHtml = top5.map(n => {
                                     const ctx = n.reunion ? ` - <strong>${n.reunion}</strong>` : '';
-                                    return `<div style="font-size: 12px; margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px dashed #ebecf0; line-height: 1.4;">
-                                                <span style="color:#5e6c84;">${n.date}${ctx} :</span> ${n.texte}
+                                    return `<div style="font-size: 13px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed #ebecf0; line-height: 1.4;">
+                                                <span style="color:#5e6c84; font-weight: 600;">${n.date}${ctx} :</span> ${n.texte}
                                             </div>`;
                                 }).join('');
                             } else {
-                                notesHtml = `<span style="color:#aaa; font-style:italic; font-size:12px;">Aucune note</span>`;
+                                notesHtml = `<span style="color:#aaa; font-style:italic; font-size:13px;">Aucune note</span>`;
                             }
 
-                            // 2. VUE LISTE
+                            // 2. VUE LISTE (Mise à jour pour coller à liste.php)
                             if(listTableBody) {
                                 const tr = document.createElement('tr');
                                 tr.className = 'filter-item';
@@ -413,7 +411,6 @@ $team_name = htmlspecialchars($settings['team_name']);
                                 
                                 const actLabel = task.acteur || '-';
                                 const prioLabel = task.prio || '-';
-                                const dateFin = task.date_fin ? task.date_fin.split('-').reverse().join('/') : '-';
                                 
                                 tr.innerHTML = `
                                     <td><span class="tag tag-itbm" style="background:none; border:1px solid #dfe1e6;">📁 ${task.projet}</span></td>
@@ -421,22 +418,17 @@ $team_name = htmlspecialchars($settings['team_name']);
                                     <td><span class="status-badge status-${status}">${statusLabels[status]}</span></td>
                                     <td>${prioLabel !== '-' ? `🔥 ${prioLabel}` : '-'}</td>
                                     <td>🧑‍💻 ${actLabel}</td>
+                                    <td style="color:#5e6c84; white-space:nowrap; font-weight: 600;">🕒 ${task.maj}</td>
                                     <td>${notesHtml}</td>
-                                    <td style="color:#5e6c84;">${dateFin}</td>
-                                    <td style="color:#5e6c84;">🕒 ${task.maj}</td>
                                 `;
                                 listTableBody.appendChild(tr);
                             }
 
-                            // 3. KPI
-                            kpi.total++;
-                            kpi.status[status]++;
-                            const acteur = task.acteur || 'Non assigné';
-                            kpi.acteur[acteur] = (kpi.acteur[acteur] || 0) + 1;
-                            const prio = task.prio || 'Aucune';
-                            kpi.prio[prio] = (kpi.prio[prio] || 0) + 1;
+                            // 3. KPI & ACTIVITÉ
+                            kpi.total++; kpi.status[status]++;
+                            const acteur = task.acteur || 'Non assigné'; kpi.acteur[acteur] = (kpi.acteur[acteur] || 0) + 1;
+                            const prio = task.prio || 'Aucune'; kpi.prio[prio] = (kpi.prio[prio] || 0) + 1;
 
-                            // 4. RÉCOLTE DES NOTES
                             if (task.notes && task.notes.length > 0) {
                                 task.notes.forEach(note => {
                                     allNotesForActivity.push({
@@ -523,7 +515,6 @@ $team_name = htmlspecialchars($settings['team_name']);
         function renderRecentActivity(notes) {
             const container = document.getElementById('recent-activity-list');
             if(!container) return;
-
             container.innerHTML = '';
             
             notes.sort((a, b) => b.timestamp - a.timestamp);
@@ -550,7 +541,6 @@ $team_name = htmlspecialchars($settings['team_name']);
             });
         }
 
-        // Kanban Drag & Drop
         document.querySelectorAll('.list').forEach(listEl => {
             new Sortable(listEl, {
                 group: 'kanban-board', animation: 200, ghostClass: 'sortable-ghost', delay: 100, delayOnTouchOnly: true,
@@ -566,7 +556,6 @@ $team_name = htmlspecialchars($settings['team_name']);
             });
         });
 
-        // ================= GESTION DES MODALES D'AJOUT ET D'ÉDITION =================
         function openAddTaskModal() { document.getElementById('add-task-modal').style.display = 'flex'; }
         function closeAddTaskModal(e) { if(e) e.stopPropagation(); document.getElementById('add-task-modal').style.display = 'none'; }
 
@@ -590,7 +579,6 @@ $team_name = htmlspecialchars($settings['team_name']);
         }
         function closeEditTaskModal(e) { if(e) e.stopPropagation(); document.getElementById('edit-task-modal').style.display = 'none'; }
 
-        // ================= HISTORIQUE ET PANNEAU LATÉRAL =================
         function openHistoryModal(task, column, index) {
             currentTaskRef = { column, index, task };
             
