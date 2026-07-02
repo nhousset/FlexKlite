@@ -3,7 +3,7 @@
         <table class="data-table">
             <thead>
                 <tr>
-                    <th style="width: 15%;">
+                    <th style="width: 12%;">
                         <div>Projet</div>
                         <select id="filter-projet" class="table-filter" onchange="applyFilters()">
                             <option value="">Tous</option>
@@ -12,10 +12,10 @@
                             <?php endforeach; ?>
                         </select>
                     </th>
-                    <th style="width: 30%;">
+                    <th style="width: 18%;">
                         <div style="margin-top: 15px;">Tâche</div>
                     </th>
-                    <th style="width: 12%;">
+                    <th style="width: 10%;">
                         <div>Statut</div>
                         <select id="filter-statut" class="table-filter" onchange="applyFilters()">
                             <option value="">Tous</option>
@@ -25,7 +25,7 @@
                             <option value="done">Terminé</option>
                         </select>
                     </th>
-                    <th style="width: 10%;">
+                    <th style="width: 8%;">
                         <div>Priorité</div>
                         <select id="filter-prio" class="table-filter" onchange="applyFilters()">
                             <option value="">Toutes</option>
@@ -34,7 +34,7 @@
                             <?php endforeach; ?>
                         </select>
                     </th>
-                    <th style="width: 13%;">
+                    <th style="width: 10%;">
                         <div>Acteur</div>
                         <select id="filter-acteur" class="table-filter" onchange="applyFilters()">
                             <option value="">Tous</option>
@@ -43,11 +43,14 @@
                             <?php endforeach; ?>
                         </select>
                     </th>
-                    <th style="width: 10%;">
+                    <th style="width: 27%;">
+                        <div style="margin-top: 15px;">Dernières notes (Historique)</div>
+                    </th>
+                    <th style="width: 8%;">
                         <div style="margin-top: 15px;">Échéance</div>
                     </th>
-                    <th style="width: 10%;">
-                        <div style="margin-top: 15px;">Dernière MAJ</div>
+                    <th style="width: 7%;">
+                        <div style="margin-top: 15px;">MAJ</div>
                     </th>
                 </tr>
             </thead>
