@@ -4,7 +4,7 @@
             <thead>
                 <tr>
                     <th style="width: 12%;">
-                        <div>Projet</div>
+                        <div class="sortable-header" onclick="sortTable('projet', this)">Projet <span class="sort-icon"></span></div>
                         <select id="filter-projet" class="table-filter" onchange="applyFilters()">
                             <option value="">Tous</option>
                             <?php foreach($settings['projets'] as $p): ?>
@@ -13,10 +13,10 @@
                         </select>
                     </th>
                     <th style="width: 20%;">
-                        <div style="margin-top: 15px;">Tâche</div>
+                        <div class="sortable-header" style="margin-top: 15px;" onclick="sortTable('titre', this)">Tâche <span class="sort-icon"></span></div>
                     </th>
                     <th style="width: 10%;">
-                        <div>Statut</div>
+                        <div class="sortable-header" onclick="sortTable('statut', this)">Statut <span class="sort-icon"></span></div>
                         <select id="filter-statut" class="table-filter" onchange="applyFilters()">
                             <option value="">Tous</option>
                             <option value="todo">À Faire</option>
@@ -26,7 +26,7 @@
                         </select>
                     </th>
                     <th style="width: 8%;">
-                        <div>Priorité</div>
+                        <div class="sortable-header" onclick="sortTable('prio', this)">Priorité <span class="sort-icon"></span></div>
                         <select id="filter-prio" class="table-filter" onchange="applyFilters()">
                             <option value="">Toutes</option>
                             <?php foreach($settings['priorites'] as $p): ?>
@@ -35,7 +35,7 @@
                         </select>
                     </th>
                     <th style="width: 12%;">
-                        <div>Acteur</div>
+                        <div class="sortable-header" onclick="sortTable('acteur', this)">Acteur <span class="sort-icon"></span></div>
                         <select id="filter-acteur" class="table-filter" onchange="applyFilters()">
                             <option value="">Tous</option>
                             <?php foreach($settings['acteurs'] as $a): ?>
@@ -44,7 +44,7 @@
                         </select>
                     </th>
                     <th style="width: 8%;">
-                        <div style="margin-top: 15px;">MAJ</div>
+                        <div class="sortable-header" style="margin-top: 15px;" onclick="sortTable('maj', this)">MAJ <span class="sort-icon"></span></div>
                     </th>
                     <th style="width: 30%;">
                         <div style="margin-top: 15px;">Dernières notes (Historique)</div>
