@@ -225,3 +225,30 @@ body {
 .note-meta-inputs input:focus, .note-meta-inputs select:focus { outline: none; border-color: var(--primary); }
 .note-item { background: #f4f5f7; padding: 18px; margin-bottom: 16px; border-radius: 8px; border-left: 4px solid var(--primary); font-size: 14px; line-height: 1.5; color: var(--text-main); }
 .note-date { font-weight: 600; color: var(--text-muted); margin-bottom: 10px; font-size: 12px; display: flex; align-items: center; gap: 8px; }
+
+/* --- En-têtes triables --- */
+.sortable-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.2s;
+    padding-bottom: 4px;
+}
+
+.sortable-header:hover { color: var(--primary); }
+
+.sort-icon { 
+    display: inline-block; 
+    width: 12px; 
+    text-align: center; 
+    font-size: 10px;
+}
+
+/* Affichage dynamique des flèches de tri */
+.sort-icon.asc::after { content: '▲'; color: var(--primary); }
+.sort-icon.desc::after { content: '▼'; color: var(--primary); }
+.sort-icon:not(.asc):not(.desc)::after { content: '↕'; color: #dfe1e6; }
+
+.sortable-header:hover .sort-icon:not(.asc):not(.desc)::after { color: #b3bac5; }
