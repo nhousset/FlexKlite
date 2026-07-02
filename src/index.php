@@ -50,7 +50,6 @@ $team_name = htmlspecialchars($settings['team_name']);
             
             <button onclick="openAddTaskModal()" class="btn-header btn-new-task">➕ Nouvelle Tâche</button>
             
-            <!-- NOUVEAU : Le Menu Déroulant -->
             <div class="dropdown">
                 <button class="btn-header dropdown-btn" onclick="toggleHeaderMenu(event)">
                     ⚙️ Menu <span style="font-size: 10px;">▼</span>
@@ -86,9 +85,6 @@ $team_name = htmlspecialchars($settings['team_name']);
         </aside>
     </div>
 
-    <!-- ================= MODALES ET MENUS ================= -->
-
-    <!-- Modale de Création de Tâche -->
     <div id="add-task-modal" class="modal-overlay" onclick="closeAddTaskModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 700px;">
             <div class="panel-header-container">
@@ -174,7 +170,6 @@ $team_name = htmlspecialchars($settings['team_name']);
         </div>
     </div>
 
-    <!-- Modale d'Édition de Tâche -->
     <div id="edit-task-modal" class="modal-overlay" onclick="closeEditTaskModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 700px;">
             <div class="panel-header-container">
@@ -259,13 +254,11 @@ $team_name = htmlspecialchars($settings['team_name']);
         </div>
     </div>
 
-    <!-- Menu Contextuel -->
     <div id="context-menu">
         <div class="context-menu-item" id="menu-add-note">➕ Ajouter un point de suivi</div>
         <div class="context-menu-item" id="menu-edit-task">✏️ Modifier les paramètres</div>
     </div>
 
-    <!-- Modale d'historique -->
     <div id="notes-modal" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="panel-header-container">
@@ -294,12 +287,11 @@ $team_name = htmlspecialchars($settings['team_name']);
                 <thead>
                     <tr><th style="width: 120px;">Date</th><th style="width: 150px;">Contexte</th><th>Détails du suivi</th></tr>
                 </thead>
-                <tbody id="modal-table-body"></tbody>
+                <tbody id="modal-table-body-history"></tbody>
             </table>
         </div>
     </div>
 
-    <!-- Panneau latéral ajout de note -->
     <div id="details-panel">
         <div class="panel-header-container">
             <h2 class="panel-header-title">
@@ -340,24 +332,19 @@ $team_name = htmlspecialchars($settings['team_name']);
         <div id="panel-notes-list"></div>
     </div>
 
-    <!-- ================= LOGIQUE JS ================= -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script>
         let currentTaskRef = { column: null, index: null, task: null };
         const statusLabels = { todo: 'À Faire', in_progress: 'En Cours', blocked: 'Bloqué / En attente', done: 'Terminé' };
 
-        // --- GESTION DU MENU DÉROULANT DU HEADER ---
         function toggleHeaderMenu(e) {
             e.stopPropagation();
             document.getElementById('header-dropdown').classList.toggle('show');
         }
 
-        // Ferme tous les menus contextuels ou dropdowns si on clique ailleurs
         document.addEventListener('click', () => { 
             const dropdown = document.getElementById('header-dropdown');
-            if(dropdown && dropdown.classList.contains('show')) {
-                dropdown.classList.remove('show');
-            }
+            if(dropdown && dropdown.classList.contains('show')) dropdown.classList.remove('show');
             document.getElementById('context-menu').style.display = 'none'; 
         });
 
@@ -416,19 +403,19 @@ $team_name = htmlspecialchars($settings['team_name']);
                             `;
                             if(container) container.appendChild(card);
 
-                            // Construction du bloc des notes (pour la vue liste)
+                            // Construction du bloc notes
                             let notesHtml = '';
                             if (task.notes && task.notes.length > 0) {
                                 const sortedNotes = [...task.notes].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
                                 const top5 = sortedNotes.slice(0, 5);
                                 notesHtml = top5.map(n => {
                                     const ctx = n.reunion ? ` - <strong>${n.reunion}</strong>` : '';
-                                    return `<div style="font-size: 13px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed #ebecf0; line-height: 1.4;">
+                                    return `<div style="font-size: 13px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed #ebecf0; line-height: 1.4;" class="note-entry">
                                                 <span style="color:#5e6c84; font-weight: 600;">${n.date}${ctx} :</span> ${n.texte}
                                             </div>`;
                                 }).join('');
                             } else {
-                                notesHtml = `<span style="color:#aaa; font-style:italic; font-size:13px;">Aucune note</span>`;
+                                notesHtml = `<span style="color:#aaa; font-style:italic; font-size:13px;" class="note-entry">Aucune note</span>`;
                             }
 
                             // 2. VUE LISTE
@@ -488,6 +475,79 @@ $team_name = htmlspecialchars($settings['team_name']);
                         applySort(currentSort.column, currentSort.asc);
                     }
                 });
+        }
+
+        // --- EXPORT EXCEL ---
+        function exportToExcel() {
+            let tableHTML = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+            <head>
+                <meta charset="utf-8">
+                <style>
+                    td, th { vertical-align: top; border: 1px solid #000000; font-family: Calibri, sans-serif; font-size: 11pt; padding: 5px;}
+                    th { background-color: #4472C4; color: white; font-weight: bold; text-align: center; }
+                    .notes-cell { white-space: pre-wrap; }
+                </style>
+            </head>
+            <body>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Projet</th>
+                            <th>Description</th>
+                            <th>Prio.</th>
+                            <th>Porteur / Acteur</th>
+                            <th>MAJ</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+            const rows = document.querySelectorAll('#list-table-body tr');
+            rows.forEach(row => {
+                // On exporte uniquement les lignes affichées (filtrées)
+                if (row.style.display !== 'none') {
+                    const cells = row.querySelectorAll('td');
+                    const projet = cells[0].innerText.replace('📁 ', '').trim();
+                    const tache = cells[1].innerText.trim();
+                    const prio = cells[3].innerText.replace('🔥 ', '').trim();
+                    const acteur = cells[4].innerText.replace('🧑‍💻 ', '').trim();
+                    const maj = cells[5].innerText.replace('🕒 ', '').trim();
+
+                    // Extraction propre des notes via la div dédiée
+                    let notesText = '';
+                    const noteDivs = cells[6].querySelectorAll('.note-entry');
+                    if (noteDivs.length > 0) {
+                        const noteLines = Array.from(noteDivs).map(div => div.innerText.trim());
+                        notesText = noteLines.join('<br style="mso-data-placement:same-cell;" />');
+                    } else {
+                        notesText = cells[6].innerText.trim();
+                    }
+
+                    // Formatage du fond pour la colonne MAJ (comme sur le screenshot)
+                    let majStyle = 'background-color: #00B0F0; color: white; font-weight: bold; text-align: center;';
+
+                    tableHTML += `<tr>
+                        <td>${projet}</td>
+                        <td>${tache}</td>
+                        <td style="text-align: center;">${prio !== '-' ? prio : ''}</td>
+                        <td>${acteur !== '-' ? acteur : ''}</td>
+                        <td style="${majStyle}">${maj}</td>
+                        <td class="notes-cell">${notesText !== 'Aucune note' ? notesText : ''}</td>
+                    </tr>`;
+                }
+            });
+
+            tableHTML += `</tbody></table></body></html>`;
+
+            const blob = new Blob([tableHTML], { type: 'application/vnd.ms-excel' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Suivi_Chantiers_${new Date().toISOString().split('T')[0]}.xls`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
 
         // --- GESTION DU TRI DYNAMIQUE ---
@@ -632,6 +692,7 @@ $team_name = htmlspecialchars($settings['team_name']);
             });
         }
 
+        // Kanban Drag & Drop
         document.querySelectorAll('.list').forEach(listEl => {
             new Sortable(listEl, {
                 group: 'kanban-board', animation: 200, ghostClass: 'sortable-ghost', delay: 100, delayOnTouchOnly: true,
@@ -683,7 +744,8 @@ $team_name = htmlspecialchars($settings['team_name']);
             document.getElementById('modal-itbm').innerText = task.code_itbm || '';
             document.getElementById('modal-itbm-container').style.display = task.code_itbm ? 'block' : 'none';
             
-            const tbody = document.getElementById('modal-table-body');
+            const tbody = document.getElementById('modal-table-body-history');
+            if(!tbody) return;
             tbody.innerHTML = '';
             if (task.notes && task.notes.length > 0) {
                 task.notes.forEach(note => {
