@@ -5,11 +5,11 @@ require_once 'auth.php';
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Administration - Paramètres</title>
+    <title>Administration Pro - Suivi de Chantiers</title>
     <link rel="stylesheet" href="style.css?<?= time() ?>">
     <style>
         .admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        .admin-card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #ebecf0;}
+        .admin-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(9, 30, 66, 0.05); border: 1px solid #ebecf0;}
         .admin-card h3 { margin-top: 0; color: #091e42; font-size: 16px; font-weight: 600; border-bottom: 2px solid #f4f5f7; padding-bottom: 12px; margin-bottom: 20px;}
         .item-list { list-style: none; padding: 0; margin: 0 0 20px 0; }
         .item-list li { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #f4f5f7; margin-bottom: 8px; border-radius: 4px; font-size: 14px; border: 1px solid #ebecf0;}
@@ -27,78 +27,154 @@ require_once 'auth.php';
 <body>
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-        <h1 style="margin: 0;">Administration des paramètres</h1>
+        <h1 style="margin: 0;">Console d'Administration</h1>
         <div>
-            <a href="index.php" class="btn" style="background: #ebecf0; color: #42526e; text-decoration: none; margin-right: 10px;">Retour au Tableau</a>
-            <button onclick="saveSettings()" class="btn" style="background: #00875a;">Enregistrer les modifications</button>
+            <a href="index.php" class="btn" style="background: #ebecf0; color: #42526e; text-decoration: none; margin-right: 10px;">📊 Retour au Tableau</a>
         </div>
     </div>
 
-    <div class="admin-grid">
+    <?php if(isset($_GET['status'])): ?>
+        <?php if($_GET['status'] === 'import_ok'): ?>
+            <div class="alert-banner alert-success">✅ Restauration réussie ! Les fichiers JSON ont été importés et validés avec succès.</div>
+        <?php elseif($_GET['status'] === 'import_error'): ?>
+            <div class="alert-banner alert-danger">❌ Erreur lors de la restauration. Assurez-vous que l'archive ZIP contient des fichiers JSON valides.</div>
+        <?php endif; ?>
+    <?php endif; ?>
 
-        <div class="admin-card" style="grid-column: 1 / -1;">
-            <h3>Paramètres Généraux de l'Application</h3>
-            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                <div class="form-group-admin" style="flex: 1; min-width: 250px;">
-                    <label>Titre de l'application (Sera affiché en haut et dans l'onglet)</label>
-                    <input type="text" id="input-app-title" placeholder="Ex: Gestion des Chantiers">
+    <div class="admin-tabs-header">
+        <button class="admin-tab-btn active" onclick="switchAdminTab('panel-lists', this)">⚙️ Configuration des Éléments</button>
+        <button class="admin-tab-btn" onclick="switchAdminTab('panel-json', this)">📝 Éditeur Brut JSON</button>
+        <button class="admin-tab-btn" onclick="switchAdminTab('panel-backup', this)">💾 Sauvegarde & Restauration (ZIP)</button>
+    </div>
+
+    <div id="panel-lists" class="admin-tab-content active">
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
+            <button onclick="saveSettings()" class="btn" style="background: #00875a;">Enregistrer la configuration</button>
+        </div>
+        
+        <div class="admin-grid">
+            <div class="admin-card" style="grid-column: 1 / -1;">
+                <h3>Paramètres Généraux de l'Application</h3>
+                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                    <div class="form-group-admin" style="flex: 1; min-width: 250px;">
+                        <label>Titre de l'application</label>
+                        <input type="text" id="input-app-title">
+                    </div>
+                    <div class="form-group-admin" style="flex: 1; min-width: 250px;">
+                        <label>Nom de l'équipe</label>
+                        <input type="text" id="input-team-name">
+                    </div>
                 </div>
-                <div class="form-group-admin" style="flex: 1; min-width: 250px;">
-                    <label>Nom de l'équipe (Badge mis en évidence)</label>
-                    <input type="text" id="input-team-name" placeholder="Ex: Équipe IHMT">
+            </div>
+
+            <div class="admin-card">
+                <h3>Projets</h3>
+                <ul class="item-list" id="list-projets"></ul>
+                <div class="add-group">
+                    <input type="text" id="input-projets" placeholder="Nouveau projet...">
+                    <button class="btn" onclick="addItem('projets')">Ajouter</button>
                 </div>
             </div>
-        </div>
 
-        <div class="admin-card">
-            <h3>Projets</h3>
-            <ul class="item-list" id="list-projets"></ul>
-            <div class="add-group">
-                <input type="text" id="input-projets" placeholder="Nouveau projet...">
-                <button class="btn" onclick="addItem('projets')">Ajouter</button>
+            <div class="admin-card">
+                <h3>Acteurs / Porteurs</h3>
+                <ul class="item-list" id="list-acteurs"></ul>
+                <div class="add-group">
+                    <input type="text" id="input-acteurs" placeholder="Nouvel acteur...">
+                    <button class="btn" onclick="addItem('acteurs')">Ajouter</button>
+                </div>
             </div>
-        </div>
 
-        <div class="admin-card">
-            <h3>Acteurs / Porteurs</h3>
-            <ul class="item-list" id="list-acteurs"></ul>
-            <div class="add-group">
-                <input type="text" id="input-acteurs" placeholder="Nouvel acteur...">
-                <button class="btn" onclick="addItem('acteurs')">Ajouter</button>
+            <div class="admin-card">
+                <h3>Priorités</h3>
+                <ul class="item-list" id="list-priorites"></ul>
+                <div class="add-group">
+                    <input type="text" id="input-priorites" placeholder="Nouvelle priorité...">
+                    <button class="btn" onclick="addItem('priorites')">Ajouter</button>
+                </div>
             </div>
-        </div>
 
-        <div class="admin-card">
-            <h3>Priorités</h3>
-            <ul class="item-list" id="list-priorites"></ul>
-            <div class="add-group">
-                <input type="text" id="input-priorites" placeholder="Nouvelle priorité...">
-                <button class="btn" onclick="addItem('priorites')">Ajouter</button>
-            </div>
-        </div>
-
-        <div class="admin-card">
-            <h3>Types de Réunions</h3>
-            <ul class="item-list" id="list-reunions"></ul>
-            <div class="add-group">
-                <input type="text" id="input-reunions" placeholder="Point équipe, Coproj...">
-                <button class="btn" onclick="addItem('reunions')">Ajouter</button>
+            <div class="admin-card">
+                <h3>Types de Réunions</h3>
+                <ul class="item-list" id="list-reunions"></ul>
+                <div class="add-group">
+                    <input type="text" id="input-reunions" placeholder="Point équipe, Coproj...">
+                    <button class="btn" onclick="addItem('reunions')">Ajouter</button>
+                </div>
             </div>
         </div>
     </div>
+
+    <div id="panel-json" class="admin-tab-content">
+        <div class="json-editor-container">
+            <div class="json-card">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3 style="margin:0; font-size:15px; color:#091e42;">Base de données Kanban (kanban.json)</h3>
+                    <button class="btn" style="padding: 6px 12px; font-size:13px;" onclick="saveRawJson('kanban')">Sauvegarder les Tâches</button>
+                </div>
+                <textarea id="textarea-kanban" class="json-textarea" placeholder="Chargement..."></textarea>
+            </div>
+
+            <div class="json-card">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3 style="margin:0; font-size:15px; color:#091e42;">Configuration Générale (settings.json)</h3>
+                    <button class="btn" style="padding: 6px 12px; font-size:13px;" onclick="saveRawJson('settings')">Sauvegarder l'App</button>
+                </div>
+                <textarea id="textarea-settings" class="json-textarea" placeholder="Chargement..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div id="panel-backup" class="admin-tab-content">
+        <div class="backup-zone">
+            <div class="backup-card">
+                <div style="background: #e3f2fd; color: #0052cc; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px;">📦</div>
+                <h3 style="margin:0; color:#091e42; font-size:18px;">Exporter la base de données</h3>
+                <p style="color:var(--text-muted); font-size:14px; margin:0 0 10px 0; max-width:280px;">Générez et téléchargez instantanément une archive ZIP contenant vos tâches et vos paramètres.</p>
+                <a href="api.php?action=export_backup_zip" class="btn" style="text-decoration:none; background:#0052cc; padding:12px 24px;">Créer un Backup (.ZIP)</a>
+            </div>
+
+            <div class="backup-card">
+                <div style="background: #e8f5e9; color: #00875a; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px;">📥</div>
+                <h3 style="margin:0; color:#091e42; font-size:18px;">Restaurer une sauvegarde</h3>
+                <p style="color:var(--text-muted); font-size:14px; margin:0 0 10px 0; max-width:280px;">Importez une archive de sauvegarde précédemment exportée pour restaurer l'état complet.</p>
+                
+                <form action="api.php?action=import_backup_zip" method="POST" enctype="multipart/form-data" style="width:100%;" id="form-import">
+                    <div class="file-upload-wrapper">
+                        <span id="file-upload-label" style="font-weight:600; font-size:14px; color:var(--text-muted);">Cliquez ou glissez votre fichier ZIP ici</span>
+                        <input type="file" name="backup_zip" accept=".zip" required onchange="updateUploadLabel(this)">
+                    </div>
+                    <button type="submit" class="btn" style="background:#00875a; width:100%; margin-top:15px; padding:12px;">Démarrer la Restauration</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
 
     <script>
         let settingsData = { app_title: "", team_name: "", projets: [], acteurs: [], priorites: [], reunions: [] };
 
+        // Gestion globale des onglets
+        function switchAdminTab(panelId, btn) {
+            document.querySelectorAll('.admin-tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.admin-tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(panelId).classList.add('active');
+            btn.classList.add('active');
+
+            // Si on ouvre l'onglet JSON, on charge les flux bruts à jour
+            if (panelId === 'panel-json') {
+                loadRawJsonFiles();
+            }
+        }
+
+        // Chargement initial des données
         fetch('api.php?action=get_settings')
             .then(res => res.json())
             .then(data => {
                 settingsData = { ...settingsData, ...data };
-                
-                // Remplissage des champs textes
                 document.getElementById('input-app-title').value = settingsData.app_title || '';
                 document.getElementById('input-team-name').value = settingsData.team_name || '';
-
                 renderLists();
             });
 
@@ -132,7 +208,6 @@ require_once 'auth.php';
         }
 
         function saveSettings() {
-            // Mise à jour des valeurs textes avant sauvegarde
             settingsData.app_title = document.getElementById('input-app-title').value.trim();
             settingsData.team_name = document.getElementById('input-team-name').value.trim();
 
@@ -143,8 +218,46 @@ require_once 'auth.php';
             })
             .then(res => res.json())
             .then(resData => {
-                if(resData.success) alert('Paramètres mis à jour avec succès !');
+                if(resData.success) alert('Configuration enregistrée avec succès !');
             });
+        }
+
+        /* ================= MANAGEMENT EN DIRECT DU JSON BRUT ================= */
+        function loadRawJsonFiles() {
+            fetch('api.php?action=get_raw_json&file=kanban')
+                .then(res => res.text())
+                .then(text => document.getElementById('textarea-kanban').value = text);
+
+            fetch('api.php?action=get_raw_json&file=settings')
+                .then(res => res.text())
+                .then(text => document.getElementById('textarea-settings').value = text);
+        }
+
+        function saveRawJson(fileName) {
+            const rawContent = document.getElementById(`textarea-${fileName}`).value;
+            
+            fetch('api.php?action=save_raw_json', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ file: fileName, content: rawContent })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`Fichier ${fileName}.json modifié et enregistré avec succès !`);
+                } else {
+                    alert(`Erreur : ${data.error}`);
+                }
+            });
+        }
+
+        // MAJ esthétique de l'upload ZIP
+        function updateUploadLabel(input) {
+            const label = document.getElementById('file-upload-label');
+            if (input.files && input.files.length > 0) {
+                label.innerText = `📦 Fichier prêt : ${input.files[0].name}`;
+                label.style.color = '#00875a';
+            }
         }
     </script>
 </body>
