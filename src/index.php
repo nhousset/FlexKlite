@@ -47,9 +47,21 @@ $team_name = htmlspecialchars($settings['team_name']);
                 <span>🔍</span>
                 <input type="text" id="filter-search" placeholder="Recherche rapide..." onkeyup="applyFilters()">
             </div>
+            
             <button onclick="openAddTaskModal()" class="btn-header btn-new-task">➕ Nouvelle Tâche</button>
-            <a href="admin.php" class="btn-header">⚙️ Paramètres</a>
-            <a href="logout.php" class="btn-header btn-logout">Se déconnecter</a>
+            
+            <!-- NOUVEAU : Le Menu Déroulant -->
+            <div class="dropdown">
+                <button class="btn-header dropdown-btn" onclick="toggleHeaderMenu(event)">
+                    ⚙️ Menu <span style="font-size: 10px;">▼</span>
+                </button>
+                <div class="dropdown-menu" id="header-dropdown">
+                    <a href="admin.php" class="dropdown-item">⚙️ Paramètres globaux</a>
+                    <div class="dropdown-divider"></div>
+                    <a href="logout.php" class="dropdown-item text-danger">🚪 Se déconnecter</a>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -74,6 +86,9 @@ $team_name = htmlspecialchars($settings['team_name']);
         </aside>
     </div>
 
+    <!-- ================= MODALES ET MENUS ================= -->
+
+    <!-- Modale de Création de Tâche -->
     <div id="add-task-modal" class="modal-overlay" onclick="closeAddTaskModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 700px;">
             <div class="panel-header-container">
@@ -159,6 +174,7 @@ $team_name = htmlspecialchars($settings['team_name']);
         </div>
     </div>
 
+    <!-- Modale d'Édition de Tâche -->
     <div id="edit-task-modal" class="modal-overlay" onclick="closeEditTaskModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 700px;">
             <div class="panel-header-container">
@@ -243,11 +259,13 @@ $team_name = htmlspecialchars($settings['team_name']);
         </div>
     </div>
 
+    <!-- Menu Contextuel -->
     <div id="context-menu">
         <div class="context-menu-item" id="menu-add-note">➕ Ajouter un point de suivi</div>
         <div class="context-menu-item" id="menu-edit-task">✏️ Modifier les paramètres</div>
     </div>
 
+    <!-- Modale d'historique -->
     <div id="notes-modal" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="panel-header-container">
@@ -281,6 +299,7 @@ $team_name = htmlspecialchars($settings['team_name']);
         </div>
     </div>
 
+    <!-- Panneau latéral ajout de note -->
     <div id="details-panel">
         <div class="panel-header-container">
             <h2 class="panel-header-title">
@@ -321,10 +340,26 @@ $team_name = htmlspecialchars($settings['team_name']);
         <div id="panel-notes-list"></div>
     </div>
 
+    <!-- ================= LOGIQUE JS ================= -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script>
         let currentTaskRef = { column: null, index: null, task: null };
         const statusLabels = { todo: 'À Faire', in_progress: 'En Cours', blocked: 'Bloqué / En attente', done: 'Terminé' };
+
+        // --- GESTION DU MENU DÉROULANT DU HEADER ---
+        function toggleHeaderMenu(e) {
+            e.stopPropagation();
+            document.getElementById('header-dropdown').classList.toggle('show');
+        }
+
+        // Ferme tous les menus contextuels ou dropdowns si on clique ailleurs
+        document.addEventListener('click', () => { 
+            const dropdown = document.getElementById('header-dropdown');
+            if(dropdown && dropdown.classList.contains('show')) {
+                dropdown.classList.remove('show');
+            }
+            document.getElementById('context-menu').style.display = 'none'; 
+        });
 
         function switchTab(tabId, btn) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -406,7 +441,6 @@ $team_name = htmlspecialchars($settings['team_name']);
                                 tr.dataset.statut = status;
                                 tr.dataset.prio = prAttr;
                                 
-                                // Attributs de tri ajoutés ici :
                                 tr.dataset.titre = task.titre.toLowerCase();
                                 const majParts = task.maj ? task.maj.split('/') : [];
                                 tr.dataset.maj = majParts.length === 2 ? `${majParts[1]}${majParts[0]}` : (task.maj || '');
@@ -450,11 +484,57 @@ $team_name = htmlspecialchars($settings['team_name']);
                     renderRecentActivity(allNotesForActivity);
                     applyFilters();
                     
-                    // Si un tri était déjà actif, on le réapplique sur le nouveau rendu
                     if(currentSort.column) {
                         applySort(currentSort.column, currentSort.asc);
                     }
                 });
+        }
+
+        // --- GESTION DU TRI DYNAMIQUE ---
+        let currentSort = { column: '', asc: true };
+
+        function sortTable(column, headerEl) {
+            if (currentSort.column === column) {
+                currentSort.asc = !currentSort.asc;
+            } else {
+                currentSort.column = column;
+                currentSort.asc = true;
+            }
+
+            document.querySelectorAll('.sort-icon').forEach(icon => icon.classList.remove('asc', 'desc'));
+            if (headerEl) {
+                const icon = headerEl.querySelector('.sort-icon');
+                if (icon) icon.classList.add(currentSort.asc ? 'asc' : 'desc');
+            }
+
+            applySort(currentSort.column, currentSort.asc);
+        }
+
+        function applySort(column, isAsc) {
+            const tbody = document.getElementById('list-table-body');
+            if(!tbody) return;
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+
+            rows.sort((a, b) => {
+                let valA = a.dataset[column] || '';
+                let valB = b.dataset[column] || '';
+
+                if (column === 'prio') {
+                    valA = valA === '' ? '999' : valA;
+                    valB = valB === '' ? '999' : valB;
+                    const numA = parseInt(valA);
+                    const numB = parseInt(valB);
+                    if(!isNaN(numA) && !isNaN(numB)) {
+                        return isAsc ? numA - numB : numB - numA;
+                    }
+                }
+
+                if (valA < valB) return isAsc ? -1 : 1;
+                if (valA > valB) return isAsc ? 1 : -1;
+                return 0;
+            });
+
+            rows.forEach(row => tbody.appendChild(row));
         }
 
         function applyFilters() {
@@ -489,56 +569,6 @@ $team_name = htmlspecialchars($settings['team_name']);
                     item.style.display = 'none';
                 }
             });
-        }
-
-        // --- GESTION DU TRI DYNAMIQUE ---
-        let currentSort = { column: '', asc: true };
-
-        function sortTable(column, headerEl) {
-            // Bascule le sens si même colonne cliquée
-            if (currentSort.column === column) {
-                currentSort.asc = !currentSort.asc;
-            } else {
-                currentSort.column = column;
-                currentSort.asc = true;
-            }
-
-            // Mise à jour visuelle des icônes
-            document.querySelectorAll('.sort-icon').forEach(icon => icon.classList.remove('asc', 'desc'));
-            if (headerEl) {
-                const icon = headerEl.querySelector('.sort-icon');
-                if (icon) icon.classList.add(currentSort.asc ? 'asc' : 'desc');
-            }
-
-            applySort(currentSort.column, currentSort.asc);
-        }
-
-        function applySort(column, isAsc) {
-            const tbody = document.getElementById('list-table-body');
-            if(!tbody) return;
-            const rows = Array.from(tbody.querySelectorAll('tr'));
-
-            rows.sort((a, b) => {
-                let valA = a.dataset[column] || '';
-                let valB = b.dataset[column] || '';
-
-                // Traitement spécifique pour la priorité (numérique avec gestion des textes vides)
-                if (column === 'prio') {
-                    valA = valA === '' ? '999' : valA;
-                    valB = valB === '' ? '999' : valB;
-                    const numA = parseInt(valA);
-                    const numB = parseInt(valB);
-                    if(!isNaN(numA) && !isNaN(numB)) {
-                        return isAsc ? numA - numB : numB - numA;
-                    }
-                }
-
-                if (valA < valB) return isAsc ? -1 : 1;
-                if (valA > valB) return isAsc ? 1 : -1;
-                return 0;
-            });
-
-            rows.forEach(row => tbody.appendChild(row));
         }
 
         function renderKPIs(kpi) {
@@ -602,7 +632,6 @@ $team_name = htmlspecialchars($settings['team_name']);
             });
         }
 
-        // Kanban Drag & Drop
         document.querySelectorAll('.list').forEach(listEl => {
             new Sortable(listEl, {
                 group: 'kanban-board', animation: 200, ghostClass: 'sortable-ghost', delay: 100, delayOnTouchOnly: true,
@@ -677,7 +706,6 @@ $team_name = htmlspecialchars($settings['team_name']);
             menu.style.display = 'block'; menu.style.left = e.pageX + 'px'; menu.style.top = e.pageY + 'px';
             currentTaskRef = { column, index, task };
         }
-        document.addEventListener('click', () => { document.getElementById('context-menu').style.display = 'none'; });
         
         document.getElementById('menu-add-note').addEventListener('click', (e) => {
             e.stopPropagation(); document.getElementById('context-menu').style.display = 'none'; openAddNotePanel();
