@@ -98,14 +98,12 @@ switch ($action) {
         header('Location: index.php');
         exit;
 
-    // Nouvelle action pour modifier une tâche
     case 'edit_task':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $col = $_POST['column'] ?? '';
             $idx = (int)($_POST['index'] ?? -1);
 
             if ($col !== '' && $idx !== -1 && isset($kanban[$col][$idx])) {
-                // On met à jour les paramètres mais on conserve les notes existantes
                 $kanban[$col][$idx]['projet']      = $_POST['projet'] ?? '';
                 $kanban[$col][$idx]['code_projet'] = $_POST['code_projet'] ?? '';
                 $kanban[$col][$idx]['titre']       = $_POST['titre'] ?? '';
@@ -147,5 +145,97 @@ switch ($action) {
             echo json_encode(['success' => false]);
         }
         break;
+
+    /* ================= NEW: ENDPOINTS JSON RAW & ZIP BACKUPS ================= */
+    case 'get_raw_json':
+        $file = $_GET['file'] ?? '';
+        if ($file === 'kanban') { echo file_get_contents($db_file); }
+        elseif ($file === 'settings') { echo file_get_contents($settings_file); }
+        exit;
+
+    case 'save_raw_json':
+        $input = json_decode(file_get_contents('php://input'), true);
+        $file = $input['file'] ?? '';
+        $raw_content = $input['content'] ?? '';
+        
+        // Validation stricte du JSON avant écriture
+        $parsed = json_decode($raw_content, true);
+        if ($parsed === null && json_last_error() !== JSON_ERROR_NONE) {
+            echo json_encode(['success' => false, 'error' => 'Format JSON invalide : ' . json_last_error_msg()]);
+            exit;
+        }
+
+        if ($file === 'kanban') {
+            file_put_contents($db_file, json_encode($parsed, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            echo json_encode(['success' => true]);
+        } elseif ($file === 'settings') {
+            file_put_contents($settings_file, json_encode($parsed, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false, 'error' => 'Fichier inconnu.']);
+        }
+        exit;
+
+    case 'export_backup_zip':
+        $zip = new ZipArchive();
+        $tmp_file = tempnam(sys_get_temp_dir(), 'zip');
+        
+        if ($zip->open($tmp_file, ZipArchive::CREATE) === TRUE) {
+            if (file_exists($db_file)) $zip->addFile($db_file, 'kanban.json');
+            if (file_exists($settings_file)) $zip->addFile($settings_file, 'settings.json');
+            $zip->close();
+            
+            header('Content-Type: application/zip');
+            header('Content-Disposition: attachment; filename="Backup_Chantiers_'.date('Ymd_His').'.zip"');
+            header('Content-Length: ' . filesize($tmp_file));
+            readfile($tmp_file);
+            unlink($tmp_file);
+            exit;
+        }
+        echo "Erreur critique de compression.";
+        exit;
+
+    case 'import_backup_zip':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['backup_zip']) && $_FILES['backup_zip']['error'] === UPLOAD_ERR_OK) {
+            $zip = new ZipArchive();
+            if ($zip->open($_FILES['backup_zip']['tmp_name']) === TRUE) {
+                $tmp_extract = sys_get_temp_dir() . '/kanban_restore_' . uniqid();
+                mkdir($tmp_extract, 0755, true);
+                $zip->extractTo($tmp_extract);
+                $zip->close();
+                
+                $success_kanban = false;
+                $success_settings = false;
+
+                // Validation & Restauration sécurisée de kanban.json
+                if (file_exists($tmp_extract . '/kanban.json')) {
+                    $json = json_decode(file_get_contents($tmp_extract . '/kanban.json'), true);
+                    if ($json !== null) {
+                        copy($tmp_extract . '/kanban.json', $db_file);
+                        $success_kanban = true;
+                    }
+                }
+                // Validation & Restauration sécurisée de settings.json
+                if (file_exists($tmp_extract . '/settings.json')) {
+                    $json = json_decode(file_get_contents($tmp_extract . '/settings.json'), true);
+                    if ($json !== null) {
+                        copy($tmp_extract . '/settings.json', $settings_file);
+                        $success_settings = true;
+                    }
+                }
+
+                // Nettoyage des résidus temporaires
+                @unlink($tmp_extract . '/kanban.json');
+                @unlink($tmp_extract . '/settings.json');
+                @rmdir($tmp_extract);
+
+                if ($success_kanban || $success_settings) {
+                    header('Location: admin.php?status=import_ok');
+                    exit;
+                }
+            }
+        }
+        header('Location: admin.php?status=import_error');
+        exit;
 }
 ?>
