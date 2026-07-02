@@ -1,7 +1,6 @@
 <?php 
 require_once 'auth.php'; 
 
-// Lecture synchrone des paramètres pour générer la page
 $settings_file = __DIR__ . '/db/settings.json';
 $default = [
     "app_title" => "Gestion des Chantiers", 
@@ -25,7 +24,7 @@ $team_name = htmlspecialchars($settings['team_name']);
     <div class="main-header">
         <div class="header-title-wrapper">
             <div class="app-logo-container">
-                <img src="logo.png" alt="Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <img src="img/kanban.png" alt="Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                 <svg style="display:none; width: 24px; height: 24px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                     <line x1="9" y1="3" x2="9" y2="21"></line>
@@ -33,10 +32,10 @@ $team_name = htmlspecialchars($settings['team_name']);
                 </svg>
             </div>
             
-            <h1 style="margin: 0; display: flex; align-items: center; gap: 12px; font-size: 22px;">
+            <h1>
                 <?= $app_title ?>
                 <?php if(!empty($team_name)): ?>
-                    <span style="font-size: 13px; background: #e3f2fd; color: #0052cc; padding: 4px 12px; border-radius: 20px; font-weight: 800; letter-spacing: 0.5px; border: 1px solid #bbdefb;">
+                    <span style="font-size: 13px; background: rgba(255,255,255,0.2); color: white; padding: 4px 12px; border-radius: 20px; font-weight: 800; letter-spacing: 0.5px; border: 1px solid rgba(255,255,255,0.4);">
                         <?= $team_name ?>
                     </span>
                 <?php endif; ?>
@@ -46,11 +45,11 @@ $team_name = htmlspecialchars($settings['team_name']);
         <div class="header-actions">
             <div class="search-box">
                 <span>🔍</span>
-                <input type="text" id="filter-search" placeholder="Recherche rapide (Titre, Code...)" onkeyup="applyFilters()">
+                <input type="text" id="filter-search" placeholder="Recherche rapide..." onkeyup="applyFilters()">
             </div>
-            <button onclick="openAddTaskModal()" class="btn" style="background: #00875a;">➕ Nouvelle Tâche</button>
-            <a href="admin.php" class="btn" style="background: #e3f2fd; color: #0052cc; text-decoration: none;">⚙️ Paramètres</a>
-            <a href="logout.php" class="btn" style="background: #ffebee; color: #d32f2f; text-decoration: none;">Se déconnecter</a>
+            <button onclick="openAddTaskModal()" class="btn-header btn-new-task">➕ Nouvelle Tâche</button>
+            <a href="admin.php" class="btn-header">⚙️ Paramètres</a>
+            <a href="logout.php" class="btn-header btn-logout">Se déconnecter</a>
         </div>
     </div>
 
@@ -79,7 +78,6 @@ $team_name = htmlspecialchars($settings['team_name']);
 
     <div id="add-task-modal" class="modal-overlay" onclick="closeAddTaskModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 700px;">
-            
             <div class="panel-header-container">
                 <h2 class="panel-header-title">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -165,7 +163,6 @@ $team_name = htmlspecialchars($settings['team_name']);
 
     <div id="edit-task-modal" class="modal-overlay" onclick="closeEditTaskModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 700px;">
-            
             <div class="panel-header-container">
                 <h2 class="panel-header-title">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -255,7 +252,6 @@ $team_name = htmlspecialchars($settings['team_name']);
 
     <div id="notes-modal" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
-            
             <div class="panel-header-container">
                 <h2 class="panel-header-title">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -288,7 +284,6 @@ $team_name = htmlspecialchars($settings['team_name']);
     </div>
 
     <div id="details-panel">
-        
         <div class="panel-header-container">
             <h2 class="panel-header-title">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -388,7 +383,22 @@ $team_name = htmlspecialchars($settings['team_name']);
                             `;
                             if(container) container.appendChild(card);
 
-                            // 2. VUE LISTE (Mise à jour : Ajout du Clic Droit)
+                            // Construction du bloc des 5 dernières notes pour la vue Liste
+                            let notesHtml = '';
+                            if (task.notes && task.notes.length > 0) {
+                                const sortedNotes = [...task.notes].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                                const top5 = sortedNotes.slice(0, 5);
+                                notesHtml = top5.map(n => {
+                                    const ctx = n.reunion ? ` - <strong>${n.reunion}</strong>` : '';
+                                    return `<div style="font-size: 12px; margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px dashed #ebecf0; line-height: 1.4;">
+                                                <span style="color:#5e6c84;">${n.date}${ctx} :</span> ${n.texte}
+                                            </div>`;
+                                }).join('');
+                            } else {
+                                notesHtml = `<span style="color:#aaa; font-style:italic; font-size:12px;">Aucune note</span>`;
+                            }
+
+                            // 2. VUE LISTE
                             if(listTableBody) {
                                 const tr = document.createElement('tr');
                                 tr.className = 'filter-item';
@@ -398,14 +408,8 @@ $team_name = htmlspecialchars($settings['team_name']);
                                 tr.dataset.statut = status;
                                 tr.dataset.prio = prAttr;
                                 
-                                // Clic gauche = Historique
                                 tr.addEventListener('click', () => openHistoryModal(task, status, index));
-                                
-                                // Clic droit = Menu Contextuel (COMME DANS LE KANBAN)
-                                tr.addEventListener('contextmenu', (e) => { 
-                                    e.preventDefault(); 
-                                    showContextMenu(e, status, index, task); 
-                                });
+                                tr.addEventListener('contextmenu', (e) => { e.preventDefault(); showContextMenu(e, status, index, task); });
                                 
                                 const actLabel = task.acteur || '-';
                                 const prioLabel = task.prio || '-';
@@ -417,17 +421,22 @@ $team_name = htmlspecialchars($settings['team_name']);
                                     <td><span class="status-badge status-${status}">${statusLabels[status]}</span></td>
                                     <td>${prioLabel !== '-' ? `🔥 ${prioLabel}` : '-'}</td>
                                     <td>🧑‍💻 ${actLabel}</td>
+                                    <td>${notesHtml}</td>
                                     <td style="color:#5e6c84;">${dateFin}</td>
                                     <td style="color:#5e6c84;">🕒 ${task.maj}</td>
                                 `;
                                 listTableBody.appendChild(tr);
                             }
 
-                            // 3. KPI & ACTIVITÉ
-                            kpi.total++; kpi.status[status]++;
-                            const acteur = task.acteur || 'Non assigné'; kpi.acteur[acteur] = (kpi.acteur[acteur] || 0) + 1;
-                            const prio = task.prio || 'Aucune'; kpi.prio[prio] = (kpi.prio[prio] || 0) + 1;
+                            // 3. KPI
+                            kpi.total++;
+                            kpi.status[status]++;
+                            const acteur = task.acteur || 'Non assigné';
+                            kpi.acteur[acteur] = (kpi.acteur[acteur] || 0) + 1;
+                            const prio = task.prio || 'Aucune';
+                            kpi.prio[prio] = (kpi.prio[prio] || 0) + 1;
 
+                            // 4. RÉCOLTE DES NOTES
                             if (task.notes && task.notes.length > 0) {
                                 task.notes.forEach(note => {
                                     allNotesForActivity.push({
@@ -514,6 +523,7 @@ $team_name = htmlspecialchars($settings['team_name']);
         function renderRecentActivity(notes) {
             const container = document.getElementById('recent-activity-list');
             if(!container) return;
+
             container.innerHTML = '';
             
             notes.sort((a, b) => b.timestamp - a.timestamp);
@@ -563,11 +573,9 @@ $team_name = htmlspecialchars($settings['team_name']);
         function openEditTaskModal() {
             const task = currentTaskRef.task;
             
-            // On renseigne les infos de position pour l'API
             document.getElementById('edit_column').value = currentTaskRef.column;
             document.getElementById('edit_index').value = currentTaskRef.index;
 
-            // On pré-remplit les champs
             document.getElementById('edit_titre').value = task.titre || '';
             document.getElementById('edit_couleur').value = task.couleur || 'color-yellow';
             document.getElementById('edit_projet').value = task.projet || '';
@@ -612,16 +620,13 @@ $team_name = htmlspecialchars($settings['team_name']);
 
         function switchToAddNote() { closeModal(); openAddNotePanel(); }
 
-        // ================= MENU CONTEXTUEL =================
         function showContextMenu(e, column, index, task) {
             const menu = document.getElementById('context-menu');
             menu.style.display = 'block'; menu.style.left = e.pageX + 'px'; menu.style.top = e.pageY + 'px';
             currentTaskRef = { column, index, task };
         }
-        
         document.addEventListener('click', () => { document.getElementById('context-menu').style.display = 'none'; });
         
-        // Actions du menu
         document.getElementById('menu-add-note').addEventListener('click', (e) => {
             e.stopPropagation(); document.getElementById('context-menu').style.display = 'none'; openAddNotePanel();
         });
@@ -629,7 +634,6 @@ $team_name = htmlspecialchars($settings['team_name']);
             e.stopPropagation(); document.getElementById('context-menu').style.display = 'none'; openEditTaskModal();
         });
 
-        // ================= PANNEAU AJOUT NOTE =================
         function openAddNotePanel() {
             const task = currentTaskRef.task;
             document.getElementById('panel-title').innerText = task.titre;
