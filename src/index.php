@@ -381,7 +381,7 @@ $team_name = htmlspecialchars($settings['team_name']);
                             `;
                             if(container) container.appendChild(card);
 
-                            // Construction du bloc des 5 dernières notes
+                            // Construction du bloc des notes (pour la vue liste)
                             let notesHtml = '';
                             if (task.notes && task.notes.length > 0) {
                                 const sortedNotes = [...task.notes].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
@@ -396,7 +396,7 @@ $team_name = htmlspecialchars($settings['team_name']);
                                 notesHtml = `<span style="color:#aaa; font-style:italic; font-size:13px;">Aucune note</span>`;
                             }
 
-                            // 2. VUE LISTE (Mise à jour pour coller à liste.php)
+                            // 2. VUE LISTE
                             if(listTableBody) {
                                 const tr = document.createElement('tr');
                                 tr.className = 'filter-item';
@@ -406,6 +406,11 @@ $team_name = htmlspecialchars($settings['team_name']);
                                 tr.dataset.statut = status;
                                 tr.dataset.prio = prAttr;
                                 
+                                // Attributs de tri ajoutés ici :
+                                tr.dataset.titre = task.titre.toLowerCase();
+                                const majParts = task.maj ? task.maj.split('/') : [];
+                                tr.dataset.maj = majParts.length === 2 ? `${majParts[1]}${majParts[0]}` : (task.maj || '');
+
                                 tr.addEventListener('click', () => openHistoryModal(task, status, index));
                                 tr.addEventListener('contextmenu', (e) => { e.preventDefault(); showContextMenu(e, status, index, task); });
                                 
@@ -444,6 +449,11 @@ $team_name = htmlspecialchars($settings['team_name']);
                     renderKPIs(kpi);
                     renderRecentActivity(allNotesForActivity);
                     applyFilters();
+                    
+                    // Si un tri était déjà actif, on le réapplique sur le nouveau rendu
+                    if(currentSort.column) {
+                        applySort(currentSort.column, currentSort.asc);
+                    }
                 });
         }
 
@@ -481,6 +491,56 @@ $team_name = htmlspecialchars($settings['team_name']);
             });
         }
 
+        // --- GESTION DU TRI DYNAMIQUE ---
+        let currentSort = { column: '', asc: true };
+
+        function sortTable(column, headerEl) {
+            // Bascule le sens si même colonne cliquée
+            if (currentSort.column === column) {
+                currentSort.asc = !currentSort.asc;
+            } else {
+                currentSort.column = column;
+                currentSort.asc = true;
+            }
+
+            // Mise à jour visuelle des icônes
+            document.querySelectorAll('.sort-icon').forEach(icon => icon.classList.remove('asc', 'desc'));
+            if (headerEl) {
+                const icon = headerEl.querySelector('.sort-icon');
+                if (icon) icon.classList.add(currentSort.asc ? 'asc' : 'desc');
+            }
+
+            applySort(currentSort.column, currentSort.asc);
+        }
+
+        function applySort(column, isAsc) {
+            const tbody = document.getElementById('list-table-body');
+            if(!tbody) return;
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+
+            rows.sort((a, b) => {
+                let valA = a.dataset[column] || '';
+                let valB = b.dataset[column] || '';
+
+                // Traitement spécifique pour la priorité (numérique avec gestion des textes vides)
+                if (column === 'prio') {
+                    valA = valA === '' ? '999' : valA;
+                    valB = valB === '' ? '999' : valB;
+                    const numA = parseInt(valA);
+                    const numB = parseInt(valB);
+                    if(!isNaN(numA) && !isNaN(numB)) {
+                        return isAsc ? numA - numB : numB - numA;
+                    }
+                }
+
+                if (valA < valB) return isAsc ? -1 : 1;
+                if (valA > valB) return isAsc ? 1 : -1;
+                return 0;
+            });
+
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
         function renderKPIs(kpi) {
             const kpiContainer = document.getElementById('kpi-container');
             if(!kpiContainer) return;
@@ -515,6 +575,7 @@ $team_name = htmlspecialchars($settings['team_name']);
         function renderRecentActivity(notes) {
             const container = document.getElementById('recent-activity-list');
             if(!container) return;
+
             container.innerHTML = '';
             
             notes.sort((a, b) => b.timestamp - a.timestamp);
@@ -541,6 +602,7 @@ $team_name = htmlspecialchars($settings['team_name']);
             });
         }
 
+        // Kanban Drag & Drop
         document.querySelectorAll('.list').forEach(listEl => {
             new Sortable(listEl, {
                 group: 'kanban-board', animation: 200, ghostClass: 'sortable-ghost', delay: 100, delayOnTouchOnly: true,
@@ -556,6 +618,7 @@ $team_name = htmlspecialchars($settings['team_name']);
             });
         });
 
+        // ================= GESTION DES MODALES D'AJOUT ET D'ÉDITION =================
         function openAddTaskModal() { document.getElementById('add-task-modal').style.display = 'flex'; }
         function closeAddTaskModal(e) { if(e) e.stopPropagation(); document.getElementById('add-task-modal').style.display = 'none'; }
 
@@ -579,6 +642,7 @@ $team_name = htmlspecialchars($settings['team_name']);
         }
         function closeEditTaskModal(e) { if(e) e.stopPropagation(); document.getElementById('edit-task-modal').style.display = 'none'; }
 
+        // ================= HISTORIQUE ET PANNEAU LATÉRAL =================
         function openHistoryModal(task, column, index) {
             currentTaskRef = { column, index, task };
             
