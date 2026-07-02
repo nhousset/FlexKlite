@@ -12,7 +12,7 @@
                             <?php endforeach; ?>
                         </select>
                     </th>
-                    <th style="width: 18%;">
+                    <th style="width: 20%;">
                         <div style="margin-top: 15px;">Tâche</div>
                     </th>
                     <th style="width: 10%;">
@@ -34,7 +34,7 @@
                             <?php endforeach; ?>
                         </select>
                     </th>
-                    <th style="width: 10%;">
+                    <th style="width: 12%;">
                         <div>Acteur</div>
                         <select id="filter-acteur" class="table-filter" onchange="applyFilters()">
                             <option value="">Tous</option>
@@ -43,14 +43,11 @@
                             <?php endforeach; ?>
                         </select>
                     </th>
-                    <th style="width: 27%;">
-                        <div style="margin-top: 15px;">Dernières notes (Historique)</div>
-                    </th>
                     <th style="width: 8%;">
-                        <div style="margin-top: 15px;">Échéance</div>
-                    </th>
-                    <th style="width: 7%;">
                         <div style="margin-top: 15px;">MAJ</div>
+                    </th>
+                    <th style="width: 30%;">
+                        <div style="margin-top: 15px;">Dernières notes (Historique)</div>
                     </th>
                 </tr>
             </thead>
