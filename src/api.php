@@ -5,6 +5,7 @@ header('Content-Type: application/json');
 $db_dir = __DIR__ . '/db';
 $db_file = $db_dir . '/kanban.json';
 $settings_file = $db_dir . '/settings.json';
+$history_file = $db_dir . '/history.json'; // Nouveau fichier d'historique global
 
 if (!is_dir($db_dir)) { mkdir($db_dir, 0755, true); }
 if (!file_exists($db_file)) {
@@ -23,6 +24,10 @@ if (!file_exists($settings_file)) {
     file_put_contents($settings_file, json_encode($default_settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
 
+if (!file_exists($history_file)) {
+    file_put_contents($history_file, json_encode([], JSON_PRETTY_PRINT));
+}
+
 $current_settings = json_decode(file_get_contents($settings_file), true);
 $needs_update = false;
 if (!isset($current_settings['reunions'])) { $current_settings['reunions'] = ["Point OPS", "Comité BI", "Coproj", "Point équipe"]; $needs_update = true; }
@@ -35,6 +40,23 @@ if ($needs_update) {
 
 function read_db($file) { return json_decode(file_get_contents($file), true); }
 function write_db($file, $data) { file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)); }
+
+// Fonction d'aide pour ajouter une entrée au journal général
+function log_action($action_type, $details) {
+    global $history_file;
+    $history = file_exists($history_file) ? json_decode(file_get_contents($history_file), true) : [];
+    if (!is_array($history)) { $history = []; }
+    
+    array_unshift($history, [
+        'id'        => uniqid(),
+        'date'      => date('d/m/Y H:i:s'),
+        'action'    => $action_type,
+        'details'   => $details,
+        'timestamp' => time()
+    ]);
+    
+    file_put_contents($history_file, json_encode($history, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+}
 
 $action = $_GET['action'] ?? '';
 $kanban = read_db($db_file);
@@ -65,6 +87,10 @@ switch ($action) {
         array_splice($kanban[$to_col], $to_idx, 0, [$task]);
         
         write_db($db_file, $kanban);
+        
+        $labels = ['todo' => 'À Faire', 'in_progress' => 'En Cours', 'blocked' => 'Bloqué', 'done' => 'Terminé'];
+        log_action('Mouvement', "La tâche '" . $task['titre'] . "' a été déplacée de [" . $labels[$from_col] . "] vers [" . $labels[$to_col] . "].");
+        
         echo json_encode(['success' => true]);
         break;
 
@@ -94,6 +120,8 @@ switch ($action) {
             }
             array_unshift($kanban['todo'], $new_task);
             write_db($db_file, $kanban);
+            
+            log_action('Création', "Nouvelle tâche '" . $new_task['titre'] . "' ajoutée au projet [" . $new_task['projet'] . "].");
         }
         header('Location: index.php');
         exit;
@@ -116,6 +144,8 @@ switch ($action) {
                 $kanban[$col][$idx]['maj']         = date('d/m');
                 
                 write_db($db_file, $kanban);
+                
+                log_action('Modification', "Les paramètres de la tâche '" . $kanban[$col][$idx]['titre'] . "' ont été mis à jour.");
             }
         }
         header('Location: index.php');
@@ -140,6 +170,10 @@ switch ($action) {
             $kanban[$col][$idx]['maj'] = !empty($data['date']) ? date('d/m', strtotime($data['date'])) : date('d/m');
             
             write_db($db_file, $kanban);
+            
+            $ctxLog = !empty($reunion) ? " lors de : " . $reunion : "";
+            log_action('Suivi', "Note de suivi ajoutée à la tâche '" . $kanban[$col][$idx]['titre'] . "'${ctxLog}.");
+            
             echo json_encode(['success' => true, 'task' => $kanban[$col][$idx]]);
         } else {
             echo json_encode(['success' => false]);
@@ -165,9 +199,11 @@ switch ($action) {
 
         if ($file === 'kanban') {
             file_put_contents($db_file, json_encode($parsed, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            log_action('Admin', "Modification manuelle directe du fichier kanban.json via l'éditeur brut.");
             echo json_encode(['success' => true]);
         } elseif ($file === 'settings') {
             file_put_contents($settings_file, json_encode($parsed, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            log_action('Admin', "Modification manuelle directe du fichier settings.json via l'éditeur brut.");
             echo json_encode(['success' => true]);
         } else {
             echo json_encode(['success' => false, 'error' => 'Fichier inconnu.']);
@@ -178,16 +214,13 @@ switch ($action) {
         $zip = new ZipArchive();
         $tmp_file = tempnam(sys_get_temp_dir(), 'zip');
         
-        // Utilisation de CREATE | OVERWRITE pour corriger le bug PHP 8 avec tempnam
         if ($zip->open($tmp_file, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
             if (file_exists($db_file)) $zip->addFile($db_file, 'kanban.json');
             if (file_exists($settings_file)) $zip->addFile($settings_file, 'settings.json');
+            if (file_exists($history_file)) $zip->addFile($history_file, 'history.json'); // Ajout au package zip
             $zip->close();
             
-            // On vide le buffer pour éviter que des avertissements résiduels ne corrompent le ZIP
-            if (ob_get_level()) {
-                ob_end_clean();
-            }
+            if (ob_get_level()) { ob_end_clean(); }
             
             header('Content-Type: application/zip');
             header('Content-Disposition: attachment; filename="Backup_Chantiers_'.date('Ymd_His').'.zip"');
@@ -213,24 +246,23 @@ switch ($action) {
 
                 if (file_exists($tmp_extract . '/kanban.json')) {
                     $json = json_decode(file_get_contents($tmp_extract . '/kanban.json'), true);
-                    if ($json !== null) {
-                        copy($tmp_extract . '/kanban.json', $db_file);
-                        $success_kanban = true;
-                    }
+                    if ($json !== null) { copy($tmp_extract . '/kanban.json', $db_file); $success_kanban = true; }
                 }
                 if (file_exists($tmp_extract . '/settings.json')) {
                     $json = json_decode(file_get_contents($tmp_extract . '/settings.json'), true);
-                    if ($json !== null) {
-                        copy($tmp_extract . '/settings.json', $settings_file);
-                        $success_settings = true;
-                    }
+                    if ($json !== null) { copy($tmp_extract . '/settings.json', $settings_file); $success_settings = true; }
+                }
+                if (file_exists($tmp_extract . '/history.json')) {
+                    copy($tmp_extract . '/history.json', $history_file);
                 }
 
                 @unlink($tmp_extract . '/kanban.json');
                 @unlink($tmp_extract . '/settings.json');
+                @unlink($tmp_extract . '/history.json');
                 @rmdir($tmp_extract);
 
                 if ($success_kanban || $success_settings) {
+                    log_action('Backup', "Restauration complète du système opérée via l'importation d'une archive ZIP.");
                     header('Location: admin.php?status=import_ok');
                     exit;
                 }
@@ -238,5 +270,26 @@ switch ($action) {
         }
         header('Location: admin.php?status=import_error');
         exit;
+
+    /* ================= NEW ACTIONS FOR LOG HISTORY ================= */
+    case 'get_history':
+        echo file_get_contents($history_file);
+        break;
+
+    case 'delete_history_line':
+        $data = json_decode(file_get_contents('php://input'), true);
+        $line_id = $data['id'] ?? '';
+        
+        $history = json_decode(file_get_contents($history_file), true);
+        if (is_array($history)) {
+            $history = array_values(array_filter($history, function($item) use ($line_id) {
+                return $item['id'] !== $line_id;
+            }));
+            file_put_contents($history_file, json_encode($history, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false]);
+        }
+        break;
 }
 ?>
