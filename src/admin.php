@@ -23,7 +23,6 @@ require_once 'auth.php';
         .form-group-admin input { width: 100%; padding: 10px; border: 1px solid #dfe1e6; border-radius: 4px; font-size: 14px; box-sizing: border-box; background: #fafbfc;}
         .form-group-admin input:focus { border-color: var(--primary); outline: none; background: white;}
 
-        /* Styles restaurés pour la zone de Drag & Drop */
         .file-upload-wrapper {
             position: relative;
             width: 100%;
@@ -177,7 +176,6 @@ require_once 'auth.php';
                             <th style="width:180px;">Horodatage</th>
                             <th style="width:130px;">Type d'action</th>
                             <th>Détails de l'opération</th>
-                            <th style="width:100px; text-align:center;">Action</th>
                         </tr>
                     </thead>
                     <tbody id="table-body-history">
@@ -281,7 +279,6 @@ require_once 'auth.php';
             });
         }
 
-        // Fonction restaurée pour animer l'input de Drag & Drop
         function updateUploadLabel(input) {
             const label = document.getElementById('file-upload-label');
             if (input.files && input.files.length > 0) {
@@ -301,7 +298,7 @@ require_once 'auth.php';
                     tbody.innerHTML = '';
                     
                     if (!data || data.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#888; font-style:italic; padding: 20px;">Aucun événement consigné dans l\'historique pour le moment.</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#888; font-style:italic; padding: 20px;">Aucun événement consigné dans l\'historique pour le moment.</td></tr>';
                         return;
                     }
                     
@@ -311,29 +308,10 @@ require_once 'auth.php';
                             <td style="color:#5e6c84; font-weight:600;">${item.date}</td>
                             <td><span class="badge-reunion" style="background:#e3f2fd; color:#0052cc; font-size:11px;">${item.action}</span></td>
                             <td style="font-weight:500;">${item.details}</td>
-                            <td style="text-align:center;">
-                                <button class="btn" style="background:#de350b; padding:5px 10px; font-size:12px;" onclick="deleteLogLine('${item.id}')">Supprimer</button>
-                            </td>
                         `;
                         tbody.appendChild(tr);
                     });
                 });
-        }
-
-        function deleteLogLine(lineId) {
-            if (confirm('Êtes-vous sûr de vouloir purger cette ligne du journal d\'historique ?')) {
-                fetch('api.php?action=delete_history_line', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: lineId })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        loadHistoryLog();
-                    }
-                });
-            }
         }
     </script>
 </body>
