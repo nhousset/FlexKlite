@@ -146,7 +146,6 @@ switch ($action) {
         }
         break;
 
-    /* ================= NEW: ENDPOINTS JSON RAW & ZIP BACKUPS ================= */
     case 'get_raw_json':
         $file = $_GET['file'] ?? '';
         if ($file === 'kanban') { echo file_get_contents($db_file); }
@@ -158,7 +157,6 @@ switch ($action) {
         $file = $input['file'] ?? '';
         $raw_content = $input['content'] ?? '';
         
-        // Validation stricte du JSON avant écriture
         $parsed = json_decode($raw_content, true);
         if ($parsed === null && json_last_error() !== JSON_ERROR_NONE) {
             echo json_encode(['success' => false, 'error' => 'Format JSON invalide : ' . json_last_error_msg()]);
@@ -180,10 +178,16 @@ switch ($action) {
         $zip = new ZipArchive();
         $tmp_file = tempnam(sys_get_temp_dir(), 'zip');
         
-        if ($zip->open($tmp_file, ZipArchive::CREATE) === TRUE) {
+        // Utilisation de CREATE | OVERWRITE pour corriger le bug PHP 8 avec tempnam
+        if ($zip->open($tmp_file, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
             if (file_exists($db_file)) $zip->addFile($db_file, 'kanban.json');
             if (file_exists($settings_file)) $zip->addFile($settings_file, 'settings.json');
             $zip->close();
+            
+            // On vide le buffer pour éviter que des avertissements résiduels ne corrompent le ZIP
+            if (ob_get_level()) {
+                ob_end_clean();
+            }
             
             header('Content-Type: application/zip');
             header('Content-Disposition: attachment; filename="Backup_Chantiers_'.date('Ymd_His').'.zip"');
@@ -207,7 +211,6 @@ switch ($action) {
                 $success_kanban = false;
                 $success_settings = false;
 
-                // Validation & Restauration sécurisée de kanban.json
                 if (file_exists($tmp_extract . '/kanban.json')) {
                     $json = json_decode(file_get_contents($tmp_extract . '/kanban.json'), true);
                     if ($json !== null) {
@@ -215,7 +218,6 @@ switch ($action) {
                         $success_kanban = true;
                     }
                 }
-                // Validation & Restauration sécurisée de settings.json
                 if (file_exists($tmp_extract . '/settings.json')) {
                     $json = json_decode(file_get_contents($tmp_extract . '/settings.json'), true);
                     if ($json !== null) {
@@ -224,7 +226,6 @@ switch ($action) {
                     }
                 }
 
-                // Nettoyage des résidus temporaires
                 @unlink($tmp_extract . '/kanban.json');
                 @unlink($tmp_extract . '/settings.json');
                 @rmdir($tmp_extract);
