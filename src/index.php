@@ -48,9 +48,20 @@ $team_name = htmlspecialchars($settings['team_name']);
                 <span>🔍</span>
                 <input type="text" id="filter-search" placeholder="Recherche rapide..." onkeyup="applyFilters()">
             </div>
+            
             <button onclick="openAddTaskModal()" class="btn-header btn-new-task">➕ Nouvelle Tâche</button>
-            <a href="admin.php" class="btn-header">⚙️ Paramètres</a>
-            <a href="logout.php" class="btn-header btn-logout">Se déconnecter</a>
+            
+            <div class="dropdown">
+                <button class="btn-header dropdown-btn" onclick="toggleHeaderMenu(event)">
+                    ⚙️ Menu <span style="font-size: 10px;">▼</span>
+                </button>
+                <div class="dropdown-menu" id="header-dropdown">
+                    <a href="admin.php" class="dropdown-item">⚙️ Paramètres globaux</a>
+                    <div class="dropdown-divider"></div>
+                    <a href="logout.php" class="dropdown-item text-danger">🚪 Se déconnecter</a>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -327,6 +338,17 @@ $team_name = htmlspecialchars($settings['team_name']);
         let currentTaskRef = { column: null, index: null, task: null };
         const statusLabels = { todo: 'À Faire', in_progress: 'En Cours', blocked: 'Bloqué / En attente', done: 'Terminé' };
 
+        function toggleHeaderMenu(e) {
+            e.stopPropagation();
+            document.getElementById('header-dropdown').classList.toggle('show');
+        }
+
+        document.addEventListener('click', () => { 
+            const dropdown = document.getElementById('header-dropdown');
+            if(dropdown && dropdown.classList.contains('show')) dropdown.classList.remove('show');
+            document.getElementById('context-menu').style.display = 'none'; 
+        });
+
         function switchTab(tabId, btn) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -335,7 +357,8 @@ $team_name = htmlspecialchars($settings['team_name']);
         }
 
         function loadBoard() {
-            fetch('api.php?action=get')
+            // Ajout du paramètre de timestamp unique pour briser le cache
+            fetch('api.php?action=get&_t=' + Date.now())
                 .then(res => res.json())
                 .then(data => {
                     const listTableBody = document.getElementById('list-table-body');
@@ -458,11 +481,9 @@ $team_name = htmlspecialchars($settings['team_name']);
 
         // --- GÉNÉRATION EXCEL (XLSX) AVEC FILTRES ---
         async function exportToExcel() {
-            // Création du classeur Excel
             const workbook = new ExcelJS.Workbook();
             const worksheet = workbook.addWorksheet('Suivi des Chantiers');
 
-            // Définition et paramétrage des colonnes
             worksheet.columns = [
                 { header: 'Projet', key: 'projet', width: 15 },
                 { header: 'Tâche', key: 'tache', width: 45 },
@@ -473,7 +494,6 @@ $team_name = htmlspecialchars($settings['team_name']);
                 { header: 'Dernières notes (Historique)', key: 'notes', width: 75 }
             ];
 
-            // Stylisation de l'en-tête (Bleu foncé, texte blanc)
             worksheet.getRow(1).eachCell((cell) => {
                 cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4472C4' } };
                 cell.font = { color: { argb: 'FFFFFFFF' }, bold: true, name: 'Calibri', size: 11 };
@@ -481,7 +501,6 @@ $team_name = htmlspecialchars($settings['team_name']);
                 cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
             });
 
-            // Récupération des données filtrées de la page
             const rows = document.querySelectorAll('#list-table-body tr');
             rows.forEach(row => {
                 if (row.style.display !== 'none') {
@@ -493,7 +512,6 @@ $team_name = htmlspecialchars($settings['team_name']);
                     const acteur = cells[4].innerText.replace('🧑‍💻 ', '').trim();
                     const maj = cells[5].innerText.replace('🕒 ', '').trim();
 
-                    // Reconstitution du texte des notes avec vrais retours à la ligne
                     let notesText = '';
                     const noteDivs = cells[6].querySelectorAll('.note-entry');
                     if (noteDivs.length > 0) {
@@ -504,31 +522,27 @@ $team_name = htmlspecialchars($settings['team_name']);
                         if (notesText === 'Aucune note') notesText = '';
                     }
 
-                    // Ajout de la ligne dans le fichier
                     const excelRow = worksheet.addRow({
                         projet: projet,
                         tache: tache,
                         statut: statut,
                         prio: prio !== '-' ? prio : '',
-                        acteur: acteur !== '-' ? acteur : '',
+                        acteur: actor !== '-' ? acteur : '',
                         maj: maj,
                         notes: notesText
                     });
 
-                    // Stylisation des cellules de la ligne
                     excelRow.eachCell((cell, colNumber) => {
                         cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
                         cell.alignment = { vertical: 'top', wrapText: true };
                         cell.font = { name: 'Calibri', size: 11 };
                         
-                        // Style spécifique pour la colonne MAJ (colonne 6) -> Fond bleu clair
                         if (colNumber === 6) {
                             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF00B0F0' } };
                             cell.font = { color: { argb: 'FFFFFFFF' }, bold: true, name: 'Calibri', size: 11 };
                             cell.alignment = { vertical: 'top', horizontal: 'center' };
                         }
                         
-                        // Centrer certains éléments
                         if ([1, 3, 4, 5].includes(colNumber)) {
                             cell.alignment = { vertical: 'top', horizontal: 'center' };
                         }
@@ -536,13 +550,11 @@ $team_name = htmlspecialchars($settings['team_name']);
                 }
             });
 
-            // Ajout des filtres natifs Excel
             worksheet.autoFilter = {
                 from: 'A1',
                 to: { row: 1, column: 7 }
             };
 
-            // Création et téléchargement du fichier
             const buffer = await workbook.xlsx.writeBuffer();
             const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const url = window.URL.createObjectURL(blob);
@@ -668,7 +680,6 @@ $team_name = htmlspecialchars($settings['team_name']);
         function renderRecentActivity(notes) {
             const container = document.getElementById('recent-activity-list');
             if(!container) return;
-
             container.innerHTML = '';
             
             notes.sort((a, b) => b.timestamp - a.timestamp);
@@ -769,7 +780,7 @@ $team_name = htmlspecialchars($settings['team_name']);
             menu.style.display = 'block'; menu.style.left = e.pageX + 'px'; menu.style.top = e.pageY + 'px';
             currentTaskRef = { column, index, task };
         }
-        
+
         document.getElementById('menu-add-note').addEventListener('click', (e) => {
             e.stopPropagation(); document.getElementById('context-menu').style.display = 'none'; openAddNotePanel();
         });
@@ -840,7 +851,8 @@ $team_name = htmlspecialchars($settings['team_name']);
             });
         }
 
-        window.onload = loadBoard;
+        // Exécution immédiate dès le chargement du DOM pour éliminer le comportement d'affichage vide
+        document.addEventListener('DOMContentLoaded', loadBoard);
     </script>
 </body>
 </html>
