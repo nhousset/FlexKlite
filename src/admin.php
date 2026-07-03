@@ -5,7 +5,7 @@ require_once 'auth.php';
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Administration Pro - Suivi de Chantiers</title>
+    <title>Administration - Configuration</title>
     <link rel="stylesheet" href="style.css?<?= time() ?>">
     <style>
         .admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
@@ -45,6 +45,7 @@ require_once 'auth.php';
         <button class="admin-tab-btn active" onclick="switchAdminTab('panel-lists', this)">⚙️ Configuration des Éléments</button>
         <button class="admin-tab-btn" onclick="switchAdminTab('panel-json', this)">📝 Éditeur Brut JSON</button>
         <button class="admin-tab-btn" onclick="switchAdminTab('panel-backup', this)">💾 Sauvegarde & Restauration (ZIP)</button>
+        <button class="admin-tab-btn" onclick="switchAdminTab('panel-history', this)">📜 Journal des Actions</button>
     </div>
 
     <div id="panel-lists" class="admin-tab-content active">
@@ -114,7 +115,6 @@ require_once 'auth.php';
                 </div>
                 <textarea id="textarea-kanban" class="json-textarea" placeholder="Chargement..."></textarea>
             </div>
-
             <div class="json-card">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <h3 style="margin:0; font-size:15px; color:#091e42;">Configuration Générale (settings.json)</h3>
@@ -130,31 +130,44 @@ require_once 'auth.php';
             <div class="backup-card">
                 <div style="background: #e3f2fd; color: #0052cc; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px;">📦</div>
                 <h3 style="margin:0; color:#091e42; font-size:18px;">Exporter la base de données</h3>
-                <p style="color:var(--text-muted); font-size:14px; margin:0 0 10px 0; max-width:280px;">Générez et téléchargez instantanément une archive ZIP contenant vos tâches et vos paramètres.</p>
+                <p style="color:var(--text-muted); font-size:14px; margin:0 0 10px 0; max-width:280px;">Générez et téléchargez instantanément une archive ZIP contenant vos tâches, vos notes et vos paramètres.</p>
                 <a href="api.php?action=export_backup_zip" class="btn" style="text-decoration:none; background:#0052cc; padding:12px 24px;">Créer un Backup (.ZIP)</a>
             </div>
-
             <div class="backup-card">
                 <div style="background: #e8f5e9; color: #00875a; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px;">📥</div>
                 <h3 style="margin:0; color:#091e42; font-size:18px;">Restaurer une sauvegarde</h3>
                 <p style="color:var(--text-muted); font-size:14px; margin:0 0 10px 0; max-width:280px;">Importez une archive de sauvegarde précédemment exportée pour restaurer l'état complet.</p>
-                
-                <form action="api.php?action=import_backup_zip" method="POST" enctype="multipart/form-data" style="width:100%;" id="form-import">
-                    <div class="file-upload-wrapper">
-                        <span id="file-upload-label" style="font-weight:600; font-size:14px; color:var(--text-muted);">Cliquez ou glissez votre fichier ZIP ici</span>
-                        <input type="file" name="backup_zip" accept=".zip" required onchange="updateUploadLabel(this)">
-                    </div>
-                    <button type="submit" class="btn" style="background:#00875a; width:100%; margin-top:15px; padding:12px;">Démarrer la Restauration</button>
+                <form action="api.php?action=import_backup_zip" method="POST" enctype="multipart/form-data" style="width:100%;" id="backup-form">
+                    <input type="file" name="zip_file" accept=".zip" required style="margin-bottom: 15px; display: block; width: 100%;">
+                    <button type="submit" class="btn" style="background: #00875a; width:100%; padding:12px;">Démarrer la Restauration</button>
                 </form>
             </div>
         </div>
     </div>
 
+    <div id="panel-history" class="admin-tab-content">
+        <div class="json-card">
+            <h3 style="margin:0; font-size:16px; color:#091e42; border-bottom: 1px solid #ebecf0; padding-bottom: 10px; margin-bottom: 15px;">Journal d'historique des actions sur l'application</h3>
+            <div style="overflow-x:auto;">
+                <table class="notes-table" style="width:100%; border-collapse:collapse; min-width:700px;">
+                    <thead>
+                        <tr>
+                            <th style="width:180px;">Horodatage</th>
+                            <th style="width:130px;">Type d'action</th>
+                            <th>Détails de l'opération</th>
+                            <th style="width:100px; text-align:center;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body-history">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
     <script>
         let settingsData = { app_title: "", team_name: "", projets: [], acteurs: [], priorites: [], reunions: [] };
 
-        // Gestion globale des onglets
         function switchAdminTab(panelId, btn) {
             document.querySelectorAll('.admin-tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.admin-tab-btn').forEach(el => el.classList.remove('active'));
@@ -162,13 +175,13 @@ require_once 'auth.php';
             document.getElementById(panelId).classList.add('active');
             btn.classList.add('active');
 
-            // Si on ouvre l'onglet JSON, on charge les flux bruts à jour
             if (panelId === 'panel-json') {
                 loadRawJsonFiles();
+            } else if (panelId === 'panel-history') {
+                loadHistoryLog();
             }
         }
 
-        // Chargement initial des données
         fetch('api.php?action=get_settings')
             .then(res => res.json())
             .then(data => {
@@ -222,7 +235,6 @@ require_once 'auth.php';
             });
         }
 
-        /* ================= MANAGEMENT EN DIRECT DU JSON BRUT ================= */
         function loadRawJsonFiles() {
             fetch('api.php?action=get_raw_json&file=kanban')
                 .then(res => res.text())
@@ -235,7 +247,6 @@ require_once 'auth.php';
 
         function saveRawJson(fileName) {
             const rawContent = document.getElementById(`textarea-${fileName}`).value;
-            
             fetch('api.php?action=save_raw_json', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -243,20 +254,52 @@ require_once 'auth.php';
             })
             .then(res => res.json())
             .then(data => {
-                if (data.success) {
-                    alert(`Fichier ${fileName}.json modifié et enregistré avec succès !`);
-                } else {
-                    alert(`Erreur : ${data.error}`);
-                }
+                if (data.success) { alert(`Fichier ${fileName}.json enregistré.`); } 
+                else { alert(`Erreur : ${data.error}`); }
             });
         }
 
-        // MAJ esthétique de l'upload ZIP
-        function updateUploadLabel(input) {
-            const label = document.getElementById('file-upload-label');
-            if (input.files && input.files.length > 0) {
-                label.innerText = `📦 Fichier prêt : ${input.files[0].name}`;
-                label.style.color = '#00875a';
+        /* ================= NEW JS FOR SYSTEM LOG HISTORY ================= */
+        function loadHistoryLog() {
+            fetch('api.php?action=get_history')
+                .then(res => res.json())
+                .then(data => {
+                    const tbody = document.getElementById('table-body-history');
+                    tbody.innerHTML = '';
+                    
+                    if (!data || data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#888; font-style:italic; padding: 20px;">Aucun événement consigné dans l\'historique pour le moment.</td></tr>';
+                        return;
+                    }
+                    
+                    data.forEach(item => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td style="color:#5e6c84; font-weight:600;">${item.date}</td>
+                            <td><span class="badge-reunion" style="background:#e3f2fd; color:#0052cc; font-size:11px;">${item.action}</span></td>
+                            <td style="font-weight:500;">${item.details}</td>
+                            <td style="text-align:center;">
+                                <button class="btn" style="background:#de350b; padding:5px 10px; font-size:12px;" onclick="deleteLogLine('${item.id}')">Supprimer</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                });
+        }
+
+        function deleteLogLine(lineId) {
+            if (confirm('Êtes-vous sûr de vouloir purger cette ligne du journal d\'historique ?')) {
+                fetch('api.php?action=delete_history_line', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: lineId })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        loadHistoryLog();
+                    }
+                });
             }
         }
     </script>
