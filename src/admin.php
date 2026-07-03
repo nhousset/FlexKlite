@@ -5,7 +5,7 @@ require_once 'auth.php';
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Administration - Configuration</title>
+    <title>Administration Pro - Suivi de Chantiers</title>
     <link rel="stylesheet" href="style.css?<?= time() ?>">
     <style>
         .admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
@@ -22,6 +22,23 @@ require_once 'auth.php';
         .form-group-admin label { font-size: 13px; font-weight: 600; color: #172b4d; display: block; margin-bottom: 6px; }
         .form-group-admin input { width: 100%; padding: 10px; border: 1px solid #dfe1e6; border-radius: 4px; font-size: 14px; box-sizing: border-box; background: #fafbfc;}
         .form-group-admin input:focus { border-color: var(--primary); outline: none; background: white;}
+
+        /* Styles restaurés pour la zone de Drag & Drop */
+        .file-upload-wrapper {
+            position: relative;
+            width: 100%;
+            padding: 40px 20px;
+            border: 2px dashed #dfe1e6;
+            border-radius: 8px;
+            background: #fafbfc;
+            cursor: pointer;
+            box-sizing: border-box;
+            transition: background 0.2s, border-color 0.2s;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .file-upload-wrapper:hover { background: #f4f5f7; border-color: var(--primary); }
+        .file-upload-wrapper input[type="file"] { width: 100%; height: 100%; position: absolute; top:0; left:0; opacity: 0; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -133,12 +150,17 @@ require_once 'auth.php';
                 <p style="color:var(--text-muted); font-size:14px; margin:0 0 10px 0; max-width:280px;">Générez et téléchargez instantanément une archive ZIP contenant vos tâches, vos notes et vos paramètres.</p>
                 <a href="api.php?action=export_backup_zip" class="btn" style="text-decoration:none; background:#0052cc; padding:12px 24px;">Créer un Backup (.ZIP)</a>
             </div>
+            
             <div class="backup-card">
                 <div style="background: #e8f5e9; color: #00875a; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px;">📥</div>
                 <h3 style="margin:0; color:#091e42; font-size:18px;">Restaurer une sauvegarde</h3>
                 <p style="color:var(--text-muted); font-size:14px; margin:0 0 10px 0; max-width:280px;">Importez une archive de sauvegarde précédemment exportée pour restaurer l'état complet.</p>
-                <form action="api.php?action=import_backup_zip" method="POST" enctype="multipart/form-data" style="width:100%;" id="backup-form">
-                    <input type="file" name="zip_file" accept=".zip" required style="margin-bottom: 15px; display: block; width: 100%;">
+                
+                <form action="api.php?action=import_backup_zip" method="POST" enctype="multipart/form-data" style="width:100%;">
+                    <div class="file-upload-wrapper">
+                        <span id="file-upload-label" style="font-weight:600; font-size:14px; color:#5e6c84;">📁 Cliquez ou glissez votre archive ZIP ici</span>
+                        <input type="file" name="backup_zip" accept=".zip" required onchange="updateUploadLabel(this)">
+                    </div>
                     <button type="submit" class="btn" style="background: #00875a; width:100%; padding:12px;">Démarrer la Restauration</button>
                 </form>
             </div>
@@ -259,7 +281,18 @@ require_once 'auth.php';
             });
         }
 
-        /* ================= NEW JS FOR SYSTEM LOG HISTORY ================= */
+        // Fonction restaurée pour animer l'input de Drag & Drop
+        function updateUploadLabel(input) {
+            const label = document.getElementById('file-upload-label');
+            if (input.files && input.files.length > 0) {
+                label.innerText = `📦 Fichier prêt : ${input.files[0].name}`;
+                label.style.color = '#00875a';
+            } else {
+                label.innerText = '📁 Cliquez ou glissez votre archive ZIP ici';
+                label.style.color = '#5e6c84';
+            }
+        }
+
         function loadHistoryLog() {
             fetch('api.php?action=get_history')
                 .then(res => res.json())
