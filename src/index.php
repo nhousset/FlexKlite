@@ -21,13 +21,15 @@ $team_name = htmlspecialchars($settings['team_name']);
     <!-- Librairie ExcelJS pour générer de vrais fichiers .xlsx -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     
-    <!-- Styles spécifiques pour l'affichage des Lots -->
+    <!-- Styles spécifiques pour l'affichage des Lots et notes -->
     <style>
         .lot-card { background: #fff; border: 1px solid #dfe1e6; border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         .lot-header { display: flex; justify-content: space-between; align-items: center; }
         .lot-title { font-weight: 700; color: #091e42; font-size: 14px; }
         .lot-code { background: #e3f2fd; color: #0052cc; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; border: 1px solid #bbdefb; }
         .note-target-badge { background: #e8f5e9; color: #006644; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; border: 1px solid #b7eb8f; margin-right: 6px; }
+        .btn-edit-note { background:none; border:none; cursor:pointer; font-size:14px; transition: transform 0.1s; opacity: 0.6; }
+        .btn-edit-note:hover { transform: scale(1.2); opacity: 1; }
     </style>
 </head>
 <body>
@@ -275,7 +277,7 @@ $team_name = htmlspecialchars($settings['team_name']);
         <div class="context-menu-item" id="menu-edit-task">✏️ Modifier les paramètres</div>
     </div>
 
-    <!-- Modale d'historique -->
+    <!-- Modale d'historique (Vue Rapide) -->
     <div id="notes-modal" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="panel-header-container">
@@ -344,8 +346,8 @@ $team_name = htmlspecialchars($settings['team_name']);
             </div>
         </div>
         
-        <!-- ZONE DE SAISIE DE NOTE AVEC CIBLAGE -->
-        <h4 style="margin-bottom: 10px; border-top: 2px solid #ebecf0; padding-top:20px; font-size:15px; color: #172b4d;">Saisir un point de suivi :</h4>
+        <!-- ZONE DE SAISIE / EDITION DE NOTE AVEC CIBLAGE -->
+        <h4 id="note-form-title" style="margin-bottom: 10px; border-top: 2px solid #ebecf0; padding-top:20px; font-size:15px; color: #172b4d;">Saisir un point de suivi :</h4>
         
         <div class="note-meta-inputs" style="flex-wrap: wrap;">
             <select id="new-note-target" style="flex: 1; min-width: 150px; background: #e3f2fd; font-weight: 600;">
@@ -361,7 +363,12 @@ $team_name = htmlspecialchars($settings['team_name']);
         </div>
 
         <textarea id="new-note-text" style="width:100%; height:120px; margin-bottom:12px; padding: 10px; border: 1px solid #dfe1e6; border-radius: 4px; font-family:inherit; box-sizing: border-box; resize: vertical;"></textarea>
-        <button class="btn" style="width: 100%; padding: 12px; font-size: 15px;" onclick="submitNote()">Enregistrer la note</button>
+        
+        <!-- NOUVEAU : Boutons d'édition -->
+        <div style="display:flex; gap:10px;">
+            <button id="btn-submit-note" class="btn" style="flex: 1; padding: 12px; font-size: 15px;" onclick="submitNote()">Enregistrer la note</button>
+            <button id="btn-cancel-edit" class="btn" style="display: none; background: #ebecf0; color: #42526e; padding: 12px; font-size: 15px;" onclick="cancelEditNote()">Annuler</button>
+        </div>
 
         <h4 style="margin-top: 40px; font-size:15px; color: #172b4d; border-bottom: 2px solid #ebecf0; padding-bottom: 10px;">Historique global (Tâche + Lots)</h4>
         <div id="panel-notes-list"></div>
@@ -370,20 +377,20 @@ $team_name = htmlspecialchars($settings['team_name']);
     <!-- ================= LOGIQUE JS ================= -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script>
-        let currentTaskRef = { column: null, index: null, task: null };
+        let currentTaskRef = { column: null, index: null, task: null, allNotes: [], editingNoteTimestamp: null };
         const statusLabels = { todo: 'À Faire', in_progress: 'En Cours', blocked: 'Bloqué / En attente', done: 'Terminé' };
 
         // Helper pour regrouper toutes les notes d'une tâche (principale + lots)
         function getAllNotesAggregated(task) {
             let allNotes = [];
             if (task.notes && task.notes.length > 0) {
-                allNotes = task.notes.map(n => ({ ...n, sourceName: '' }));
+                allNotes = task.notes.map(n => ({ ...n, sourceName: '', lotId: '' }));
             }
             if (task.lots && task.lots.length > 0) {
                 task.lots.forEach(lot => {
                     if (lot.notes && lot.notes.length > 0) {
                         lot.notes.forEach(n => {
-                            allNotes.push({ ...n, sourceName: lot.titre, lotCode: lot.code_itbm });
+                            allNotes.push({ ...n, sourceName: lot.titre, lotCode: lot.code_itbm, lotId: lot.id });
                         });
                     }
                 });
@@ -846,8 +853,13 @@ $team_name = htmlspecialchars($settings['team_name']);
             e.stopPropagation(); document.getElementById('context-menu').style.display = 'none'; openEditTaskModal();
         });
 
+        // --- FONCTIONS EDIT NOTE & ADD NOTE PANEL ---
         function openAddNotePanel() {
             const task = currentTaskRef.task;
+            
+            // On sauvegarde l'ensemble des notes pour pouvoir les récupérer à la modification
+            currentTaskRef.allNotes = getAllNotesAggregated(task);
+            
             document.getElementById('panel-title').innerText = task.titre;
             document.getElementById('panel-project').innerText = task.projet;
             document.getElementById('panel-acteur').innerText = task.acteur || 'Non assigné';
@@ -865,9 +877,9 @@ $team_name = htmlspecialchars($settings['team_name']);
                 document.getElementById('panel-dates-container').style.display = 'none';
             }
 
-            document.getElementById('new-note-text').value = '';
-            document.getElementById('new-note-reunion').value = '';
-            document.getElementById('new-note-date').valueAsDate = new Date(); 
+            // Réinitialiser la zone de saisie pour "Nouvelle note"
+            cancelEditNote();
+            
             document.getElementById('new-lot-titre').value = '';
             document.getElementById('new-lot-code').value = '';
             
@@ -891,15 +903,21 @@ $team_name = htmlspecialchars($settings['team_name']);
 
             const listContainer = document.getElementById('panel-notes-list');
             listContainer.innerHTML = '';
-            const allNotes = getAllNotesAggregated(task);
             
-            if (allNotes.length > 0) {
-                allNotes.forEach(note => {
+            if (currentTaskRef.allNotes.length > 0) {
+                currentTaskRef.allNotes.forEach(note => {
                     const item = document.createElement('div');
                     item.className = 'note-item';
                     const badge = note.reunion ? `<span class="badge-reunion">${note.reunion}</span>` : '';
                     const srcBadge = note.sourceName ? `<span class="note-target-badge">${note.sourceName}</span> ` : '';
-                    item.innerHTML = `<div class="note-date">🗓️ ${note.date} ${badge}</div><div style="white-space: pre-wrap;">${srcBadge}${note.texte}</div>`;
+                    
+                    item.innerHTML = `
+                        <div class="note-date" style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>🗓️ ${note.date} ${badge}</div>
+                            <button class="btn-edit-note" onclick="startEditNote(${note.timestamp})" title="Modifier cette note">✏️</button>
+                        </div>
+                        <div style="white-space: pre-wrap;">${srcBadge}${note.texte}</div>
+                    `;
                     listContainer.appendChild(item);
                 });
             } else {
@@ -910,6 +928,46 @@ $team_name = htmlspecialchars($settings['team_name']);
 
         function closePanel() { document.getElementById('details-panel').classList.remove('open'); }
 
+        // --- NOUVELLES FONCTIONS DE MODIFICATION ---
+        function startEditNote(timestamp) {
+            const note = currentTaskRef.allNotes.find(n => n.timestamp === timestamp);
+            if(!note) return;
+
+            currentTaskRef.editingNoteTimestamp = timestamp;
+
+            // Conversion de la date JJ/MM/YYYY vers YYYY-MM-DD pour l'input type="date"
+            const parts = note.date.split('/');
+            if(parts.length === 3) {
+                document.getElementById('new-note-date').value = `${parts[2]}-${parts[1]}-${parts[0]}`;
+            } else {
+                document.getElementById('new-note-date').valueAsDate = new Date();
+            }
+
+            document.getElementById('new-note-reunion').value = note.reunion || '';
+            document.getElementById('new-note-target').value = note.lotId || '';
+            document.getElementById('new-note-text').value = note.texte || '';
+
+            document.getElementById('note-form-title').innerText = "✏️ Modifier le point de suivi :";
+            document.getElementById('btn-submit-note').innerText = "Mettre à jour la note";
+            document.getElementById('btn-cancel-edit').style.display = "block";
+
+            // Fait défiler la page doucement jusqu'au formulaire
+            document.getElementById('note-form-title').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            document.getElementById('new-note-text').focus();
+        }
+
+        function cancelEditNote() {
+            currentTaskRef.editingNoteTimestamp = null;
+            document.getElementById('new-note-date').valueAsDate = new Date();
+            document.getElementById('new-note-reunion').value = '';
+            document.getElementById('new-note-target').value = '';
+            document.getElementById('new-note-text').value = '';
+            
+            document.getElementById('note-form-title').innerText = "Saisir un point de suivi :";
+            document.getElementById('btn-submit-note').innerText = "Enregistrer la note";
+            document.getElementById('btn-cancel-edit').style.display = "none";
+        }
+
         function submitNote() {
             const text = document.getElementById('new-note-text').value;
             const date = document.getElementById('new-note-date').value;
@@ -917,10 +975,26 @@ $team_name = htmlspecialchars($settings['team_name']);
             const lotId = document.getElementById('new-note-target').value;
             if (!text.trim()) return;
 
-            fetch('api.php?action=add_note', {
+            const isEdit = !!currentTaskRef.editingNoteTimestamp;
+            const actionUrl = isEdit ? 'edit_note' : 'add_note';
+            
+            const payload = { 
+                column: currentTaskRef.column, 
+                index: currentTaskRef.index, 
+                text: text, 
+                date: date, 
+                reunion: reunion, 
+                lot_id: lotId 
+            };
+
+            if (isEdit) {
+                payload.timestamp = currentTaskRef.editingNoteTimestamp;
+            }
+
+            fetch('api.php?action=' + actionUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ column: currentTaskRef.column, index: currentTaskRef.index, text: text, date: date, reunion: reunion, lot_id: lotId })
+                body: JSON.stringify(payload)
             })
             .then(res => res.json())
             .then(resData => {
