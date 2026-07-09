@@ -18,10 +18,12 @@ $team_name = htmlspecialchars($settings['team_name']);
     <meta charset="UTF-8">
     <title><?= $app_title ?> - <?= $team_name ?></title>
     <link rel="stylesheet" href="style.css?<?= time() ?>">
+    <!-- Librairie ExcelJS pour générer de vrais fichiers .xlsx -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 </head>
 <body>
 
+    <!-- En-tête Principal de l'App -->
     <div class="main-header">
         <div class="header-title-wrapper">
             <div class="app-logo-container">
@@ -51,6 +53,7 @@ $team_name = htmlspecialchars($settings['team_name']);
             
             <button onclick="openAddTaskModal()" class="btn-header btn-new-task">➕ Nouvelle Tâche</button>
             
+            <!-- Menu Déroulant -->
             <div class="dropdown">
                 <button class="btn-header dropdown-btn" onclick="toggleHeaderMenu(event)">
                     ⚙️ Menu <span style="font-size: 10px;">▼</span>
@@ -86,6 +89,7 @@ $team_name = htmlspecialchars($settings['team_name']);
         </aside>
     </div>
 
+    <!-- Modale de Création de Tâche -->
     <div id="add-task-modal" class="modal-overlay" onclick="closeAddTaskModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 700px;">
             <div class="panel-header-container">
@@ -171,6 +175,7 @@ $team_name = htmlspecialchars($settings['team_name']);
         </div>
     </div>
 
+    <!-- Modale d'Édition de Tâche -->
     <div id="edit-task-modal" class="modal-overlay" onclick="closeEditTaskModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 700px;">
             <div class="panel-header-container">
@@ -255,11 +260,13 @@ $team_name = htmlspecialchars($settings['team_name']);
         </div>
     </div>
 
+    <!-- Menu Contextuel -->
     <div id="context-menu">
         <div class="context-menu-item" id="menu-add-note">➕ Ajouter un point de suivi</div>
         <div class="context-menu-item" id="menu-edit-task">✏️ Modifier les paramètres</div>
     </div>
 
+    <!-- Modale d'historique -->
     <div id="notes-modal" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="panel-header-container">
@@ -293,6 +300,7 @@ $team_name = htmlspecialchars($settings['team_name']);
         </div>
     </div>
 
+    <!-- Panneau latéral ajout de note -->
     <div id="details-panel">
         <div class="panel-header-container">
             <h2 class="panel-header-title">
@@ -333,6 +341,7 @@ $team_name = htmlspecialchars($settings['team_name']);
         <div id="panel-notes-list"></div>
     </div>
 
+    <!-- ================= LOGIQUE JS ================= -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script>
         let currentTaskRef = { column: null, index: null, task: null };
@@ -357,7 +366,6 @@ $team_name = htmlspecialchars($settings['team_name']);
         }
 
         function loadBoard() {
-            // Ajout du paramètre de timestamp unique pour briser le cache
             fetch('api.php?action=get&_t=' + Date.now())
                 .then(res => res.json())
                 .then(data => {
@@ -527,7 +535,7 @@ $team_name = htmlspecialchars($settings['team_name']);
                         tache: tache,
                         statut: statut,
                         prio: prio !== '-' ? prio : '',
-                        acteur: actor !== '-' ? acteur : '',
+                        acteur: acteur !== '-' ? acteur : '', // CORRECTION ICI
                         maj: maj,
                         notes: notesText
                     });
@@ -680,6 +688,7 @@ $team_name = htmlspecialchars($settings['team_name']);
         function renderRecentActivity(notes) {
             const container = document.getElementById('recent-activity-list');
             if(!container) return;
+
             container.innerHTML = '';
             
             notes.sort((a, b) => b.timestamp - a.timestamp);
@@ -721,7 +730,6 @@ $team_name = htmlspecialchars($settings['team_name']);
             });
         });
 
-        // ================= GESTION DES MODALES D'AJOUT ET D'ÉDITION =================
         function openAddTaskModal() { document.getElementById('add-task-modal').style.display = 'flex'; }
         function closeAddTaskModal(e) { if(e) e.stopPropagation(); document.getElementById('add-task-modal').style.display = 'none'; }
 
@@ -745,7 +753,6 @@ $team_name = htmlspecialchars($settings['team_name']);
         }
         function closeEditTaskModal(e) { if(e) e.stopPropagation(); document.getElementById('edit-task-modal').style.display = 'none'; }
 
-        // ================= HISTORIQUE ET PANNEAU LATÉRAL =================
         function openHistoryModal(task, column, index) {
             currentTaskRef = { column, index, task };
             
@@ -851,7 +858,6 @@ $team_name = htmlspecialchars($settings['team_name']);
             });
         }
 
-        // Exécution immédiate dès le chargement du DOM pour éliminer le comportement d'affichage vide
         document.addEventListener('DOMContentLoaded', loadBoard);
     </script>
 </body>
