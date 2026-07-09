@@ -20,6 +20,15 @@ $team_name = htmlspecialchars($settings['team_name']);
     <link rel="stylesheet" href="style.css?<?= time() ?>">
     <!-- Librairie ExcelJS pour générer de vrais fichiers .xlsx -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    
+    <!-- Styles spécifiques pour l'affichage des Lots -->
+    <style>
+        .lot-card { background: #fff; border: 1px solid #dfe1e6; border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .lot-header { display: flex; justify-content: space-between; align-items: center; }
+        .lot-title { font-weight: 700; color: #091e42; font-size: 14px; }
+        .lot-code { background: #e3f2fd; color: #0052cc; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; border: 1px solid #bbdefb; }
+        .note-target-badge { background: #e8f5e9; color: #006644; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; border: 1px solid #b7eb8f; margin-right: 6px; }
+    </style>
 </head>
 <body>
 
@@ -300,14 +309,14 @@ $team_name = htmlspecialchars($settings['team_name']);
         </div>
     </div>
 
-    <!-- Panneau latéral ajout de note -->
+    <!-- Panneau latéral ajout de note ET GESTION DES LOTS -->
     <div id="details-panel">
         <div class="panel-header-container">
             <h2 class="panel-header-title">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
                 </svg>
-                Ajout d'une note
+                Détails & Suivi
             </h2>
             <div class="close-panel" onclick="closePanel()">×</div>
         </div>
@@ -322,11 +331,28 @@ $team_name = htmlspecialchars($settings['team_name']);
             <div id="panel-dates-container" style="display:none;">Dates : <strong id="panel-dates"></strong></div>
         </div>
         
-        <h4 style="margin-bottom: 10px; margin-top: 20px; font-size:15px; color: #172b4d;">Saisir votre point de suivi :</h4>
+        <!-- ZONE D'AFFICHAGE ET CRÉATION DES LOTS -->
+        <h4 style="margin-bottom: 10px; font-size:15px; color: #172b4d;">Lots / Sous-tâches :</h4>
+        <div id="panel-lots-container" style="margin-bottom: 15px;"></div>
         
-        <div class="note-meta-inputs">
+        <div style="background: #fafbfc; border: 1px dashed #dfe1e6; padding: 15px; border-radius: 8px; margin-bottom: 25px;">
+            <h5 style="margin: 0 0 10px 0; color: #5e6c84; font-size: 13px;">+ Déclarer un nouveau Lot</h5>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="new-lot-titre" placeholder="Intitulé du lot (ex: Front-end)" style="flex:2; padding: 8px; border: 1px solid #dfe1e6; border-radius: 4px; font-size:13px;">
+                <input type="text" id="new-lot-code" placeholder="Code (ex: TSK123)" style="flex:1; padding: 8px; border: 1px solid #dfe1e6; border-radius: 4px; font-size:13px;">
+                <button class="btn" style="padding: 8px 15px; font-size: 13px;" onclick="submitLot()">Ajouter</button>
+            </div>
+        </div>
+        
+        <!-- ZONE DE SAISIE DE NOTE AVEC CIBLAGE -->
+        <h4 style="margin-bottom: 10px; border-top: 2px solid #ebecf0; padding-top:20px; font-size:15px; color: #172b4d;">Saisir un point de suivi :</h4>
+        
+        <div class="note-meta-inputs" style="flex-wrap: wrap;">
+            <select id="new-note-target" style="flex: 1; min-width: 150px; background: #e3f2fd; font-weight: 600;">
+                <option value="">🎯 Tâche principale</option>
+            </select>
             <input type="date" id="new-note-date" title="Date de la note" style="max-width: 130px;">
-            <select id="new-note-reunion">
+            <select id="new-note-reunion" style="flex: 1;">
                 <option value="">-- Contexte / Réunion --</option>
                 <?php foreach($settings['reunions'] as $r): ?>
                     <option value="<?= htmlspecialchars($r) ?>"><?= htmlspecialchars($r) ?></option>
@@ -337,7 +363,7 @@ $team_name = htmlspecialchars($settings['team_name']);
         <textarea id="new-note-text" style="width:100%; height:120px; margin-bottom:12px; padding: 10px; border: 1px solid #dfe1e6; border-radius: 4px; font-family:inherit; box-sizing: border-box; resize: vertical;"></textarea>
         <button class="btn" style="width: 100%; padding: 12px; font-size: 15px;" onclick="submitNote()">Enregistrer la note</button>
 
-        <h4 style="margin-top: 40px; font-size:15px; color: #172b4d; border-bottom: 2px solid #ebecf0; padding-bottom: 10px;">Historique des notes</h4>
+        <h4 style="margin-top: 40px; font-size:15px; color: #172b4d; border-bottom: 2px solid #ebecf0; padding-bottom: 10px;">Historique global (Tâche + Lots)</h4>
         <div id="panel-notes-list"></div>
     </div>
 
@@ -346,6 +372,24 @@ $team_name = htmlspecialchars($settings['team_name']);
     <script>
         let currentTaskRef = { column: null, index: null, task: null };
         const statusLabels = { todo: 'À Faire', in_progress: 'En Cours', blocked: 'Bloqué / En attente', done: 'Terminé' };
+
+        // Helper pour regrouper toutes les notes d'une tâche (principale + lots)
+        function getAllNotesAggregated(task) {
+            let allNotes = [];
+            if (task.notes && task.notes.length > 0) {
+                allNotes = task.notes.map(n => ({ ...n, sourceName: '' }));
+            }
+            if (task.lots && task.lots.length > 0) {
+                task.lots.forEach(lot => {
+                    if (lot.notes && lot.notes.length > 0) {
+                        lot.notes.forEach(n => {
+                            allNotes.push({ ...n, sourceName: lot.titre, lotCode: lot.code_itbm });
+                        });
+                    }
+                });
+            }
+            return allNotes.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        }
 
         function toggleHeaderMenu(e) {
             e.stopPropagation();
@@ -402,6 +446,7 @@ $team_name = htmlspecialchars($settings['team_name']);
                             let extraTags = '';
                             if(task.code_itbm) extraTags += `<span class="tag tag-itbm">🎫 ${task.code_itbm}</span>`;
                             if(task.prio) extraTags += `<span class="tag tag-prio">🔥 Prio ${task.prio}</span>`;
+                            if(task.lots && task.lots.length > 0) extraTags += `<span class="tag" style="background:#e8f5e9; color:#006644; border-color:#b7eb8f;">📦 ${task.lots.length} Lot(s)</span>`;
 
                             card.innerHTML = `
                                 <div class="tags-container"><span class="tag">📁 ${task.projet}</span>${extraTags}</div>
@@ -413,15 +458,16 @@ $team_name = htmlspecialchars($settings['team_name']);
                             `;
                             if(container) container.appendChild(card);
 
-                            // Construction du bloc des notes
+                            // Construction du bloc des notes (Agrégation)
                             let notesHtml = '';
-                            if (task.notes && task.notes.length > 0) {
-                                const sortedNotes = [...task.notes].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-                                const top5 = sortedNotes.slice(0, 5);
+                            const allTaskNotes = getAllNotesAggregated(task);
+                            if (allTaskNotes.length > 0) {
+                                const top5 = allTaskNotes.slice(0, 5);
                                 notesHtml = top5.map(n => {
                                     const ctx = n.reunion ? ` - <strong>${n.reunion}</strong>` : '';
+                                    const srcBadge = n.sourceName ? `<span class="note-target-badge">${n.sourceName}</span><br/>` : '';
                                     return `<div style="font-size: 13px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed #ebecf0; line-height: 1.4;" class="note-entry">
-                                                <span style="color:#5e6c84; font-weight: 600;">${n.date}${ctx} :</span> ${n.texte}
+                                                <span style="color:#5e6c84; font-weight: 600;">${n.date}${ctx} :</span> <br/>${srcBadge}${n.texte}
                                             </div>`;
                                 }).join('');
                             } else {
@@ -465,11 +511,12 @@ $team_name = htmlspecialchars($settings['team_name']);
                             const acteur = task.acteur || 'Non assigné'; kpi.acteur[acteur] = (kpi.acteur[acteur] || 0) + 1;
                             const prio = task.prio || 'Aucune'; kpi.prio[prio] = (kpi.prio[prio] || 0) + 1;
 
-                            if (task.notes && task.notes.length > 0) {
-                                task.notes.forEach(note => {
+                            if (allTaskNotes.length > 0) {
+                                allTaskNotes.forEach(note => {
                                     allNotesForActivity.push({
                                         taskTitle: task.titre, projet: task.projet,
-                                        texte: note.texte, date: note.date, reunion: note.reunion,
+                                        texte: (note.sourceName ? `[${note.sourceName}] ` : '') + note.texte, 
+                                        date: note.date, reunion: note.reunion,
                                         timestamp: note.timestamp || 0 
                                     });
                                 });
@@ -535,7 +582,7 @@ $team_name = htmlspecialchars($settings['team_name']);
                         tache: tache,
                         statut: statut,
                         prio: prio !== '-' ? prio : '',
-                        acteur: acteur !== '-' ? acteur : '', // CORRECTION ICI
+                        acteur: acteur !== '-' ? acteur : '',
                         maj: maj,
                         notes: notesText
                     });
@@ -766,11 +813,15 @@ $team_name = htmlspecialchars($settings['team_name']);
             
             const tbody = document.getElementById('modal-table-body');
             tbody.innerHTML = '';
-            if (task.notes && task.notes.length > 0) {
-                task.notes.forEach(note => {
+            
+            const allNotes = getAllNotesAggregated(task);
+            
+            if (allNotes.length > 0) {
+                allNotes.forEach(note => {
                     const tr = document.createElement('tr');
                     const badge = note.reunion ? `<span class="badge-reunion">${note.reunion}</span>` : '<span style="color:#aaa;">-</span>';
-                    tr.innerHTML = `<td>${note.date}</td><td>${badge}</td><td style="white-space: pre-wrap;">${note.texte}</td>`;
+                    const srcBadge = note.sourceName ? `<span class="note-target-badge">${note.sourceName}</span><br>` : '';
+                    tr.innerHTML = `<td>${note.date}</td><td>${badge}</td><td style="white-space: pre-wrap;">${srcBadge}${note.texte}</td>`;
                     tbody.appendChild(tr);
                 });
             } else {
@@ -817,16 +868,38 @@ $team_name = htmlspecialchars($settings['team_name']);
             document.getElementById('new-note-text').value = '';
             document.getElementById('new-note-reunion').value = '';
             document.getElementById('new-note-date').valueAsDate = new Date(); 
+            document.getElementById('new-lot-titre').value = '';
+            document.getElementById('new-lot-code').value = '';
             
+            const lotsContainer = document.getElementById('panel-lots-container');
+            const targetSelect = document.getElementById('new-note-target');
+            lotsContainer.innerHTML = '';
+            targetSelect.innerHTML = '<option value="">🎯 Tâche principale</option>';
+
+            if (task.lots && task.lots.length > 0) {
+                task.lots.forEach(lot => {
+                    const opt = document.createElement('option');
+                    opt.value = lot.id; opt.innerText = `📦 ${lot.titre}`;
+                    targetSelect.appendChild(opt);
+
+                    const codeBadge = lot.code_itbm ? `<span class="lot-code">🎫 ${lot.code_itbm}</span>` : '';
+                    lotsContainer.innerHTML += `<div class="lot-card"><div class="lot-header"><span class="lot-title">${lot.titre}</span>${codeBadge}</div></div>`;
+                });
+            } else {
+                lotsContainer.innerHTML = '<span style="font-size:13px; color:#888; font-style:italic;">Aucun lot créé pour le moment.</span>';
+            }
+
             const listContainer = document.getElementById('panel-notes-list');
             listContainer.innerHTML = '';
+            const allNotes = getAllNotesAggregated(task);
             
-            if (task.notes && task.notes.length > 0) {
-                task.notes.forEach(note => {
+            if (allNotes.length > 0) {
+                allNotes.forEach(note => {
                     const item = document.createElement('div');
                     item.className = 'note-item';
                     const badge = note.reunion ? `<span class="badge-reunion">${note.reunion}</span>` : '';
-                    item.innerHTML = `<div class="note-date">🗓️ ${note.date} ${badge}</div><div style="white-space: pre-wrap;">${note.texte}</div>`;
+                    const srcBadge = note.sourceName ? `<span class="note-target-badge">${note.sourceName}</span> ` : '';
+                    item.innerHTML = `<div class="note-date">🗓️ ${note.date} ${badge}</div><div style="white-space: pre-wrap;">${srcBadge}${note.texte}</div>`;
                     listContainer.appendChild(item);
                 });
             } else {
@@ -841,12 +914,13 @@ $team_name = htmlspecialchars($settings['team_name']);
             const text = document.getElementById('new-note-text').value;
             const date = document.getElementById('new-note-date').value;
             const reunion = document.getElementById('new-note-reunion').value;
+            const lotId = document.getElementById('new-note-target').value;
             if (!text.trim()) return;
 
             fetch('api.php?action=add_note', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ column: currentTaskRef.column, index: currentTaskRef.index, text: text, date: date, reunion: reunion })
+                body: JSON.stringify({ column: currentTaskRef.column, index: currentTaskRef.index, text: text, date: date, reunion: reunion, lot_id: lotId })
             })
             .then(res => res.json())
             .then(resData => {
@@ -854,6 +928,26 @@ $team_name = htmlspecialchars($settings['team_name']);
                     currentTaskRef.task = resData.task;
                     openAddNotePanel(); 
                     loadBoard();
+                }
+            });
+        }
+        
+        function submitLot() {
+            const titre = document.getElementById('new-lot-titre').value;
+            const code = document.getElementById('new-lot-code').value;
+            if (!titre.trim()) return;
+
+            fetch('api.php?action=add_lot', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ column: currentTaskRef.column, index: currentTaskRef.index, titre: titre, code: code })
+            })
+            .then(res => res.json())
+            .then(resData => {
+                if(resData.success) { 
+                    currentTaskRef.task = resData.task; 
+                    openAddNotePanel(); 
+                    loadBoard(); 
                 }
             });
         }
