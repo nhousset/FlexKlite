@@ -81,10 +81,14 @@ $team_name = htmlspecialchars($settings['team_name']);
 
     <div class="app-layout">
         <div class="main-content">
-            <div class="tabs-header">
-                <button class="tab-btn active" onclick="switchTab('tab-kanban', this)">🗂️ Vue Kanban</button>
-                <button class="tab-btn" onclick="switchTab('tab-list', this)">📋 Vue Liste (Excel)</button>
-                <button class="tab-btn" onclick="switchTab('tab-kpi', this)">📊 Tableau de Bord</button>
+            <!-- Modification ici pour ajouter le bouton de masquage de la barre d'activité -->
+            <div class="tabs-header" style="display: flex; justify-content: space-between; align-items: flex-end;">
+                <div style="display: flex; gap: 15px;">
+                    <button class="tab-btn active" onclick="switchTab('tab-kanban', this)">🗂️ Vue Kanban</button>
+                    <button class="tab-btn" onclick="switchTab('tab-list', this)">📋 Vue Liste (Excel)</button>
+                    <button class="tab-btn" onclick="switchTab('tab-kpi', this)">📊 Tableau de Bord</button>
+                </div>
+                <button class="tab-btn" id="btn-toggle-activity" onclick="toggleActivityPanel()" style="color: #5e6c84; font-size: 13px;">👁️ Masquer l'activité</button>
             </div>
 
             <?php 
@@ -94,7 +98,7 @@ $team_name = htmlspecialchars($settings['team_name']);
             ?>
         </div>
 
-        <aside class="activity-sidebar">
+        <aside class="activity-sidebar" id="activity-sidebar-panel">
             <h3>⚡ Activité Récente</h3>
             <div id="recent-activity-list"></div>
         </aside>
@@ -364,7 +368,7 @@ $team_name = htmlspecialchars($settings['team_name']);
 
         <textarea id="new-note-text" style="width:100%; height:120px; margin-bottom:12px; padding: 10px; border: 1px solid #dfe1e6; border-radius: 4px; font-family:inherit; box-sizing: border-box; resize: vertical;"></textarea>
         
-        <!-- NOUVEAU : Boutons d'édition -->
+        <!-- Boutons d'édition -->
         <div style="display:flex; gap:10px;">
             <button id="btn-submit-note" class="btn" style="flex: 1; padding: 12px; font-size: 15px;" onclick="submitNote()">Enregistrer la note</button>
             <button id="btn-cancel-edit" class="btn" style="display: none; background: #ebecf0; color: #42526e; padding: 12px; font-size: 15px;" onclick="cancelEditNote()">Annuler</button>
@@ -416,6 +420,19 @@ $team_name = htmlspecialchars($settings['team_name']);
             btn.classList.add('active');
         }
 
+        // Fonction pour afficher/masquer le panneau latéral d'activité
+        function toggleActivityPanel() {
+            const sidebar = document.getElementById('activity-sidebar-panel');
+            const btn = document.getElementById('btn-toggle-activity');
+            if (sidebar.style.display === 'none') {
+                sidebar.style.display = 'block';
+                btn.innerHTML = '👁️ Masquer l\'activité';
+            } else {
+                sidebar.style.display = 'none';
+                btn.innerHTML = '👁️ Afficher l\'activité';
+            }
+        }
+
         function loadBoard() {
             fetch('api.php?action=get&_t=' + Date.now())
                 .then(res => res.json())
@@ -452,7 +469,8 @@ $team_name = htmlspecialchars($settings['team_name']);
                             
                             let extraTags = '';
                             if(task.code_itbm) extraTags += `<span class="tag tag-itbm">🎫 ${task.code_itbm}</span>`;
-                            if(task.prio) extraTags += `<span class="tag tag-prio">🔥 Prio ${task.prio}</span>`;
+                            // Modification ici : suppression de l'émoji feu
+                            if(task.prio) extraTags += `<span class="tag tag-prio" title="Priorité">${task.prio}</span>`;
                             if(task.lots && task.lots.length > 0) extraTags += `<span class="tag" style="background:#e8f5e9; color:#006644; border-color:#b7eb8f;">📦 ${task.lots.length} Lot(s)</span>`;
 
                             card.innerHTML = `
@@ -501,11 +519,12 @@ $team_name = htmlspecialchars($settings['team_name']);
                                 const actLabel = task.acteur || '-';
                                 const prioLabel = task.prio || '-';
                                 
+                                // Modification ici : suppression de l'émoji feu dans la vue liste
                                 tr.innerHTML = `
                                     <td><span class="tag tag-itbm" style="background:none; border:1px solid #dfe1e6;">📁 ${task.projet}</span></td>
                                     <td style="font-weight: 500;">${task.titre}</td>
                                     <td><span class="status-badge status-${status}">${statusLabels[status]}</span></td>
-                                    <td>${prioLabel !== '-' ? `🔥 ${prioLabel}` : '-'}</td>
+                                    <td style="font-weight:bold; color:#c62828;">${prioLabel !== '-' ? prioLabel : '-'}</td>
                                     <td>🧑‍💻 ${actLabel}</td>
                                     <td style="color:#5e6c84; white-space:nowrap; font-weight: 600;">🕒 ${task.maj}</td>
                                     <td>${notesHtml}</td>
@@ -570,7 +589,7 @@ $team_name = htmlspecialchars($settings['team_name']);
                     const projet = cells[0].innerText.replace('📁 ', '').trim();
                     const tache = cells[1].innerText.trim();
                     const statut = cells[2].innerText.trim();
-                    const prio = cells[3].innerText.replace('🔥 ', '').trim();
+                    const prio = cells[3].innerText.trim(); // Ajusté sans emoji
                     const acteur = cells[4].innerText.replace('🧑‍💻 ', '').trim();
                     const maj = cells[5].innerText.replace('🕒 ', '').trim();
 
@@ -857,7 +876,6 @@ $team_name = htmlspecialchars($settings['team_name']);
         function openAddNotePanel() {
             const task = currentTaskRef.task;
             
-            // On sauvegarde l'ensemble des notes pour pouvoir les récupérer à la modification
             currentTaskRef.allNotes = getAllNotesAggregated(task);
             
             document.getElementById('panel-title').innerText = task.titre;
@@ -877,7 +895,6 @@ $team_name = htmlspecialchars($settings['team_name']);
                 document.getElementById('panel-dates-container').style.display = 'none';
             }
 
-            // Réinitialiser la zone de saisie pour "Nouvelle note"
             cancelEditNote();
             
             document.getElementById('new-lot-titre').value = '';
@@ -935,7 +952,6 @@ $team_name = htmlspecialchars($settings['team_name']);
 
             currentTaskRef.editingNoteTimestamp = timestamp;
 
-            // Conversion de la date JJ/MM/YYYY vers YYYY-MM-DD pour l'input type="date"
             const parts = note.date.split('/');
             if(parts.length === 3) {
                 document.getElementById('new-note-date').value = `${parts[2]}-${parts[1]}-${parts[0]}`;
@@ -951,7 +967,6 @@ $team_name = htmlspecialchars($settings['team_name']);
             document.getElementById('btn-submit-note').innerText = "Mettre à jour la note";
             document.getElementById('btn-cancel-edit').style.display = "block";
 
-            // Fait défiler la page doucement jusqu'au formulaire
             document.getElementById('note-form-title').scrollIntoView({ behavior: 'smooth', block: 'center' });
             document.getElementById('new-note-text').focus();
         }
