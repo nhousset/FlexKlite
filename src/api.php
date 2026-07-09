@@ -107,7 +107,8 @@ switch ($action) {
                 'date_debut'  => $_POST['date_debut'] ?? '',
                 'date_fin'    => $_POST['date_fin'] ?? '',
                 'maj'         => date('d/m'),
-                'notes'       => []
+                'notes'       => [],
+                'lots'        => [] // Nouveau champ pour stocker les sous-tâches
             ];
             
             if (!empty($_POST['note_initiale'])) {
@@ -142,6 +143,8 @@ switch ($action) {
                 $kanban[$col][$idx]['date_debut']  = $_POST['date_debut'] ?? '';
                 $kanban[$col][$idx]['date_fin']    = $_POST['date_fin'] ?? '';
                 $kanban[$col][$idx]['maj']         = date('d/m');
+                // Préservation des lots existants
+                $kanban[$col][$idx]['lots']        = $kanban[$col][$idx]['lots'] ?? [];
                 
                 write_db($db_file, $kanban);
                 
@@ -151,22 +154,66 @@ switch ($action) {
         header('Location: index.php');
         exit;
 
+    // --- NOUVEAU ENDPOINT : CREATION DE LOT ---
+    case 'add_lot':
+        $data = json_decode(file_get_contents('php://input'), true);
+        $col = $data['column'];
+        $idx = (int)$data['index'];
+        $titre = trim($data['titre'] ?? '');
+        $code = trim($data['code'] ?? '');
+
+        if (!empty($titre) && isset($kanban[$col][$idx])) {
+            if (!isset($kanban[$col][$idx]['lots'])) { $kanban[$col][$idx]['lots'] = []; }
+            $new_lot = [
+                'id' => uniqid('lot_'),
+                'titre' => $titre,
+                'code_itbm' => $code,
+                'notes' => []
+            ];
+            $kanban[$col][$idx]['lots'][] = $new_lot;
+            $kanban[$col][$idx]['maj'] = date('d/m');
+            
+            write_db($db_file, $kanban);
+            log_action('Lot', "Création du lot '{$titre}' dans la tâche '" . $kanban[$col][$idx]['titre'] . "'.");
+            echo json_encode(['success' => true, 'task' => $kanban[$col][$idx]]);
+        } else {
+            echo json_encode(['success' => false]);
+        }
+        break;
+
     case 'add_note':
         $data = json_decode(file_get_contents('php://input'), true);
         $col = $data['column'];
         $idx = (int)$data['index'];
         $texte = $data['text'];
         $reunion = $data['reunion'] ?? '';
+        $lot_id = $data['lot_id'] ?? ''; // Nouveau paramètre pour cibler un lot
         
         $date_saisie = !empty($data['date']) ? date('d/m/Y', strtotime($data['date'])) : date('d/m/Y');
 
         if (!empty($texte) && isset($kanban[$col][$idx])) {
-            array_unshift($kanban[$col][$idx]['notes'], [
+            $new_note = [
                 'date'      => $date_saisie,
                 'reunion'   => $reunion,
                 'texte'     => $texte,
                 'timestamp' => time()
-            ]);
+            ];
+
+            if (!empty($lot_id)) {
+                // Routage vers le lot spécifique
+                foreach ($kanban[$col][$idx]['lots'] as &$lot) {
+                    if ($lot['id'] === $lot_id) {
+                        if (!isset($lot['notes'])) $lot['notes'] = [];
+                        array_unshift($lot['notes'], $new_note);
+                        break;
+                    }
+                }
+            } else {
+                // Ajout classique sur la tâche principale
+                if (!isset($kanban[$col][$idx]['notes'])) $kanban[$col][$idx]['notes'] = [];
+                array_unshift($kanban[$col][$idx]['notes'], $new_note);
+            }
+
             $kanban[$col][$idx]['maj'] = !empty($data['date']) ? date('d/m', strtotime($data['date'])) : date('d/m');
             
             write_db($db_file, $kanban);
@@ -271,25 +318,8 @@ switch ($action) {
         header('Location: admin.php?status=import_error');
         exit;
 
-    /* ================= NEW ACTIONS FOR LOG HISTORY ================= */
     case 'get_history':
         echo file_get_contents($history_file);
-        break;
-
-    case 'delete_history_line':
-        $data = json_decode(file_get_contents('php://input'), true);
-        $line_id = $data['id'] ?? '';
-        
-        $history = json_decode(file_get_contents($history_file), true);
-        if (is_array($history)) {
-            $history = array_values(array_filter($history, function($item) use ($line_id) {
-                return $item['id'] !== $line_id;
-            }));
-            file_put_contents($history_file, json_encode($history, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-            echo json_encode(['success' => true]);
-        } else {
-            echo json_encode(['success' => false]);
-        }
         break;
 }
 ?>
