@@ -154,7 +154,6 @@ switch ($action) {
         header('Location: index.php');
         exit;
 
-    // --- NOUVEAU ENDPOINT : CREATION DE LOT ---
     case 'add_lot':
         $data = json_decode(file_get_contents('php://input'), true);
         $col = $data['column'];
@@ -187,7 +186,7 @@ switch ($action) {
         $idx = (int)$data['index'];
         $texte = $data['text'];
         $reunion = $data['reunion'] ?? '';
-        $lot_id = $data['lot_id'] ?? ''; // Nouveau paramètre pour cibler un lot
+        $lot_id = $data['lot_id'] ?? '';
         
         $date_saisie = !empty($data['date']) ? date('d/m/Y', strtotime($data['date'])) : date('d/m/Y');
 
@@ -200,7 +199,6 @@ switch ($action) {
             ];
 
             if (!empty($lot_id)) {
-                // Routage vers le lot spécifique
                 foreach ($kanban[$col][$idx]['lots'] as &$lot) {
                     if ($lot['id'] === $lot_id) {
                         if (!isset($lot['notes'])) $lot['notes'] = [];
@@ -209,7 +207,6 @@ switch ($action) {
                     }
                 }
             } else {
-                // Ajout classique sur la tâche principale
                 if (!isset($kanban[$col][$idx]['notes'])) $kanban[$col][$idx]['notes'] = [];
                 array_unshift($kanban[$col][$idx]['notes'], $new_note);
             }
@@ -224,6 +221,82 @@ switch ($action) {
             echo json_encode(['success' => true, 'task' => $kanban[$col][$idx]]);
         } else {
             echo json_encode(['success' => false]);
+        }
+        break;
+
+    // --- NOUVEAU ENDPOINT : MODIFICATION D'UNE NOTE ---
+    case 'edit_note':
+        $data = json_decode(file_get_contents('php://input'), true);
+        $col = $data['column'] ?? '';
+        $idx = (int)($data['index'] ?? -1);
+        $timestamp = (int)($data['timestamp'] ?? 0);
+        $texte = $data['text'] ?? '';
+        $reunion = $data['reunion'] ?? '';
+        $lot_id = $data['lot_id'] ?? '';
+        
+        $date_saisie = !empty($data['date']) ? date('d/m/Y', strtotime($data['date'])) : date('d/m/Y');
+
+        if ($col !== '' && $idx !== -1 && $timestamp > 0 && !empty($texte) && isset($kanban[$col][$idx])) {
+            $task = &$kanban[$col][$idx];
+            $found_note = null;
+
+            // 1. Chercher et retirer la note de son emplacement actuel (tâche principale)
+            if (isset($task['notes'])) {
+                foreach ($task['notes'] as $k => $n) {
+                    if (isset($n['timestamp']) && $n['timestamp'] == $timestamp) {
+                        $found_note = $n;
+                        array_splice($task['notes'], $k, 1);
+                        break;
+                    }
+                }
+            }
+            
+            // 2. Si pas trouvée, chercher dans les lots
+            if (!$found_note && isset($task['lots'])) {
+                foreach ($task['lots'] as &$lot) {
+                    if (isset($lot['notes'])) {
+                        foreach ($lot['notes'] as $k => $n) {
+                            if (isset($n['timestamp']) && $n['timestamp'] == $timestamp) {
+                                $found_note = $n;
+                                array_splice($lot['notes'], $k, 1);
+                                break 2;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if ($found_note) {
+                // Mettre à jour les données (on conserve le timestamp original pour garder son ID)
+                $found_note['texte'] = $texte;
+                $found_note['date'] = $date_saisie;
+                $found_note['reunion'] = $reunion;
+
+                // Réinsérer dans la nouvelle cible
+                if (!empty($lot_id)) {
+                    foreach ($task['lots'] as &$lot) {
+                        if ($lot['id'] === $lot_id) {
+                            if (!isset($lot['notes'])) $lot['notes'] = [];
+                            array_unshift($lot['notes'], $found_note);
+                            break;
+                        }
+                    }
+                } else {
+                    if (!isset($task['notes'])) $task['notes'] = [];
+                    array_unshift($task['notes'], $found_note);
+                }
+
+                $task['maj'] = !empty($data['date']) ? date('d/m', strtotime($data['date'])) : date('d/m');
+                
+                write_db($db_file, $kanban);
+                log_action('Modification Suivi', "Une note de suivi a été modifiée sur la tâche '" . $task['titre'] . "'.");
+                
+                echo json_encode(['success' => true, 'task' => $task]);
+            } else {
+                echo json_encode(['success' => false, 'error' => 'Note introuvable']);
+            }
+        } else {
+            echo json_encode(['success' => false, 'error' => 'Paramètres invalides']);
         }
         break;
 
@@ -264,7 +337,7 @@ switch ($action) {
         if ($zip->open($tmp_file, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
             if (file_exists($db_file)) $zip->addFile($db_file, 'kanban.json');
             if (file_exists($settings_file)) $zip->addFile($settings_file, 'settings.json');
-            if (file_exists($history_file)) $zip->addFile($history_file, 'history.json'); // Ajout au package zip
+            if (file_exists($history_file)) $zip->addFile($history_file, 'history.json');
             $zip->close();
             
             if (ob_get_level()) { ob_end_clean(); }
