@@ -1,4 +1,3 @@
-// --- MODALES DE BASE ---
 function openAddTaskModal() { document.getElementById('add-task-modal').style.display = 'flex'; }
 function closeAddTaskModal(e) { if(e) e.stopPropagation(); document.getElementById('add-task-modal').style.display = 'none'; }
 
@@ -19,7 +18,6 @@ function openEditTaskModal() {
 }
 function closeEditTaskModal(e) { if(e) e.stopPropagation(); document.getElementById('edit-task-modal').style.display = 'none'; }
 
-// --- HISTORIQUE RAPIDE ET MENU ---
 function openHistoryModal(task, column, index) {
     currentTaskRef = { column, index, task };
     
@@ -51,6 +49,7 @@ function openHistoryModal(task, column, index) {
 }
 
 function closeModal(e) { if(e) e.stopPropagation(); document.getElementById('notes-modal').style.display = 'none'; }
+function switchToAddNote() { closeModal(); openAddNotePanel(); }
 
 function showContextMenu(e, column, index, task) {
     const menu = document.getElementById('context-menu');
@@ -58,17 +57,13 @@ function showContextMenu(e, column, index, task) {
     currentTaskRef = { column, index, task };
 }
 
-function switchToAddNote() { closeModal(); openAddNotePanel(); }
-
 document.addEventListener('DOMContentLoaded', () => {
-    const addNoteBtn = document.getElementById('menu-add-note');
-    if(addNoteBtn) addNoteBtn.addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('context-menu').style.display = 'none'; openAddNotePanel(); });
-    
-    const editTaskBtn = document.getElementById('menu-edit-task');
-    if(editTaskBtn) editTaskBtn.addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('context-menu').style.display = 'none'; openEditTaskModal(); });
+    const btnNote = document.getElementById('menu-add-note');
+    const btnEdit = document.getElementById('menu-edit-task');
+    if(btnNote) btnNote.addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('context-menu').style.display = 'none'; openAddNotePanel(); });
+    if(btnEdit) btnEdit.addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('context-menu').style.display = 'none'; openEditTaskModal(); });
 });
 
-// --- PANNEAU LATÉRAL COMPLEXE (NOTES, LOTS, FICHIERS) ---
 function openAddNotePanel() {
     const task = currentTaskRef.task;
     currentTaskRef.allNotes = getAllNotesAggregated(task);
@@ -90,22 +85,25 @@ function openAddNotePanel() {
         document.getElementById('panel-dates-container').style.display = 'none';
     }
 
-    cancelEditNote();
-    
-    document.getElementById('new-lot-titre').value = '';
-    document.getElementById('new-lot-code').value = '';
+    if (window.IS_LOGGED_IN) {
+        cancelEditNote();
+        document.getElementById('new-lot-titre').value = '';
+        document.getElementById('new-lot-code').value = '';
+    }
     
     const lotsContainer = document.getElementById('panel-lots-container');
-    const targetSelect = document.getElementById('new-note-target');
     lotsContainer.innerHTML = '';
-    targetSelect.innerHTML = '<option value="">🎯 Tâche principale</option>';
+    
+    const targetSelect = document.getElementById('new-note-target');
+    if(targetSelect) targetSelect.innerHTML = '<option value="">🎯 Tâche principale</option>';
 
     if (task.lots && task.lots.length > 0) {
         task.lots.forEach(lot => {
-            const opt = document.createElement('option');
-            opt.value = lot.id; opt.innerText = `📦 ${lot.titre}`;
-            targetSelect.appendChild(opt);
-
+            if(targetSelect) {
+                const opt = document.createElement('option');
+                opt.value = lot.id; opt.innerText = `📦 ${lot.titre}`;
+                targetSelect.appendChild(opt);
+            }
             const codeBadge = lot.code_itbm ? `<span class="lot-code">🎫 ${lot.code_itbm}</span>` : '';
             lotsContainer.innerHTML += `<div class="lot-card"><div class="lot-header"><span class="lot-title">${lot.titre}</span>${codeBadge}</div></div>`;
         });
@@ -125,10 +123,13 @@ function openAddNotePanel() {
             const badge = note.reunion ? `<span class="badge-reunion">${note.reunion}</span>` : '';
             const srcBadge = note.sourceName ? `<span class="note-target-badge">${note.sourceName}</span> ` : '';
             
+            // Le bouton d'édition n'est inséré que si on est admin
+            const editBtn = window.IS_LOGGED_IN ? `<button class="btn-edit-note" onclick="startEditNote(${note.timestamp})" title="Modifier cette note">✏️</button>` : '';
+
             item.innerHTML = `
                 <div class="note-date" style="display:flex; justify-content:space-between; align-items:center;">
                     <div>🗓️ ${note.date} ${badge}</div>
-                    <button class="btn-edit-note" onclick="startEditNote(${note.timestamp})" title="Modifier cette note">✏️</button>
+                    ${editBtn}
                 </div>
                 <div style="white-space: pre-wrap;">${srcBadge}${note.texte}</div>
             `;
@@ -142,8 +143,8 @@ function openAddNotePanel() {
 
 function closePanel() { document.getElementById('details-panel').classList.remove('open'); }
 
-// --- ÉDITION DE NOTE ---
 function startEditNote(timestamp) {
+    if (!window.IS_LOGGED_IN) return;
     const note = currentTaskRef.allNotes.find(n => n.timestamp === timestamp);
     if(!note) return;
 
@@ -189,8 +190,8 @@ function submitNote() {
 
     const isEdit = !!currentTaskRef.editingNoteTimestamp;
     const actionUrl = isEdit ? 'edit_note' : 'add_note';
-    const payload = { column: currentTaskRef.column, index: currentTaskRef.index, text: text, date: date, reunion: reunion, lot_id: lotId };
     
+    const payload = { column: currentTaskRef.column, index: currentTaskRef.index, text: text, date: date, reunion: reunion, lot_id: lotId };
     if (isEdit) { payload.timestamp = currentTaskRef.editingNoteTimestamp; }
 
     fetch('api.php?action=' + actionUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
@@ -212,13 +213,16 @@ function submitLot() {
     });
 }
 
-// --- PIÈCES JOINTES ---
 function renderAttachmentsList(task) {
     const container = document.getElementById('panel-attachments-container');
     container.innerHTML = '';
     if (task.attachments && task.attachments.length > 0) {
         task.attachments.forEach(att => {
             const sizeKB = Math.round(att.size / 1024);
+            
+            // Le bouton de suppression n'est inséré que si on est admin
+            const deleteBtn = window.IS_LOGGED_IN ? `<button onclick="deleteAttachment('${att.id}')" class="btn-edit-note" style="color:#de350b;" title="Supprimer">✖</button>` : '';
+
             container.innerHTML += `
                 <div class="attachment-item">
                     <div style="display:flex; align-items:center; gap:10px; overflow:hidden;">
@@ -226,7 +230,7 @@ function renderAttachmentsList(task) {
                         <a href="${att.path}" target="_blank" title="${att.original_name}" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${att.original_name}</a>
                         <span style="color:#5e6c84; font-size:11px;">(${sizeKB} Ko)</span>
                     </div>
-                    <button onclick="deleteAttachment('${att.id}')" class="btn-edit-note" style="color:#de350b;" title="Supprimer">✖</button>
+                    ${deleteBtn}
                 </div>
             `;
         });
@@ -252,27 +256,21 @@ function uploadAttachment() {
             input.value = ''; 
             openAddNotePanel(); 
             loadBoard();
-        } else {
-            alert(resData.error || "Erreur lors de l'envoi.");
-        }
+        } else { alert(resData.error || "Erreur lors de l'envoi."); }
     });
 }
 
 function deleteAttachment(attId) {
     if (!confirm('Voulez-vous vraiment supprimer ce fichier définitivement ?')) return;
     fetch('api.php?action=delete_attachment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ column: currentTaskRef.column, index: currentTaskRef.index, attachment_id: attId })
     })
     .then(res => res.json())
     .then(resData => {
         if (resData.success) {
             currentTaskRef.task = resData.task;
-            openAddNotePanel();
-            loadBoard();
-        } else {
-            alert(resData.error || "Erreur lors de la suppression.");
-        }
+            openAddNotePanel(); loadBoard();
+        } else { alert(resData.error || "Erreur lors de la suppression."); }
     });
 }
