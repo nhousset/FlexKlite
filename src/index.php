@@ -21,7 +21,7 @@ $team_name = htmlspecialchars($settings['team_name']);
     <!-- Librairie ExcelJS pour générer de vrais fichiers .xlsx -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     
-    <!-- Styles spécifiques pour l'affichage des Lots et notes -->
+    <!-- Styles spécifiques pour l'affichage des Lots, notes et pièces jointes -->
     <style>
         .lot-card { background: #fff; border: 1px solid #dfe1e6; border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         .lot-header { display: flex; justify-content: space-between; align-items: center; }
@@ -30,6 +30,10 @@ $team_name = htmlspecialchars($settings['team_name']);
         .note-target-badge { background: #e8f5e9; color: #006644; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; border: 1px solid #b7eb8f; margin-right: 6px; }
         .btn-edit-note { background:none; border:none; cursor:pointer; font-size:14px; transition: transform 0.1s; opacity: 0.6; }
         .btn-edit-note:hover { transform: scale(1.2); opacity: 1; }
+        /* Style des pièces jointes */
+        .attachment-item { display:flex; justify-content:space-between; align-items:center; background:#fafbfc; padding:8px 12px; border:1px solid #dfe1e6; border-radius:6px; margin-bottom:8px; }
+        .attachment-item a { color:var(--primary); text-decoration:none; font-weight:600; font-size:13px; }
+        .attachment-item a:hover { text-decoration:underline; }
     </style>
 </head>
 <body>
@@ -349,6 +353,14 @@ $team_name = htmlspecialchars($settings['team_name']);
                 <button class="btn" style="padding: 8px 15px; font-size: 13px;" onclick="submitLot()">Ajouter</button>
             </div>
         </div>
+
+        <!-- ZONE D'AFFICHAGE ET GESTION DES PIÈCES JOINTES -->
+        <h4 style="margin-bottom: 10px; font-size:15px; color: #172b4d; border-top: 2px solid #ebecf0; padding-top:20px;">Pièces Jointes :</h4>
+        <div id="panel-attachments-container" style="margin-bottom: 15px;"></div>
+        <div style="background: #fafbfc; border: 1px dashed #dfe1e6; padding: 10px; border-radius: 8px; margin-bottom: 25px; display:flex; gap:10px; align-items:center;">
+            <input type="file" id="new-attachment-file" style="flex:1; font-size:13px;">
+            <button class="btn" style="padding: 6px 15px; font-size: 13px;" onclick="uploadAttachment()">Ajouter le fichier</button>
+        </div>
         
         <!-- ZONE DE SAISIE / EDITION DE NOTE AVEC CIBLAGE -->
         <h4 id="note-form-title" style="margin-bottom: 10px; border-top: 2px solid #ebecf0; padding-top:20px; font-size:15px; color: #172b4d;">Saisir un point de suivi :</h4>
@@ -469,9 +481,9 @@ $team_name = htmlspecialchars($settings['team_name']);
                             
                             let extraTags = '';
                             if(task.code_itbm) extraTags += `<span class="tag tag-itbm">🎫 ${task.code_itbm}</span>`;
-                            // Modification ici : suppression de l'émoji feu
                             if(task.prio) extraTags += `<span class="tag tag-prio" title="Priorité">${task.prio}</span>`;
                             if(task.lots && task.lots.length > 0) extraTags += `<span class="tag" style="background:#e8f5e9; color:#006644; border-color:#b7eb8f;">📦 ${task.lots.length} Lot(s)</span>`;
+                            if(task.attachments && task.attachments.length > 0) extraTags += `<span class="tag" style="background:#fff3e0; color:#e65100; border-color:#ffcc80;">📎 ${task.attachments.length} Fichier(s)</span>`;
 
                             card.innerHTML = `
                                 <div class="tags-container"><span class="tag">📁 ${task.projet}</span>${extraTags}</div>
@@ -519,7 +531,6 @@ $team_name = htmlspecialchars($settings['team_name']);
                                 const actLabel = task.acteur || '-';
                                 const prioLabel = task.prio || '-';
                                 
-                                // Modification ici : suppression de l'émoji feu dans la vue liste
                                 tr.innerHTML = `
                                     <td><span class="tag tag-itbm" style="background:none; border:1px solid #dfe1e6;">📁 ${task.projet}</span></td>
                                     <td style="font-weight: 500;">${task.titre}</td>
@@ -589,7 +600,7 @@ $team_name = htmlspecialchars($settings['team_name']);
                     const projet = cells[0].innerText.replace('📁 ', '').trim();
                     const tache = cells[1].innerText.trim();
                     const statut = cells[2].innerText.trim();
-                    const prio = cells[3].innerText.trim(); // Ajusté sans emoji
+                    const prio = cells[3].innerText.trim(); 
                     const acteur = cells[4].innerText.replace('🧑‍💻 ', '').trim();
                     const maj = cells[5].innerText.replace('🕒 ', '').trim();
 
@@ -918,6 +929,8 @@ $team_name = htmlspecialchars($settings['team_name']);
                 lotsContainer.innerHTML = '<span style="font-size:13px; color:#888; font-style:italic;">Aucun lot créé pour le moment.</span>';
             }
 
+            renderAttachmentsList(task);
+
             const listContainer = document.getElementById('panel-notes-list');
             listContainer.innerHTML = '';
             
@@ -945,7 +958,6 @@ $team_name = htmlspecialchars($settings['team_name']);
 
         function closePanel() { document.getElementById('details-panel').classList.remove('open'); }
 
-        // --- NOUVELLES FONCTIONS DE MODIFICATION ---
         function startEditNote(timestamp) {
             const note = currentTaskRef.allNotes.find(n => n.timestamp === timestamp);
             if(!note) return;
@@ -1037,6 +1049,71 @@ $team_name = htmlspecialchars($settings['team_name']);
                     currentTaskRef.task = resData.task; 
                     openAddNotePanel(); 
                     loadBoard(); 
+                }
+            });
+        }
+
+        // --- GESTION DES PIÈCES JOINTES ---
+        function renderAttachmentsList(task) {
+            const container = document.getElementById('panel-attachments-container');
+            container.innerHTML = '';
+            if (task.attachments && task.attachments.length > 0) {
+                task.attachments.forEach(att => {
+                    const sizeKB = Math.round(att.size / 1024);
+                    container.innerHTML += `
+                        <div class="attachment-item">
+                            <div style="display:flex; align-items:center; gap:10px; overflow:hidden;">
+                                <span>📎</span>
+                                <a href="${att.path}" target="_blank" title="${att.original_name}" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${att.original_name}</a>
+                                <span style="color:#5e6c84; font-size:11px;">(${sizeKB} Ko)</span>
+                            </div>
+                            <button onclick="deleteAttachment('${att.id}')" class="btn-edit-note" style="color:#de350b;" title="Supprimer">✖</button>
+                        </div>
+                    `;
+                });
+            } else {
+                container.innerHTML = '<span style="font-size:13px; color:#888; font-style:italic;">Aucune pièce jointe pour le moment.</span>';
+            }
+        }
+
+        function uploadAttachment() {
+            const input = document.getElementById('new-attachment-file');
+            if (!input.files || input.files.length === 0) return;
+            
+            const formData = new FormData();
+            formData.append('file', input.files[0]);
+            formData.append('column', currentTaskRef.column);
+            formData.append('index', currentTaskRef.index);
+            
+            fetch('api.php?action=upload_attachment', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(resData => {
+                if (resData.success) {
+                    currentTaskRef.task = resData.task;
+                    input.value = ''; // Réinitialisation de l'input
+                    openAddNotePanel(); 
+                    loadBoard();
+                } else {
+                    alert(resData.error || "Erreur lors de l'envoi.");
+                }
+            });
+        }
+
+        function deleteAttachment(attId) {
+            if (!confirm('Voulez-vous vraiment supprimer ce fichier définitivement ?')) return;
+            fetch('api.php?action=delete_attachment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ column: currentTaskRef.column, index: currentTaskRef.index, attachment_id: attId })
+            })
+            .then(res => res.json())
+            .then(resData => {
+                if (resData.success) {
+                    currentTaskRef.task = resData.task;
+                    openAddNotePanel();
+                    loadBoard();
+                } else {
+                    alert(resData.error || "Erreur lors de la suppression.");
                 }
             });
         }
