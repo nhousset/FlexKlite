@@ -18,10 +18,11 @@ $team_name = htmlspecialchars($settings['team_name']);
     <meta charset="UTF-8">
     <title><?= $app_title ?> - <?= $team_name ?></title>
     <link rel="stylesheet" href="style.css?<?= time() ?>">
-    <!-- Librairie ExcelJS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
-    <!-- Librairie SortableJS pour le Drag & Drop -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    
+    <!-- Injection du statut de connexion pour le JavaScript -->
+    <script>window.IS_LOGGED_IN = <?= $is_logged_in ? 'true' : 'false' ?>;</script>
     
     <style>
         .lot-card { background: #fff; border: 1px solid #dfe1e6; border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
@@ -38,7 +39,6 @@ $team_name = htmlspecialchars($settings['team_name']);
 </head>
 <body>
 
-    <!-- En-tête Principal -->
     <div class="main-header">
         <div class="header-title-wrapper">
             <div class="app-logo-container">
@@ -66,23 +66,30 @@ $team_name = htmlspecialchars($settings['team_name']);
                 <input type="text" id="filter-search" placeholder="Recherche rapide..." onkeyup="applyFilters()">
             </div>
             
-            <button onclick="openAddTaskModal()" class="btn-header btn-new-task">➕ Nouvelle Tâche</button>
-            
-            <!-- Menu Déroulant -->
-            <div class="dropdown">
-                <button class="btn-header dropdown-btn" onclick="toggleHeaderMenu(event)">
-                    ⚙️ Menu <span style="font-size: 10px;">▼</span>
-                </button>
-                <div class="dropdown-menu" id="header-dropdown">
-                    <a href="admin.php" class="dropdown-item">⚙️ Paramètres globaux</a>
-                    <div class="dropdown-divider"></div>
-                    <a href="logout.php" class="dropdown-item text-danger">🚪 Se déconnecter</a>
+            <!-- CONDITION D'AFFICHAGE DU MODE EDITION vs INVITE -->
+            <?php if($is_logged_in): ?>
+                <button onclick="openAddTaskModal()" class="btn-header btn-new-task">➕ Nouvelle Tâche</button>
+                <div class="dropdown">
+                    <button class="btn-header dropdown-btn" onclick="toggleHeaderMenu(event)">
+                        ⚙️ Menu <span style="font-size: 10px;">▼</span>
+                    </button>
+                    <div class="dropdown-menu" id="header-dropdown">
+                        <a href="admin.php" class="dropdown-item">⚙️ Paramètres globaux</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="logout.php" class="dropdown-item text-danger">🚪 Se déconnecter</a>
+                    </div>
                 </div>
-            </div>
+            <?php else: ?>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="background: #fff3e0; color: #e65100; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; border: 1px solid #ffcc80;">
+                        👁️ Mode Invité (Lecture seule)
+                    </span>
+                    <a href="login.php" class="btn-header" style="background: #0052cc; color: white; text-decoration: none;">Se connecter</a>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 
-    <!-- Layout Principal -->
     <div class="app-layout">
         <div class="main-content">
             <div class="tabs-header" style="display: flex; justify-content: space-between; align-items: flex-end;">
@@ -95,24 +102,20 @@ $team_name = htmlspecialchars($settings['team_name']);
             </div>
 
             <?php 
-            // Vues des différents modules de la page
             include 'kanban.php';
             include 'liste.php';
             include 'kpi.php';
             ?>
         </div>
 
-        <!-- Panneau d'activité latéral -->
         <aside class="activity-sidebar" id="activity-sidebar-panel">
             <h3>⚡ Activité Récente</h3>
             <div id="recent-activity-list"></div>
         </aside>
     </div>
 
-    <!-- Inclusion de toutes les modales et panneaux -->
     <?php include 'modals.php'; ?>
 
-    <!-- Importation de la logique JavaScript (Découpée) -->
     <script src="js/utils.js?<?= time() ?>"></script>
     <script src="js/tasks.js?<?= time() ?>"></script>
     <script src="js/board.js?<?= time() ?>"></script>
