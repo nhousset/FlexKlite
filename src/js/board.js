@@ -1,4 +1,3 @@
-// --- FONCTION DE RENDU PRINCIPAL ---
 function loadBoard() {
     fetch('api.php?action=get&_t=' + Date.now())
         .then(res => res.json())
@@ -31,7 +30,14 @@ function loadBoard() {
                     card.dataset.prio = prAttr;
                     
                     card.addEventListener('click', () => openHistoryModal(task, status, index));
-                    card.addEventListener('contextmenu', (e) => { e.preventDefault(); showContextMenu(e, status, index, task); });
+                    
+                    // Bloquer le clic-droit si mode invité
+                    card.addEventListener('contextmenu', (e) => { 
+                        if (window.IS_LOGGED_IN) {
+                            e.preventDefault(); 
+                            showContextMenu(e, status, index, task); 
+                        }
+                    });
                     
                     let extraTags = '';
                     if(task.code_itbm) extraTags += `<span class="tag tag-itbm">🎫 ${task.code_itbm}</span>`;
@@ -49,7 +55,7 @@ function loadBoard() {
                     `;
                     if(container) container.appendChild(card);
 
-                    // Construction du bloc des notes
+                    // Construction du bloc des notes (Agrégation)
                     let notesHtml = '';
                     const allTaskNotes = getAllNotesAggregated(task);
                     if (allTaskNotes.length > 0) {
@@ -79,7 +85,12 @@ function loadBoard() {
                         tr.dataset.maj = majParts.length === 2 ? `${majParts[1]}${majParts[0]}` : (task.maj || '');
 
                         tr.addEventListener('click', () => openHistoryModal(task, status, index));
-                        tr.addEventListener('contextmenu', (e) => { e.preventDefault(); showContextMenu(e, status, index, task); });
+                        tr.addEventListener('contextmenu', (e) => { 
+                            if (window.IS_LOGGED_IN) {
+                                e.preventDefault(); 
+                                showContextMenu(e, status, index, task); 
+                            }
+                        });
                         
                         const actLabel = task.acteur || '-';
                         const prioLabel = task.prio || '-';
@@ -96,7 +107,6 @@ function loadBoard() {
                         listTableBody.appendChild(tr);
                     }
 
-                    // 3. KPI & ACTIVITÉ
                     kpi.total++; kpi.status[status]++;
                     const acteur = task.acteur || 'Non assigné'; kpi.acteur[acteur] = (kpi.acteur[acteur] || 0) + 1;
                     const prio = task.prio || 'Aucune'; kpi.prio[prio] = (kpi.prio[prio] || 0) + 1;
@@ -117,10 +127,7 @@ function loadBoard() {
             renderKPIs(kpi);
             renderRecentActivity(allNotesForActivity);
             applyFilters();
-            
-            if(currentSort.column) {
-                applySort(currentSort.column, currentSort.asc);
-            }
+            if(currentSort.column) { applySort(currentSort.column, currentSort.asc); }
         });
 }
 
@@ -160,7 +167,6 @@ function renderRecentActivity(notes) {
     if(!container) return;
 
     container.innerHTML = '';
-    
     notes.sort((a, b) => b.timestamp - a.timestamp);
     const top5 = notes.slice(0, 5);
 
@@ -185,12 +191,11 @@ function renderRecentActivity(notes) {
     });
 }
 
-// --- INITIALISATION AU CHARGEMENT ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialisation du Drag & Drop Kanban
     document.querySelectorAll('.list').forEach(listEl => {
         new Sortable(listEl, {
             group: 'kanban-board', animation: 200, ghostClass: 'sortable-ghost', delay: 100, delayOnTouchOnly: true,
+            disabled: !window.IS_LOGGED_IN, // Désactivation du Drag & Drop si invité
             onEnd: function (evt) {
                 const fromColumn = evt.from.dataset.status; const toColumn = evt.to.dataset.status;
                 const fromIndex = evt.oldIndex; const toIndex = evt.newIndex;
@@ -203,6 +208,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Lancer le premier chargement des données
     loadBoard();
 });
