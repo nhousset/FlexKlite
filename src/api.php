@@ -5,9 +5,12 @@ header('Content-Type: application/json');
 $db_dir = __DIR__ . '/db';
 $db_file = $db_dir . '/kanban.json';
 $settings_file = $db_dir . '/settings.json';
-$history_file = $db_dir . '/history.json'; // Nouveau fichier d'historique global
+$history_file = $db_dir . '/history.json'; 
+$uploads_dir = __DIR__ . '/uploads'; // Dossier pour les pièces jointes
 
 if (!is_dir($db_dir)) { mkdir($db_dir, 0755, true); }
+if (!is_dir($uploads_dir)) { mkdir($uploads_dir, 0755, true); } // Création du dossier d'upload s'il n'existe pas
+
 if (!file_exists($db_file)) {
     file_put_contents($db_file, json_encode(["todo" => [], "in_progress" => [], "blocked" => [], "done" => []], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
@@ -41,7 +44,6 @@ if ($needs_update) {
 function read_db($file) { return json_decode(file_get_contents($file), true); }
 function write_db($file, $data) { file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)); }
 
-// Fonction d'aide pour ajouter une entrée au journal général
 function log_action($action_type, $details) {
     global $history_file;
     $history = file_exists($history_file) ? json_decode(file_get_contents($history_file), true) : [];
@@ -108,7 +110,8 @@ switch ($action) {
                 'date_fin'    => $_POST['date_fin'] ?? '',
                 'maj'         => date('d/m'),
                 'notes'       => [],
-                'lots'        => [] // Nouveau champ pour stocker les sous-tâches
+                'lots'        => [], 
+                'attachments' => [] // Initialisation du tableau des pièces jointes
             ];
             
             if (!empty($_POST['note_initiale'])) {
@@ -143,8 +146,9 @@ switch ($action) {
                 $kanban[$col][$idx]['date_debut']  = $_POST['date_debut'] ?? '';
                 $kanban[$col][$idx]['date_fin']    = $_POST['date_fin'] ?? '';
                 $kanban[$col][$idx]['maj']         = date('d/m');
-                // Préservation des lots existants
+                
                 $kanban[$col][$idx]['lots']        = $kanban[$col][$idx]['lots'] ?? [];
+                $kanban[$col][$idx]['attachments'] = $kanban[$col][$idx]['attachments'] ?? [];
                 
                 write_db($db_file, $kanban);
                 
@@ -224,7 +228,6 @@ switch ($action) {
         }
         break;
 
-    // --- NOUVEAU ENDPOINT : MODIFICATION D'UNE NOTE ---
     case 'edit_note':
         $data = json_decode(file_get_contents('php://input'), true);
         $col = $data['column'] ?? '';
@@ -240,7 +243,6 @@ switch ($action) {
             $task = &$kanban[$col][$idx];
             $found_note = null;
 
-            // 1. Chercher et retirer la note de son emplacement actuel (tâche principale)
             if (isset($task['notes'])) {
                 foreach ($task['notes'] as $k => $n) {
                     if (isset($n['timestamp']) && $n['timestamp'] == $timestamp) {
@@ -251,7 +253,6 @@ switch ($action) {
                 }
             }
             
-            // 2. Si pas trouvée, chercher dans les lots
             if (!$found_note && isset($task['lots'])) {
                 foreach ($task['lots'] as &$lot) {
                     if (isset($lot['notes'])) {
@@ -267,12 +268,10 @@ switch ($action) {
             }
 
             if ($found_note) {
-                // Mettre à jour les données (on conserve le timestamp original pour garder son ID)
                 $found_note['texte'] = $texte;
                 $found_note['date'] = $date_saisie;
                 $found_note['reunion'] = $reunion;
 
-                // Réinsérer dans la nouvelle cible
                 if (!empty($lot_id)) {
                     foreach ($task['lots'] as &$lot) {
                         if ($lot['id'] === $lot_id) {
@@ -297,6 +296,75 @@ switch ($action) {
             }
         } else {
             echo json_encode(['success' => false, 'error' => 'Paramètres invalides']);
+        }
+        break;
+
+    // --- NOUVEAUX ENDPOINTS : GESTION DES PIÈCES JOINTES ---
+    case 'upload_attachment':
+        $col = $_POST['column'] ?? '';
+        $idx = (int)($_POST['index'] ?? -1);
+
+        if ($col !== '' && $idx !== -1 && isset($kanban[$col][$idx]) && isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
+            $task = &$kanban[$col][$idx];
+            if (!isset($task['attachments'])) { $task['attachments'] = []; }
+            
+            $file = $_FILES['file'];
+            // Génération d'un nom de fichier sécurisé et unique
+            $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $filename = uniqid('file_') . '.' . $ext;
+            $path = $uploads_dir . '/' . $filename;
+            
+            if (move_uploaded_file($file['tmp_name'], $path)) {
+                $attachment = [
+                    'id' => uniqid('att_'),
+                    'original_name' => htmlspecialchars($file['name']),
+                    'filename' => $filename,
+                    'path' => 'uploads/' . $filename, // Chemin relatif depuis la racine
+                    'size' => $file['size'],
+                    'date' => date('d/m/Y H:i')
+                ];
+                array_unshift($task['attachments'], $attachment);
+                $task['maj'] = date('d/m');
+                
+                write_db($db_file, $kanban);
+                log_action('Pièce jointe', "Le fichier '{$file['name']}' a été ajouté à la tâche '{$task['titre']}'.");
+                echo json_encode(['success' => true, 'task' => $task]);
+            } else {
+                echo json_encode(['success' => false, 'error' => 'Erreur système lors du déplacement du fichier.']);
+            }
+        } else {
+            echo json_encode(['success' => false, 'error' => 'Données ou fichier invalide.']);
+        }
+        break;
+
+    case 'delete_attachment':
+        $data = json_decode(file_get_contents('php://input'), true);
+        $col = $data['column'] ?? '';
+        $idx = (int)($data['index'] ?? -1);
+        $att_id = $data['attachment_id'] ?? '';
+        
+        if ($col !== '' && $idx !== -1 && isset($kanban[$col][$idx]) && !empty($att_id)) {
+            $task = &$kanban[$col][$idx];
+            if (isset($task['attachments'])) {
+                foreach ($task['attachments'] as $k => $att) {
+                    if ($att['id'] === $att_id) {
+                        $filepath = __DIR__ . '/' . $att['path'];
+                        if (file_exists($filepath)) { unlink($filepath); } // Suppression physique
+                        
+                        $deleted_name = $att['original_name'];
+                        array_splice($task['attachments'], $k, 1);
+                        $task['maj'] = date('d/m');
+                        
+                        write_db($db_file, $kanban);
+                        log_action('Pièce jointe', "Le fichier '{$deleted_name}' a été supprimé de la tâche '{$task['titre']}'.");
+                        echo json_encode(['success' => true, 'task' => $task]);
+                        exit;
+                    }
+                }
+            }
+            echo json_encode(['success' => false, 'error' => 'Fichier introuvable en base de données.']);
+        } else {
+            echo json_encode(['success' => false, 'error' => 'Paramètres invalides.']);
         }
         break;
 
@@ -338,6 +406,17 @@ switch ($action) {
             if (file_exists($db_file)) $zip->addFile($db_file, 'kanban.json');
             if (file_exists($settings_file)) $zip->addFile($settings_file, 'settings.json');
             if (file_exists($history_file)) $zip->addFile($history_file, 'history.json');
+            
+            // On intègre le dossier d'uploads au ZIP pour sauvegarder les pièces jointes
+            if (is_dir($uploads_dir)) {
+                $files = scandir($uploads_dir);
+                foreach ($files as $f) {
+                    if ($f !== '.' && $f !== '..') {
+                        $zip->addFile($uploads_dir . '/' . $f, 'uploads/' . $f);
+                    }
+                }
+            }
+            
             $zip->close();
             
             if (ob_get_level()) { ob_end_clean(); }
@@ -375,14 +454,30 @@ switch ($action) {
                 if (file_exists($tmp_extract . '/history.json')) {
                     copy($tmp_extract . '/history.json', $history_file);
                 }
+                
+                // Restauration des pièces jointes physiques
+                if (is_dir($tmp_extract . '/uploads')) {
+                    if (!is_dir($uploads_dir)) mkdir($uploads_dir, 0755, true);
+                    $files = scandir($tmp_extract . '/uploads');
+                    foreach ($files as $f) {
+                        if ($f !== '.' && $f !== '..') {
+                            copy($tmp_extract . '/uploads/' . $f, $uploads_dir . '/' . $f);
+                        }
+                    }
+                }
 
                 @unlink($tmp_extract . '/kanban.json');
                 @unlink($tmp_extract . '/settings.json');
                 @unlink($tmp_extract . '/history.json');
+                // Nettoyage rapide du dossier d'extract upload
+                if (is_dir($tmp_extract . '/uploads')) {
+                    foreach (scandir($tmp_extract . '/uploads') as $f) { if ($f !== '.' && $f !== '..') @unlink($tmp_extract . '/uploads/' . $f); }
+                    @rmdir($tmp_extract . '/uploads');
+                }
                 @rmdir($tmp_extract);
 
                 if ($success_kanban || $success_settings) {
-                    log_action('Backup', "Restauration complète du système opérée via l'importation d'une archive ZIP.");
+                    log_action('Backup', "Restauration complète du système (incluant les PJ) opérée via l'importation d'une archive ZIP.");
                     header('Location: admin.php?status=import_ok');
                     exit;
                 }
