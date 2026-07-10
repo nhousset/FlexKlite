@@ -1,3 +1,4 @@
+<?php if($is_logged_in): ?>
 <!-- Modale de Création de Tâche -->
 <div id="add-task-modal" class="modal-overlay" onclick="closeAddTaskModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 700px;">
@@ -8,7 +9,6 @@
             </h2>
             <div class="close-panel" onclick="closeAddTaskModal(event)">×</div>
         </div>
-        
         <form action="api.php?action=add_task" method="POST">
             <div class="form-grid">
                 <div class="form-group full-width"><label>Intitulé de la tâche *</label><input type="text" name="titre" required></div>
@@ -40,7 +40,6 @@
             </h2>
             <div class="close-panel" onclick="closeEditTaskModal(event)">×</div>
         </div>
-        
         <form action="api.php?action=edit_task" method="POST">
             <input type="hidden" name="column" id="edit_column">
             <input type="hidden" name="index" id="edit_index">
@@ -68,6 +67,7 @@
     <div class="context-menu-item" id="menu-add-note">➕ Ajouter un point de suivi</div>
     <div class="context-menu-item" id="menu-edit-task">✏️ Modifier les paramètres</div>
 </div>
+<?php endif; ?>
 
 <!-- Modale d'historique (Vue Rapide) -->
 <div id="notes-modal" class="modal-overlay" onclick="closeModal(event)">
@@ -78,20 +78,20 @@
                 Historique de la tâche
             </h2>
             <div style="display:flex; gap: 15px; align-items:center;">
-                <button class="btn-modal-add" onclick="switchToAddNote()">➕ Ajouter un point</button>
+                <?php if($is_logged_in): ?>
+                    <button class="btn-modal-add" onclick="switchToAddNote()">➕ Ajouter un point</button>
+                <?php endif; ?>
                 <div class="close-panel" onclick="closeModal(event)">×</div>
             </div>
         </div>
         
         <h3 id="modal-title" style="margin-top: 0; color: #091e42; font-size: 20px; margin-bottom: 20px;"></h3>
-        
         <div class="task-meta-info">
             <div>Projet : <strong id="modal-project"></strong></div>
             <div id="modal-code-projet-container" style="display:none;">Code Projet : <strong id="modal-code-projet"></strong></div>
             <div id="modal-itbm-container" style="display:none;">ITBM : <strong id="modal-itbm"></strong></div>
             <div>Acteur : <strong id="modal-acteur"></strong></div>
         </div>
-        
         <table class="notes-table">
             <thead><tr><th style="width: 120px;">Date</th><th style="width: 150px;">Contexte</th><th>Détails du suivi</th></tr></thead>
             <tbody id="modal-table-body"></tbody>
@@ -119,46 +119,46 @@
         <div id="panel-dates-container" style="display:none;">Dates : <strong id="panel-dates"></strong></div>
     </div>
     
-    <!-- ZONE D'AFFICHAGE ET CRÉATION DES LOTS -->
     <h4 style="margin-bottom: 10px; font-size:15px; color: #172b4d;">Lots / Sous-tâches :</h4>
     <div id="panel-lots-container" style="margin-bottom: 15px;"></div>
     
-    <div style="background: #fafbfc; border: 1px dashed #dfe1e6; padding: 15px; border-radius: 8px; margin-bottom: 25px;">
-        <h5 style="margin: 0 0 10px 0; color: #5e6c84; font-size: 13px;">+ Déclarer un nouveau Lot</h5>
-        <div style="display: flex; gap: 10px;">
-            <input type="text" id="new-lot-titre" placeholder="Intitulé du lot (ex: Front-end)" style="flex:2; padding: 8px; border: 1px solid #dfe1e6; border-radius: 4px; font-size:13px;">
-            <input type="text" id="new-lot-code" placeholder="Code (ex: TSK123)" style="flex:1; padding: 8px; border: 1px solid #dfe1e6; border-radius: 4px; font-size:13px;">
-            <button class="btn" style="padding: 8px 15px; font-size: 13px;" onclick="submitLot()">Ajouter</button>
+    <?php if($is_logged_in): ?>
+        <div style="background: #fafbfc; border: 1px dashed #dfe1e6; padding: 15px; border-radius: 8px; margin-bottom: 25px;">
+            <h5 style="margin: 0 0 10px 0; color: #5e6c84; font-size: 13px;">+ Déclarer un nouveau Lot</h5>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="new-lot-titre" placeholder="Intitulé du lot (ex: Front-end)" style="flex:2; padding: 8px; border: 1px solid #dfe1e6; border-radius: 4px; font-size:13px;">
+                <input type="text" id="new-lot-code" placeholder="Code (ex: TSK123)" style="flex:1; padding: 8px; border: 1px solid #dfe1e6; border-radius: 4px; font-size:13px;">
+                <button class="btn" style="padding: 8px 15px; font-size: 13px;" onclick="submitLot()">Ajouter</button>
+            </div>
         </div>
-    </div>
+    <?php endif; ?>
 
-    <!-- ZONE D'AFFICHAGE ET GESTION DES PIÈCES JOINTES -->
     <h4 style="margin-bottom: 10px; font-size:15px; color: #172b4d; border-top: 2px solid #ebecf0; padding-top:20px;">Pièces Jointes :</h4>
     <div id="panel-attachments-container" style="margin-bottom: 15px;"></div>
-    <div style="background: #fafbfc; border: 1px dashed #dfe1e6; padding: 10px; border-radius: 8px; margin-bottom: 25px; display:flex; gap:10px; align-items:center;">
-        <input type="file" id="new-attachment-file" style="flex:1; font-size:13px;">
-        <button class="btn" style="padding: 6px 15px; font-size: 13px;" onclick="uploadAttachment()">Ajouter le fichier</button>
-    </div>
     
-    <!-- ZONE DE SAISIE / EDITION DE NOTE AVEC CIBLAGE -->
-    <h4 id="note-form-title" style="margin-bottom: 10px; border-top: 2px solid #ebecf0; padding-top:20px; font-size:15px; color: #172b4d;">Saisir un point de suivi :</h4>
-    <div class="note-meta-inputs" style="flex-wrap: wrap;">
-        <select id="new-note-target" style="flex: 1; min-width: 150px; background: #e3f2fd; font-weight: 600;">
-            <option value="">🎯 Tâche principale</option>
-        </select>
-        <input type="date" id="new-note-date" title="Date de la note" style="max-width: 130px;">
-        <select id="new-note-reunion" style="flex: 1;">
-            <option value="">-- Contexte / Réunion --</option>
-            <?php foreach($settings['reunions'] as $r): ?><option value="<?= htmlspecialchars($r) ?>"><?= htmlspecialchars($r) ?></option><?php endforeach; ?>
-        </select>
-    </div>
-
-    <textarea id="new-note-text" style="width:100%; height:120px; margin-bottom:12px; padding: 10px; border: 1px solid #dfe1e6; border-radius: 4px; font-family:inherit; box-sizing: border-box; resize: vertical;"></textarea>
-    
-    <div style="display:flex; gap:10px;">
-        <button id="btn-submit-note" class="btn" style="flex: 1; padding: 12px; font-size: 15px;" onclick="submitNote()">Enregistrer la note</button>
-        <button id="btn-cancel-edit" class="btn" style="display: none; background: #ebecf0; color: #42526e; padding: 12px; font-size: 15px;" onclick="cancelEditNote()">Annuler</button>
-    </div>
+    <?php if($is_logged_in): ?>
+        <div style="background: #fafbfc; border: 1px dashed #dfe1e6; padding: 10px; border-radius: 8px; margin-bottom: 25px; display:flex; gap:10px; align-items:center;">
+            <input type="file" id="new-attachment-file" style="flex:1; font-size:13px;">
+            <button class="btn" style="padding: 6px 15px; font-size: 13px;" onclick="uploadAttachment()">Ajouter le fichier</button>
+        </div>
+        
+        <h4 id="note-form-title" style="margin-bottom: 10px; border-top: 2px solid #ebecf0; padding-top:20px; font-size:15px; color: #172b4d;">Saisir un point de suivi :</h4>
+        <div class="note-meta-inputs" style="flex-wrap: wrap;">
+            <select id="new-note-target" style="flex: 1; min-width: 150px; background: #e3f2fd; font-weight: 600;">
+                <option value="">🎯 Tâche principale</option>
+            </select>
+            <input type="date" id="new-note-date" title="Date de la note" style="max-width: 130px;">
+            <select id="new-note-reunion" style="flex: 1;">
+                <option value="">-- Contexte / Réunion --</option>
+                <?php foreach($settings['reunions'] as $r): ?><option value="<?= htmlspecialchars($r) ?>"><?= htmlspecialchars($r) ?></option><?php endforeach; ?>
+            </select>
+        </div>
+        <textarea id="new-note-text" style="width:100%; height:120px; margin-bottom:12px; padding: 10px; border: 1px solid #dfe1e6; border-radius: 4px; font-family:inherit; box-sizing: border-box; resize: vertical;"></textarea>
+        <div style="display:flex; gap:10px;">
+            <button id="btn-submit-note" class="btn" style="flex: 1; padding: 12px; font-size: 15px;" onclick="submitNote()">Enregistrer la note</button>
+            <button id="btn-cancel-edit" class="btn" style="display: none; background: #ebecf0; color: #42526e; padding: 12px; font-size: 15px;" onclick="cancelEditNote()">Annuler</button>
+        </div>
+    <?php endif; ?>
 
     <h4 style="margin-top: 40px; font-size:15px; color: #172b4d; border-bottom: 2px solid #ebecf0; padding-bottom: 10px;">Historique global (Tâche + Lots)</h4>
     <div id="panel-notes-list"></div>
