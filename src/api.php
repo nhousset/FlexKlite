@@ -61,6 +61,15 @@ function log_action($action_type, $details) {
 }
 
 $action = $_GET['action'] ?? '';
+
+// --- NOUVEAU : PROTECTION GLOBALE EN ÉCRITURE ---
+// Rejette l'action si le mode invité est actif
+$write_actions = ['save_settings', 'move', 'add_task', 'edit_task', 'add_lot', 'add_note', 'edit_note', 'upload_attachment', 'delete_attachment', 'save_raw_json', 'import_backup_zip'];
+if (in_array($action, $write_actions) && !$is_logged_in) {
+    echo json_encode(['success' => false, 'error' => 'Action non autorisée. Vous êtes en mode invité.']);
+    exit;
+}
+
 $kanban = read_db($db_file);
 
 switch ($action) {
@@ -299,7 +308,6 @@ switch ($action) {
         }
         break;
 
-    // --- NOUVEAUX ENDPOINTS : GESTION DES PIÈCES JOINTES ---
     case 'upload_attachment':
         $col = $_POST['column'] ?? '';
         $idx = (int)($_POST['index'] ?? -1);
