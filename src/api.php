@@ -6,10 +6,11 @@ $db_dir = __DIR__ . '/db';
 $db_file = $db_dir . '/kanban.json';
 $settings_file = $db_dir . '/settings.json';
 $history_file = $db_dir . '/history.json'; 
-$uploads_dir = __DIR__ . '/uploads'; // Dossier pour les pièces jointes
+$admin_file = $db_dir . '/admin.json'; // Ajout du fichier de mdp
+$uploads_dir = __DIR__ . '/uploads';
 
 if (!is_dir($db_dir)) { mkdir($db_dir, 0755, true); }
-if (!is_dir($uploads_dir)) { mkdir($uploads_dir, 0755, true); } // Création du dossier d'upload s'il n'existe pas
+if (!is_dir($uploads_dir)) { mkdir($uploads_dir, 0755, true); }
 
 if (!file_exists($db_file)) {
     file_put_contents($db_file, json_encode(["todo" => [], "in_progress" => [], "blocked" => [], "done" => []], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
@@ -62,8 +63,7 @@ function log_action($action_type, $details) {
 
 $action = $_GET['action'] ?? '';
 
-// --- NOUVEAU : PROTECTION GLOBALE EN ÉCRITURE ---
-// Rejette l'action si le mode invité est actif
+// PROTECTION GLOBALE EN ÉCRITURE : Rejette l'action si le mode invité est actif
 $write_actions = ['save_settings', 'move', 'add_task', 'edit_task', 'add_lot', 'add_note', 'edit_note', 'upload_attachment', 'delete_attachment', 'save_raw_json', 'import_backup_zip'];
 if (in_array($action, $write_actions) && !$is_logged_in) {
     echo json_encode(['success' => false, 'error' => 'Action non autorisée. Vous êtes en mode invité.']);
@@ -120,7 +120,7 @@ switch ($action) {
                 'maj'         => date('d/m'),
                 'notes'       => [],
                 'lots'        => [], 
-                'attachments' => [] // Initialisation du tableau des pièces jointes
+                'attachments' => []
             ];
             
             if (!empty($_POST['note_initiale'])) {
@@ -317,7 +317,6 @@ switch ($action) {
             if (!isset($task['attachments'])) { $task['attachments'] = []; }
             
             $file = $_FILES['file'];
-            // Génération d'un nom de fichier sécurisé et unique
             $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
             $filename = uniqid('file_') . '.' . $ext;
             $path = $uploads_dir . '/' . $filename;
@@ -327,7 +326,7 @@ switch ($action) {
                     'id' => uniqid('att_'),
                     'original_name' => htmlspecialchars($file['name']),
                     'filename' => $filename,
-                    'path' => 'uploads/' . $filename, // Chemin relatif depuis la racine
+                    'path' => 'uploads/' . $filename,
                     'size' => $file['size'],
                     'date' => date('d/m/Y H:i')
                 ];
@@ -357,7 +356,7 @@ switch ($action) {
                 foreach ($task['attachments'] as $k => $att) {
                     if ($att['id'] === $att_id) {
                         $filepath = __DIR__ . '/' . $att['path'];
-                        if (file_exists($filepath)) { unlink($filepath); } // Suppression physique
+                        if (file_exists($filepath)) { unlink($filepath); }
                         
                         $deleted_name = $att['original_name'];
                         array_splice($task['attachments'], $k, 1);
@@ -414,8 +413,9 @@ switch ($action) {
             if (file_exists($db_file)) $zip->addFile($db_file, 'kanban.json');
             if (file_exists($settings_file)) $zip->addFile($settings_file, 'settings.json');
             if (file_exists($history_file)) $zip->addFile($history_file, 'history.json');
+            // INCLUSION DU FICHIER ADMIN
+            if (file_exists($admin_file)) $zip->addFile($admin_file, 'admin.json');
             
-            // On intègre le dossier d'uploads au ZIP pour sauvegarder les pièces jointes
             if (is_dir($uploads_dir)) {
                 $files = scandir($uploads_dir);
                 foreach ($files as $f) {
@@ -462,8 +462,11 @@ switch ($action) {
                 if (file_exists($tmp_extract . '/history.json')) {
                     copy($tmp_extract . '/history.json', $history_file);
                 }
+                // RESTAURATION DU FICHIER ADMIN
+                if (file_exists($tmp_extract . '/admin.json')) {
+                    copy($tmp_extract . '/admin.json', $admin_file);
+                }
                 
-                // Restauration des pièces jointes physiques
                 if (is_dir($tmp_extract . '/uploads')) {
                     if (!is_dir($uploads_dir)) mkdir($uploads_dir, 0755, true);
                     $files = scandir($tmp_extract . '/uploads');
@@ -477,7 +480,7 @@ switch ($action) {
                 @unlink($tmp_extract . '/kanban.json');
                 @unlink($tmp_extract . '/settings.json');
                 @unlink($tmp_extract . '/history.json');
-                // Nettoyage rapide du dossier d'extract upload
+                @unlink($tmp_extract . '/admin.json');
                 if (is_dir($tmp_extract . '/uploads')) {
                     foreach (scandir($tmp_extract . '/uploads') as $f) { if ($f !== '.' && $f !== '..') @unlink($tmp_extract . '/uploads/' . $f); }
                     @rmdir($tmp_extract . '/uploads');
