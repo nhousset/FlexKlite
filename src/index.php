@@ -41,9 +41,10 @@ $team_name = htmlspecialchars($settings['team_name']);
 
     <div class="main-header">
         <div class="header-title-wrapper">
-            <div class="app-logo-container">
-                <img src="img/kanban.png" alt="Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                <svg style="display:none; width: 24px; height: 24px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+           <div class="app-logo-container" style="background: transparent; padding: 0;">
+                <?php $app_logo = !empty($settings['app_logo']) ? htmlspecialchars($settings['app_logo']) : 'img/kanban.png'; ?>
+                <img src="<?= $app_logo ?>" alt="Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" style="max-height: 35px; max-width: 150px; object-fit: contain; border-radius: 6px;">
+                <svg style="display:none; width: 24px; height: 24px; color: var(--primary);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                     <line x1="9" y1="3" x2="9" y2="21"></line>
                     <line x1="15" y1="3" x2="15" y2="21"></line>
