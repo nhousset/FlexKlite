@@ -1,5 +1,5 @@
 /* ==========================================================================
-   THÈME "MODERN DASHBOARD" (Inspiré par FortyFive)
+   THÈME "MODERN DASHBOARD" (Onglets horizontaux & Post-it)
    ========================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
@@ -82,7 +82,6 @@ body {
 
 .header-actions { display: flex; align-items: center; gap: 16px; }
 
-/* Barre de recherche "Pilule" */
 .search-box {
     background: var(--bg-body);
     border-radius: 50px;
@@ -109,7 +108,7 @@ body {
 .search-box input::placeholder { color: var(--text-muted); }
 
 /* ==========================================================================
-   LAYOUT PRINCIPAL (Transformation en Sidebar)
+   LAYOUT PRINCIPAL
    ========================================================================== */
 .app-layout {
     display: flex;
@@ -122,35 +121,24 @@ body {
 
 .main-content {
     display: flex;
+    flex-direction: column; /* Retour à une disposition verticale pour empiler Onglets > Tableau */
     flex: 1;
     gap: 24px;
-    width: 100%;
-    align-items: flex-start;
+    min-width: 0;
 }
 
-/* La magie CSS : on transforme l'ancienne barre d'onglets horizontale en menu latéral ! */
+/* --- Barre d'Onglets Horizontale --- */
 .tabs-header {
-    flex-direction: column !important;
-    justify-content: flex-start !important;
-    align-items: stretch !important;
-    width: 240px;
-    flex-shrink: 0;
     background: var(--bg-card);
-    padding: 24px 16px;
+    padding: 12px 24px;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-soft);
-    border: none;
-    min-height: calc(100vh - 140px);
-}
-.tabs-header > div {
-    flex-direction: column !important;
-    gap: 8px !important;
-    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
 }
 
 .tab-btn {
-    text-align: left;
-    padding: 14px 20px;
+    padding: 10px 20px;
     border-radius: var(--radius-md);
     font-weight: 600;
     color: var(--text-muted);
@@ -159,9 +147,9 @@ body {
     cursor: pointer;
     transition: all 0.2s ease;
     font-size: 14px;
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
 .tab-btn:hover { background: var(--bg-input); color: var(--text-main); }
 .tab-btn.active {
@@ -170,15 +158,9 @@ body {
     box-shadow: var(--shadow-active);
 }
 
-/* Bouton pour masquer la sidebar droite */
-#btn-toggle-activity { margin-top: auto; border: 1px dashed var(--border-color); justify-content: center;}
+#btn-toggle-activity { border: 1px dashed var(--border-color); }
 
-.tab-content {
-    flex: 1;
-    width: 100%;
-    min-width: 0;
-    display: none;
-}
+.tab-content { display: none; width: 100%; }
 .tab-content.active { display: block; animation: fadeIn 0.4s ease; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -191,8 +173,10 @@ body {
     padding: 24px;
     box-shadow: var(--shadow-soft);
     border: none;
-    height: calc(100vh - 140px);
+    height: calc(100vh - 120px);
     overflow-y: auto;
+    position: sticky;
+    top: 90px;
 }
 .activity-sidebar h3 { font-weight: 800; color: var(--text-main); margin-top: 0; font-size: 18px; margin-bottom: 20px; }
 .activity-item { 
@@ -206,58 +190,69 @@ body {
 .activity-note { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
 
 /* ==========================================================================
-   KABAN BOARD
+   KANBAN BOARD (Tableau de Post-it)
    ========================================================================== */
 .kanban-board {
     display: flex;
     gap: 24px;
     overflow-x: auto;
     padding-bottom: 10px;
+    align-items: flex-start;
 }
+
 .column {
-    background: transparent;
-    border: none;
-    border-radius: 0;
-    min-width: 300px;
+    background: #EAEEF4; /* Fond léger pour bien délimiter la colonne Kanban */
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    min-width: 320px;
     flex: 1;
+    display: flex;
+    flex-direction: column;
 }
+
 .column-header {
-    background: transparent;
-    padding: 0 0 16px 0;
-    border: none;
+    padding: 0 4px 16px 4px;
     font-weight: 800;
-    font-size: 16px;
+    font-size: 15px;
     color: var(--text-main);
     display: flex;
     justify-content: space-between;
+    align-items: center;
 }
 .column-header .badge {
-    background: var(--bg-card);
+    background: white;
     color: var(--primary);
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-soft);
     padding: 4px 12px;
     border-radius: 50px;
     font-size: 12px;
 }
 
-/* Cartes Kanban */
+/* Cartes Kanban (Les Post-its) */
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-height: 150px; /* Permet le drag&drop même si colonne vide */
+}
+
 .card {
     background: var(--bg-card);
-    border-radius: var(--radius-lg);
-    border: none;
+    border-radius: var(--radius-md);
     padding: 20px;
-    box-shadow: var(--shadow-soft);
-    margin-bottom: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    border: none;
+    border-left: 5px solid transparent; /* Pour la couleur du post-it */
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    cursor: pointer;
-    border-left: 4px solid transparent;
+    cursor: grab;
 }
+.card:active { cursor: grabbing; }
 .card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-3px);
     box-shadow: var(--shadow-hover);
 }
 
-/* Couleurs des cartes sur la bordure gauche */
+/* Couleurs de marquage des cartes */
 .card.color-yellow { border-left-color: var(--warning); }
 .card.color-blue { border-left-color: var(--secondary); }
 .card.color-orange { border-left-color: #FF8A00; }
@@ -265,19 +260,19 @@ body {
 .card.color-green { border-left-color: var(--success); }
 .card.color-grey { border-left-color: var(--text-muted); }
 
-.card-title { font-weight: 700; font-size: 15px; color: var(--text-main); margin: 16px 0; line-height: 1.4;}
+.card-title { font-weight: 700; font-size: 15px; color: var(--text-main); margin: 14px 0; line-height: 1.4;}
 .card-footer { 
-    border-top: 1px solid var(--bg-body); 
-    padding-top: 16px; 
+    border-top: 1px solid var(--border-color); 
+    padding-top: 14px; 
     display: flex; 
     justify-content: space-between;
     color: var(--text-muted); 
     font-size: 12px; 
-    font-weight: 500;
+    font-weight: 600;
 }
 
 /* ==========================================================================
-   TAGS & BADGES (Style Pilules Pastel)
+   TAGS & BADGES
    ========================================================================== */
 .tags-container { display: flex; flex-wrap: wrap; gap: 8px; }
 .tag {
@@ -304,7 +299,7 @@ body {
 .status-done { background: rgba(0, 196, 140, 0.1); color: var(--success); }
 
 /* ==========================================================================
-   KPI CARDS (Vue Dashboard)
+   KPI CARDS (Tableau de Bord)
    ========================================================================== */
 .kpi-container {
     display: grid;
@@ -329,7 +324,7 @@ body {
 .kpi-count { background: var(--bg-input); padding: 4px 12px; border-radius: 50px; color: var(--primary); font-weight: 800; font-size: 13px;}
 
 /* ==========================================================================
-   VUE LISTE (Tableaux)
+   VUE LISTE (Tableaux Excel)
    ========================================================================== */
 .table-container {
     background: var(--bg-card);
@@ -373,8 +368,11 @@ tr:hover td { background: #F8FAFC; }
     border-bottom: 1px solid var(--bg-body);
     padding-bottom: 20px;
     margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
-.panel-header-title { font-weight: 800; font-size: 20px; color: var(--text-main); }
+.panel-header-title { font-weight: 800; font-size: 20px; color: var(--text-main); display: flex; align-items: center; gap: 10px; margin: 0; }
 
 #details-panel {
     background: var(--bg-card);
@@ -434,31 +432,25 @@ input:focus, select:focus, textarea:focus {
 .dropdown-item { border-radius: 6px; padding: 10px 16px; font-weight: 500; font-size: 14px; }
 .dropdown-item:hover { background: var(--bg-body); }
 
-/* ==========================================================================
-   RESPONSIVE (Adaptation Mobile)
-   ========================================================================== */
-@media (max-width: 1024px) {
-    .app-layout { flex-direction: column; padding: 16px; }
-    .main-content { flex-direction: column; }
-    .tabs-header { 
-        width: 100%; 
-        flex-direction: row !important; 
-        min-height: auto; 
-        padding: 12px;
-    }
-    .tabs-header > div { flex-direction: row !important; overflow-x: auto; margin-bottom: 0; gap: 10px !important;}
-    .tab-btn { white-space: nowrap; }
-    .activity-sidebar { width: 100%; height: auto; max-height: 500px; }
-}
-
-/* Classes pour les nouveaux lots et pièces jointes */
+/* GESTION LOTS ET PIECES JOINTES DANS LE PANNEAU */
 .lot-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; margin-bottom: 12px; box-shadow: var(--shadow-soft); }
 .lot-header { display: flex; justify-content: space-between; align-items: center; }
 .lot-title { font-weight: 700; color: var(--text-main); font-size: 14px; }
 .lot-code { background: var(--bg-input); color: var(--secondary); padding: 6px 12px; border-radius: 50px; font-size: 11px; font-weight: 800; border: none; }
 .note-target-badge { background: #e8f5e9; color: #006644; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; margin-right: 6px; display:inline-block; margin-bottom:4px;}
-.btn-edit-note { background:none; border:none; cursor:pointer; font-size:14px; transition: transform 0.1s; opacity: 0.6; }
+.btn-edit-note { background:none; border:none; cursor:pointer; font-size:14px; transition: transform 0.1s; opacity: 0.6; padding: 4px;}
 .btn-edit-note:hover { transform: scale(1.2); opacity: 1; }
 .attachment-item { display:flex; justify-content:space-between; align-items:center; background:var(--bg-input); padding:12px 16px; border:none; border-radius:var(--radius-md); margin-bottom:8px; }
 .attachment-item a { color:var(--primary); text-decoration:none; font-weight:700; font-size:13px; }
 .attachment-item a:hover { text-decoration:underline; }
+
+/* ==========================================================================
+   RESPONSIVE (Adaptation Mobile)
+   ========================================================================== */
+@media (max-width: 1024px) {
+    .app-layout { flex-direction: column; padding: 16px; }
+    .tabs-header { flex-wrap: wrap; gap: 10px; }
+    .tabs-header > div { flex-wrap: wrap; width: 100%; justify-content: center; }
+    #btn-toggle-activity { width: 100%; margin-top: 10px;}
+    .activity-sidebar { width: 100%; height: auto; max-height: 500px; position: static; }
+}
