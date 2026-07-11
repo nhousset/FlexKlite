@@ -76,15 +76,31 @@ if (!$is_logged_in) {
         <div class="admin-grid">
             <div class="admin-card" style="grid-column: 1 / -1;">
                 <h3>Paramètres Généraux de l'Application</h3>
-                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                    <div class="form-group-admin" style="flex: 1; min-width: 250px;">
-                        <label>Titre de l'application</label>
-                        <input type="text" id="input-app-title">
+                <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start;">
+                    
+                    <div style="display: flex; flex-direction: column; gap: 20px; flex: 2; min-width: 250px;">
+                        <div class="form-group-admin">
+                            <label>Titre de l'application</label>
+                            <input type="text" id="input-app-title">
+                        </div>
+                        <div class="form-group-admin">
+                            <label>Nom de l'équipe</label>
+                            <input type="text" id="input-team-name">
+                        </div>
                     </div>
-                    <div class="form-group-admin" style="flex: 1; min-width: 250px;">
-                        <label>Nom de l'équipe</label>
-                        <input type="text" id="input-team-name">
+
+                    <!-- NOUVEAU MODULE: Upload de Logo -->
+                    <div class="form-group-admin" style="flex: 1; min-width: 250px; background: #fafbfc; padding: 15px; border-radius: 8px; border: 1px solid #dfe1e6;">
+                        <label style="margin-bottom: 10px;">Logo de l'application</label>
+                        <div style="text-align: center; margin-bottom: 15px; min-height: 40px;">
+                            <img id="current-logo-preview" src="" alt="Logo" style="max-height: 50px; max-width: 100%; border-radius: 4px; display: none;">
+                        </div>
+                        <div class="file-upload-wrapper" style="padding: 15px 10px; margin-bottom: 0;">
+                            <span id="logo-upload-label" style="font-weight:600; font-size:12px; color:#5e6c84;">🖼️ Modifier le logo (PNG, JPG)</span>
+                            <input type="file" id="input-app-logo" accept="image/png, image/jpeg, image/svg+xml, image/webp" onchange="uploadLogo(this)">
+                        </div>
                     </div>
+
                 </div>
             </div>
 
@@ -190,7 +206,7 @@ if (!$is_logged_in) {
     </div>
 
     <script>
-        let settingsData = { app_title: "", team_name: "", projets: [], acteurs: [], priorites: [], reunions: [] };
+        let settingsData = { app_title: "", team_name: "", app_logo: "", projets: [], acteurs: [], priorites: [], reunions: [] };
 
         function switchAdminTab(panelId, btn) {
             document.querySelectorAll('.admin-tab-content').forEach(el => el.classList.remove('active'));
@@ -212,6 +228,13 @@ if (!$is_logged_in) {
                 settingsData = { ...settingsData, ...data };
                 document.getElementById('input-app-title').value = settingsData.app_title || '';
                 document.getElementById('input-team-name').value = settingsData.team_name || '';
+                
+                if (settingsData.app_logo) {
+                    const img = document.getElementById('current-logo-preview');
+                    img.src = settingsData.app_logo;
+                    img.style.display = 'inline-block';
+                }
+
                 renderLists();
             });
 
@@ -256,6 +279,36 @@ if (!$is_logged_in) {
             .then(res => res.json())
             .then(resData => {
                 if(resData.success) alert('Configuration enregistrée avec succès !');
+            });
+        }
+
+        function uploadLogo(input) {
+            const label = document.getElementById('logo-upload-label');
+            if (!input.files || input.files.length === 0) return;
+            
+            const formData = new FormData();
+            formData.append('logo', input.files[0]);
+            
+            label.innerText = '⏳ Upload en cours...';
+            label.style.color = '#ff8b00';
+            
+            fetch('api.php?action=upload_logo', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const img = document.getElementById('current-logo-preview');
+                    img.src = data.logo_path + '?t=' + Date.now();
+                    img.style.display = 'inline-block';
+                    label.innerText = '✅ Logo mis à jour';
+                    label.style.color = '#00875a';
+                } else {
+                    alert(data.error || "Erreur lors de l'envoi.");
+                    label.innerText = '🖼️ Modifier le logo';
+                    label.style.color = '#5e6c84';
+                }
             });
         }
 
