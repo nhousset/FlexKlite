@@ -20,6 +20,7 @@ if (!file_exists($settings_file)) {
     $default_settings = [
         "app_title" => "Gestion des Chantiers & Suivi",
         "team_name" => "IHMT",
+        "app_logo" => "",
         "projets" => ["VIYA 4", "Plateforme", "MCO"],
         "acteurs" => ["Nicolas H.", "Kevin L.", "David M."],
         "priorites" => ["1", "2", "3", "En attente"],
@@ -37,6 +38,7 @@ $needs_update = false;
 if (!isset($current_settings['reunions'])) { $current_settings['reunions'] = ["Point OPS", "Comité BI", "Coproj", "Point équipe"]; $needs_update = true; }
 if (!isset($current_settings['app_title'])) { $current_settings['app_title'] = "Gestion des Chantiers & Suivi"; $needs_update = true; }
 if (!isset($current_settings['team_name'])) { $current_settings['team_name'] = "IHMT"; $needs_update = true; }
+if (!isset($current_settings['app_logo'])) { $current_settings['app_logo'] = ""; $needs_update = true; }
 
 if ($needs_update) {
     file_put_contents($settings_file, json_encode($current_settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
@@ -64,7 +66,8 @@ function log_action($action_type, $details) {
 $action = $_GET['action'] ?? '';
 
 // PROTECTION GLOBALE EN ÉCRITURE : Rejette l'action si le mode invité est actif
-$write_actions = ['save_settings', 'move', 'add_task', 'edit_task', 'add_lot', 'add_note', 'edit_note', 'upload_attachment', 'delete_attachment', 'save_raw_json', 'import_backup_zip'];
+// -> CORRECTION : Ajout de 'upload_logo' dans la liste des actions autorisées en écriture
+$write_actions = ['save_settings', 'move', 'add_task', 'edit_task', 'add_lot', 'add_note', 'edit_note', 'upload_attachment', 'delete_attachment', 'upload_logo', 'save_raw_json', 'import_backup_zip'];
 if (in_array($action, $write_actions) && !$is_logged_in) {
     echo json_encode(['success' => false, 'error' => 'Action non autorisée. Vous êtes en mode invité.']);
     exit;
@@ -81,6 +84,35 @@ switch ($action) {
         $data = json_decode(file_get_contents('php://input'), true);
         write_db($settings_file, $data);
         echo json_encode(['success' => true]);
+        break;
+
+    // --- CORRECTION : AJOUT DU ENDPOINT UPLOAD LOGO ---
+    case 'upload_logo':
+        if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
+            $file = $_FILES['logo'];
+            $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            $allowed = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'];
+            
+            if (in_array($ext, $allowed)) {
+                $filename = 'app_logo_' . time() . '.' . $ext;
+                $path = $uploads_dir . '/' . $filename;
+                
+                if (move_uploaded_file($file['tmp_name'], $path)) {
+                    $settings = json_decode(file_get_contents($settings_file), true);
+                    $settings['app_logo'] = 'uploads/' . $filename;
+                    write_db($settings_file, $settings);
+                    
+                    log_action('Admin', "Le logo de l'application a été modifié.");
+                    echo json_encode(['success' => true, 'logo_path' => 'uploads/' . $filename]);
+                } else {
+                    echo json_encode(['success' => false, 'error' => 'Erreur de copie du fichier sur le serveur.']);
+                }
+            } else {
+                echo json_encode(['success' => false, 'error' => 'Format de fichier non autorisé.']);
+            }
+        } else {
+            echo json_encode(['success' => false, 'error' => 'Aucun fichier reçu ou erreur d\'envoi.']);
+        }
         break;
 
     case 'get':
@@ -120,7 +152,7 @@ switch ($action) {
                 'maj'         => date('d/m'),
                 'notes'       => [],
                 'lots'        => [], 
-                'attachments' => []
+                'attachments' => [] 
             ];
             
             if (!empty($_POST['note_initiale'])) {
@@ -413,7 +445,6 @@ switch ($action) {
             if (file_exists($db_file)) $zip->addFile($db_file, 'kanban.json');
             if (file_exists($settings_file)) $zip->addFile($settings_file, 'settings.json');
             if (file_exists($history_file)) $zip->addFile($history_file, 'history.json');
-            // INCLUSION DU FICHIER ADMIN
             if (file_exists($admin_file)) $zip->addFile($admin_file, 'admin.json');
             
             if (is_dir($uploads_dir)) {
@@ -462,7 +493,6 @@ switch ($action) {
                 if (file_exists($tmp_extract . '/history.json')) {
                     copy($tmp_extract . '/history.json', $history_file);
                 }
-                // RESTAURATION DU FICHIER ADMIN
                 if (file_exists($tmp_extract . '/admin.json')) {
                     copy($tmp_extract . '/admin.json', $admin_file);
                 }
