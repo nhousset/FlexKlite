@@ -41,7 +41,7 @@ $team_name = htmlspecialchars($settings['team_name']);
 
     <div class="main-header">
         <div class="header-title-wrapper">
-            <!-- AFFICHAGE DYNAMIQUE DU LOGO -->
+            <!-- AFFICHAGE DYNAMIQUE DU LOGO DEPUIS UPLOADS/ -->
             <div class="app-logo-container" style="background: transparent; padding: 0; display: flex; align-items: center; justify-content: center; width: auto;">
                 <?php $app_logo = !empty($settings['app_logo']) ? htmlspecialchars($settings['app_logo']) : 'img/kanban.png'; ?>
                 <img src="<?= $app_logo ?>?t=<?= time() ?>" alt="Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" style="max-height: 40px; max-width: 150px; object-fit: contain; border-radius: 6px;">
