@@ -293,7 +293,7 @@ $team_name = htmlspecialchars($settings['team_name']);
         <div class="context-menu-item" id="menu-edit-task">✏️ Modifier les paramètres</div>
     </div>
 
-    <!-- Modale d'historique (Vue Rapide) -->
+    <!-- Modale d'historique (Vue Rapide + Affichage des Pièces jointes) -->
     <div id="notes-modal" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="panel-header-container">
@@ -319,6 +319,9 @@ $team_name = htmlspecialchars($settings['team_name']);
                 <div id="modal-itbm-container" style="display:none;">ITBM : <strong id="modal-itbm"></strong></div>
                 <div>Acteur : <strong id="modal-acteur"></strong></div>
             </div>
+
+            <!-- ZONE DES PIÈCES JOINTES EN MODE LECTURE SEULE -->
+            <div id="modal-attachments-container" style="margin-bottom: 20px;"></div>
             
             <table class="notes-table">
                 <thead>
@@ -866,6 +869,46 @@ $team_name = htmlspecialchars($settings['team_name']);
             document.getElementById('modal-itbm').innerText = task.code_itbm || '';
             document.getElementById('modal-itbm-container').style.display = task.code_itbm ? 'block' : 'none';
             
+            // --- NOUVEAUTÉ : Affichage des pièces jointes dans la modale d'historique ---
+            const attContainer = document.getElementById('modal-attachments-container');
+            attContainer.innerHTML = '';
+            
+            if (task.attachments && task.attachments.length > 0) {
+                let attHtml = '<h4 style="font-size:14px; margin-bottom:10px; margin-top:20px; color:#172b4d;">Pièces jointes</h4>';
+                attHtml += '<div style="display:flex; flex-wrap:wrap; gap:10px;">';
+                
+                task.attachments.forEach(att => {
+                    const ext = att.filename.split('.').pop().toLowerCase();
+                    const isImage = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(ext);
+                    const sizeKB = Math.round(att.size / 1024);
+                    
+                    if (isImage) {
+                        attHtml += `
+                            <a href="${att.path}" target="_blank" style="display:block; text-decoration:none; border:1px solid #dfe1e6; border-radius:6px; padding:4px; background:#fff; width: 80px; text-align:center; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                                <img src="${att.path}" style="width:100%; height:50px; object-fit:cover; border-radius:4px; margin-bottom:4px;" alt="${att.original_name}">
+                                <div style="font-size:9px; color:#5e6c84; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${att.original_name}">${att.original_name}</div>
+                            </a>
+                        `;
+                    } else {
+                        attHtml += `
+                            <a href="${att.path}" target="_blank" style="display:flex; align-items:center; gap:8px; text-decoration:none; border:1px solid #dfe1e6; border-radius:6px; padding:8px 12px; background:#fff; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                                <span style="font-size:20px;">📄</span>
+                                <div style="display:flex; flex-direction:column;">
+                                    <span style="color:var(--primary); font-weight:600; font-size:12px; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${att.original_name}">${att.original_name}</span>
+                                    <span style="font-size:10px; color:#5e6c84;">${sizeKB} Ko</span>
+                                </div>
+                            </a>
+                        `;
+                    }
+                });
+                attHtml += '</div>';
+                attContainer.innerHTML = attHtml;
+                attContainer.style.display = 'block';
+            } else {
+                attContainer.style.display = 'none';
+            }
+            // -------------------------------------------------------------------------
+
             const tbody = document.getElementById('modal-table-body');
             tbody.innerHTML = '';
             
