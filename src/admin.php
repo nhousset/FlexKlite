@@ -89,7 +89,6 @@ if (!$is_logged_in) {
                         </div>
                     </div>
 
-                    <!-- NOUVEAU MODULE: Upload de Logo -->
                     <div class="form-group-admin" style="flex: 1; min-width: 250px; background: #fafbfc; padding: 15px; border-radius: 8px; border: 1px solid #dfe1e6;">
                         <label style="margin-bottom: 10px;">Logo de l'application</label>
                         <div style="text-align: center; margin-bottom: 15px; min-height: 40px;">
@@ -304,6 +303,10 @@ if (!$is_logged_in) {
                     img.style.display = 'inline-block';
                     label.innerText = '✅ Logo mis à jour';
                     label.style.color = '#00875a';
+                    
+                    // CORRECTION DU BUG ICI : On enregistre le logo dans la mémoire JS !
+                    settingsData.app_logo = data.logo_path;
+                    
                 } else {
                     alert(data.error || "Erreur lors de l'envoi.");
                     label.innerText = '🖼️ Modifier le logo';
