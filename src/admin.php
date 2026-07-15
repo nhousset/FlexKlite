@@ -19,8 +19,8 @@ if (!$is_logged_in) {
         .item-list li { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #f4f5f7; margin-bottom: 8px; border-radius: 4px; font-size: 14px; border: 1px solid #ebecf0;}
         .item-list li button { background: #ffebee; border: none; color: #d32f2f; cursor: pointer; font-weight: bold; border-radius: 4px; padding: 4px 8px; transition: background 0.2s;}
         .item-list li button:hover { background: #ffcdd2; }
-        .add-group { display: flex; gap: 10px; }
-        .add-group input { flex: 1; padding: 10px; border: 1px solid #dfe1e6; border-radius: 4px; font-size: 14px;}
+        .add-group { display: flex; flex-direction: column; gap: 10px; }
+        .add-group input { width: 100%; padding: 10px; border: 1px solid #dfe1e6; border-radius: 4px; font-size: 14px; box-sizing: border-box;}
         .add-group input:focus { outline: none; border-color: var(--primary); }
         
         .form-group-admin label { font-size: 13px; font-weight: 600; color: #172b4d; display: block; margin-bottom: 6px; }
@@ -42,6 +42,11 @@ if (!$is_logged_in) {
         }
         .file-upload-wrapper:hover { background: #f4f5f7; border-color: var(--primary); }
         .file-upload-wrapper input[type="file"] { width: 100%; height: 100%; position: absolute; top:0; left:0; opacity: 0; cursor: pointer; }
+
+        .color-swatch { width: 24px; height: 24px; border-radius: 4px; cursor: pointer; border: 2px solid transparent; transition: transform 0.1s;}
+        .color-swatch:hover { transform: scale(1.1); }
+        .color-swatch.selected { border-color: #172b4d; box-shadow: 0 0 0 2px white inset; }
+        .project-badge { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; }
     </style>
 </head>
 <body>
@@ -104,18 +109,25 @@ if (!$is_logged_in) {
             </div>
 
             <div class="admin-card">
-                <h3>Projets</h3>
+                <h3>Projets & Couleurs</h3>
                 <ul class="item-list" id="list-projets"></ul>
-                <div class="add-group">
-                    <input type="text" id="input-projets" placeholder="Nouveau projet...">
-                    <button class="btn" onclick="addItem('projets')">Ajouter</button>
+                <div class="add-group" style="background: #fafbfc; padding: 15px; border-radius: 8px; border: 1px dashed #dfe1e6;">
+                    <label style="font-size: 13px; font-weight: 600; color: #172b4d;">1. Choisir une couleur</label>
+                    <div id="palette-container" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom: 10px;"></div>
+                    <input type="hidden" id="selected-project-color" value="#0052cc">
+                    
+                    <label style="font-size: 13px; font-weight: 600; color: #172b4d;">2. Nom du projet</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="input-projets" placeholder="Nouveau projet...">
+                        <button class="btn" onclick="addItem('projets')">Ajouter</button>
+                    </div>
                 </div>
             </div>
 
             <div class="admin-card">
                 <h3>Acteurs / Porteurs</h3>
                 <ul class="item-list" id="list-acteurs"></ul>
-                <div class="add-group">
+                <div class="add-group" style="flex-direction:row;">
                     <input type="text" id="input-acteurs" placeholder="Nouvel acteur...">
                     <button class="btn" onclick="addItem('acteurs')">Ajouter</button>
                 </div>
@@ -124,7 +136,7 @@ if (!$is_logged_in) {
             <div class="admin-card">
                 <h3>Priorités</h3>
                 <ul class="item-list" id="list-priorites"></ul>
-                <div class="add-group">
+                <div class="add-group" style="flex-direction:row;">
                     <input type="text" id="input-priorites" placeholder="Nouvelle priorité...">
                     <button class="btn" onclick="addItem('priorites')">Ajouter</button>
                 </div>
@@ -133,7 +145,7 @@ if (!$is_logged_in) {
             <div class="admin-card">
                 <h3>Types de Réunions</h3>
                 <ul class="item-list" id="list-reunions"></ul>
-                <div class="add-group">
+                <div class="add-group" style="flex-direction:row;">
                     <input type="text" id="input-reunions" placeholder="Point équipe, Coproj...">
                     <button class="btn" onclick="addItem('reunions')">Ajouter</button>
                 </div>
@@ -141,6 +153,7 @@ if (!$is_logged_in) {
         </div>
     </div>
 
+    <!-- Rest of JSON, Backup, and History panels remain exactly the same -->
     <div id="panel-json" class="admin-tab-content">
         <div class="json-editor-container">
             <div class="json-card">
@@ -207,6 +220,31 @@ if (!$is_logged_in) {
     <script>
         let settingsData = { app_title: "", team_name: "", app_logo: "", projets: [], acteurs: [], priorites: [], reunions: [] };
 
+        // Palette de 32 couleurs
+        const palette32 = [
+            '#ff9f1a', '#ffb8d2', '#ff5630', '#ff7452', '#00875a', '#36b37e', '#00a3bf', '#00c7e6',
+            '#0052cc', '#2684ff', '#5243aa', '#8777d9', '#172b4d', '#42526e', '#006644', '#b3bac5',
+            '#c9372c', '#d97a80', '#e34935', '#f29c97', '#f5cd47', '#f8e6a0', '#4bce97', '#9dd9c2',
+            '#57d9a3', '#7ee2b8', '#8fdfeb', '#b3f5ff', '#0c66e4', '#5ce1e6', '#6554c0', '#e774bb'
+        ];
+
+        function initPalette() {
+            const container = document.getElementById('palette-container');
+            palette32.forEach((color, index) => {
+                const div = document.createElement('div');
+                div.className = 'color-swatch' + (index === 8 ? ' selected' : '');
+                div.style.backgroundColor = color;
+                div.onclick = () => selectColor(div, color);
+                container.appendChild(div);
+            });
+        }
+
+        function selectColor(element, color) {
+            document.querySelectorAll('.color-swatch').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            document.getElementById('selected-project-color').value = color;
+        }
+
         function switchAdminTab(panelId, btn) {
             document.querySelectorAll('.admin-tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.admin-tab-btn').forEach(el => el.classList.remove('active'));
@@ -234,6 +272,7 @@ if (!$is_logged_in) {
                     img.style.display = 'inline-block';
                 }
 
+                initPalette();
                 renderLists();
             });
 
@@ -244,7 +283,11 @@ if (!$is_logged_in) {
                 if(settingsData[category]) {
                     settingsData[category].forEach((item, index) => {
                         const li = document.createElement('li');
-                        li.innerHTML = `${item} <button onclick="removeItem('${category}', ${index})" title="Supprimer">X</button>`;
+                        if (category === 'projets' && typeof item === 'object') {
+                            li.innerHTML = `<div><span class="project-badge" style="background-color:${item.color};"></span> ${item.name}</div> <button onclick="removeItem('${category}', ${index})" title="Supprimer">X</button>`;
+                        } else {
+                            li.innerHTML = `${item} <button onclick="removeItem('${category}', ${index})" title="Supprimer">X</button>`;
+                        }
                         ul.appendChild(li);
                     });
                 }
@@ -254,10 +297,22 @@ if (!$is_logged_in) {
         function addItem(category) {
             const input = document.getElementById(`input-${category}`);
             const val = input.value.trim();
-            if (val && !settingsData[category].includes(val)) {
-                settingsData[category].push(val);
-                input.value = '';
-                renderLists();
+            
+            if (!val) return;
+
+            if (category === 'projets') {
+                if (!settingsData.projets.some(p => p.name === val)) {
+                    const color = document.getElementById('selected-project-color').value;
+                    settingsData.projets.push({ name: val, color: color });
+                    input.value = '';
+                    renderLists();
+                }
+            } else {
+                if (!settingsData[category].includes(val)) {
+                    settingsData[category].push(val);
+                    input.value = '';
+                    renderLists();
+                }
             }
         }
 
@@ -303,10 +358,7 @@ if (!$is_logged_in) {
                     img.style.display = 'inline-block';
                     label.innerText = '✅ Logo mis à jour';
                     label.style.color = '#00875a';
-                    
-                    // CORRECTION DU BUG ICI : On enregistre le logo dans la mémoire JS !
                     settingsData.app_logo = data.logo_path;
-                    
                 } else {
                     alert(data.error || "Erreur lors de l'envoi.");
                     label.innerText = '🖼️ Modifier le logo';
