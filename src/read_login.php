@@ -18,6 +18,9 @@ if (empty($settings['require_read_password'])) {
     exit;
 }
 
+// Récupération du logo
+$app_logo = $settings['app_logo'] ?? '';
+
 // Récupération du hash du mot de passe de lecture
 $readonly_hash = '';
 if (file_exists($admin_file)) {
@@ -55,7 +58,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <div class="login-card">
-        <div style="font-size:40px; margin-bottom:10px;">👁️</div>
+        
+        <?php if (!empty($app_logo)): ?>
+            <div style="margin-bottom:20px; text-align: center;">
+                <img src="<?= htmlspecialchars($app_logo) ?>?t=<?= time() ?>" alt="Logo de l'application" style="max-height: 70px; max-width: 100%; object-fit: contain; border-radius: 6px;">
+            </div>
+        <?php else: ?>
+            <div style="font-size:40px; margin-bottom:10px;">👁️</div>
+        <?php endif; ?>
+
         <h2 style="margin-top:0; color:#091e42;">Espace Consultatif</h2>
         <p style="color: #5e6c84; font-size: 14px; margin-bottom:25px;">Saisissez le mot de passe pour consulter l'avancement des chantiers.</p>
         
