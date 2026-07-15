@@ -433,26 +433,6 @@ function renderRecentActivity(notes) {
     });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.list').forEach(listEl => {
-        new Sortable(listEl, {
-            group: 'kanban-board', animation: 200, ghostClass: 'sortable-ghost', delay: 100, delayOnTouchOnly: true,
-            disabled: !window.IS_LOGGED_IN,
-            onEnd: function (evt) {
-                const fromColumn = evt.from.dataset.status; const toColumn = evt.to.dataset.status;
-                const fromIndex = evt.oldIndex; const toIndex = evt.newIndex;
-                if (fromColumn === toColumn && fromIndex === toIndex) return;
-                fetch('api.php?action=move', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ fromColumn, toColumn, fromIndex, toIndex })
-                }).then(() => loadBoard());
-            }
-        });
-    });
-
-    loadBoard();
-});
-
 function openAddTaskModal() { document.getElementById('add-task-modal').style.display = 'flex'; }
 function closeAddTaskModal(e) { if(e) e.stopPropagation(); document.getElementById('add-task-modal').style.display = 'none'; }
 
@@ -800,4 +780,41 @@ function deleteAttachment(attId) {
     });
 }
 
-document.addEventListener('DOMContentLoaded', loadBoard);
+// Initialisation sécurisée de l'application
+function initApp() {
+    document.querySelectorAll('.list').forEach(listEl => {
+        // Sécurité si le CDN de SortableJS met du temps à répondre ou est bloqué
+        if (typeof Sortable !== 'undefined') {
+            new Sortable(listEl, {
+                group: 'kanban-board', 
+                animation: 200, 
+                ghostClass: 'sortable-ghost', 
+                delay: 100, 
+                delayOnTouchOnly: true,
+                disabled: !window.IS_LOGGED_IN,
+                onEnd: function (evt) {
+                    const fromColumn = evt.from.dataset.status; 
+                    const toColumn = evt.to.dataset.status;
+                    const fromIndex = evt.oldIndex; 
+                    const toIndex = evt.newIndex;
+                    if (fromColumn === toColumn && fromIndex === toIndex) return;
+                    fetch('api.php?action=move', {
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ fromColumn, toColumn, fromIndex, toIndex })
+                    }).then(() => loadBoard());
+                }
+            });
+        } else {
+            console.warn("SortableJS n'a pas pu être chargé depuis le CDN.");
+        }
+    });
+    loadBoard();
+}
+
+// Lancement garanti au chargement du DOM
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}
