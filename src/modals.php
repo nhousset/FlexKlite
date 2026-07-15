@@ -18,22 +18,13 @@
                     <input type="text" name="titre" required>
                 </div>
                 <div class="form-group">
-                    <label>Type / Couleur</label>
-                    <select name="couleur">
-                        <option value="color-yellow">🟨 Standard</option>
-                        <option value="color-blue">🟦 Étude/Tech</option>
-                        <option value="color-orange">🟧 Urgence</option>
-                        <option value="color-pink">🟥 Bug/Bloquant</option>
-                        <option value="color-green">🟩 Validé</option>
-                        <option value="color-grey">⬜ En attente</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Projet *</label>
+                    <label>Projet / Couleur *</label>
                     <select name="projet" required>
                         <option value="">-- Sélectionner --</option>
-                        <?php foreach($settings['projets'] as $p): ?>
-                            <option value="<?= htmlspecialchars($p) ?>"><?= htmlspecialchars($p) ?></option>
+                        <?php foreach($settings['projets'] as $p): 
+                            $pName = is_array($p) ? $p['name'] : $p;
+                        ?>
+                            <option value="<?= htmlspecialchars($pName) ?>"><?= htmlspecialchars($pName) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -107,22 +98,13 @@
                     <input type="text" name="titre" id="edit_titre" required>
                 </div>
                 <div class="form-group">
-                    <label>Type / Couleur</label>
-                    <select name="couleur" id="edit_couleur">
-                        <option value="color-yellow">🟨 Standard</option>
-                        <option value="color-blue">🟦 Étude/Tech</option>
-                        <option value="color-orange">🟧 Urgence</option>
-                        <option value="color-pink">🟥 Bug/Bloquant</option>
-                        <option value="color-green">🟩 Validé</option>
-                        <option value="color-grey">⬜ En attente</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Projet *</label>
+                    <label>Projet / Couleur *</label>
                     <select name="projet" id="edit_projet" required>
                         <option value="">-- Sélectionner --</option>
-                        <?php foreach($settings['projets'] as $p): ?>
-                            <option value="<?= htmlspecialchars($p) ?>"><?= htmlspecialchars($p) ?></option>
+                        <?php foreach($settings['projets'] as $p): 
+                            $pName = is_array($p) ? $p['name'] : $p;
+                        ?>
+                            <option value="<?= htmlspecialchars($pName) ?>"><?= htmlspecialchars($pName) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
