@@ -21,8 +21,15 @@ $team_name = htmlspecialchars($settings['team_name']);
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     
-    <!-- Injection du statut de connexion pour le JavaScript -->
-    <script>window.IS_LOGGED_IN = <?= $is_logged_in ? 'true' : 'false' ?>;</script>
+    <!-- Injection du statut de connexion et des couleurs de projets pour le JavaScript -->
+    <script>
+        window.IS_LOGGED_IN = <?= $is_logged_in ? 'true' : 'false' ?>;
+        window.PROJECT_COLORS = {};
+        <?php foreach($settings['projets'] as $p): 
+            if(is_array($p)): ?>
+                window.PROJECT_COLORS["<?= addslashes($p['name']) ?>"] = "<?= htmlspecialchars($p['color']) ?>";
+        <?php endif; endforeach; ?>
+    </script>
     
     <style>
         .lot-card { background: #fff; border: 1px solid #dfe1e6; border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
