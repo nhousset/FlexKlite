@@ -11,6 +11,7 @@ if (!is_dir($db_dir)) {
     mkdir($db_dir, 0755, true);
 }
 $admin_file = $db_dir . '/admin.json';
+$settings_file = $db_dir . '/settings.json';
 
 $has_password = false;
 $admin_hash = '';
@@ -22,6 +23,10 @@ if (file_exists($admin_file)) {
         $admin_hash = $data['password'];
     }
 }
+
+// Récupération du logo
+$settings = file_exists($settings_file) ? json_decode(file_get_contents($settings_file), true) : [];
+$app_logo = $settings['app_logo'] ?? '';
 
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -73,9 +78,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <div class="login-card">
+
+        <?php if (!empty($app_logo)): ?>
+            <div style="margin-bottom:20px; text-align: center;">
+                <img src="<?= htmlspecialchars($app_logo) ?>?t=<?= time() ?>" alt="Logo de l'application" style="max-height: 70px; max-width: 100%; object-fit: contain; border-radius: 6px;">
+            </div>
+        <?php else: ?>
+            <?php if (!$has_password): ?>
+                <div style="font-size:40px; margin-bottom:10px;">⚙️</div>
+            <?php else: ?>
+                <div style="font-size:40px; margin-bottom:10px;">🔒</div>
+            <?php endif; ?>
+        <?php endif; ?>
         
         <?php if (!$has_password): ?>
-            <div style="font-size:40px; margin-bottom:10px;">⚙️</div>
             <h2 style="margin-top:0; color:#091e42;">Première configuration</h2>
             <p style="color: #5e6c84; font-size: 14px; margin-bottom:25px;">Créez un mot de passe administrateur pour protéger le mode édition de votre Kanban.</p>
             
@@ -92,7 +108,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </form>
             
         <?php else: ?>
-            <div style="font-size:40px; margin-bottom:10px;">🔒</div>
             <h2 style="margin-top:0; color:#091e42;">Déverrouillage</h2>
             <p style="color: #5e6c84; font-size: 14px; margin-bottom:25px;">Saisissez votre mot de passe pour passer en mode édition.</p>
             
