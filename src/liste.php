@@ -21,8 +21,10 @@
                         <div class="sortable-header" onclick="sortTable('projet', this)">Projet <span class="sort-icon"></span></div>
                         <select id="filter-projet" class="table-filter" onchange="applyFilters()">
                             <option value="">Tous</option>
-                            <?php foreach($settings['projets'] as $p): ?>
-                                <option value="<?= htmlspecialchars($p) ?>"><?= htmlspecialchars($p) ?></option>
+                            <?php foreach($settings['projets'] as $p): 
+                                $pName = is_array($p) ? $p['name'] : $p;
+                            ?>
+                                <option value="<?= htmlspecialchars($pName) ?>"><?= htmlspecialchars($pName) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </th>
