@@ -5,9 +5,16 @@ $settings_file = __DIR__ . '/db/settings.json';
 $default = [
     "app_title" => "Gestion des Chantiers", 
     "team_name" => "IHMT",
-    "projets" => [], "acteurs" => [], "priorites" => [], "reunions" => []
+    "projets" => [], "acteurs" => [], "priorites" => [], "reunions" => [],
+    "require_read_password" => false
 ];
 $settings = file_exists($settings_file) ? array_merge($default, json_decode(file_get_contents($settings_file), true)) : $default; 
+
+// Vérification de sécurité : si la lecture seule est protégée et que l'utilisateur n'a pas l'accès
+if (!empty($settings['require_read_password']) && !$has_read_access) {
+    header('Location: read_login.php');
+    exit;
+}
 
 $app_title = htmlspecialchars($settings['app_title']);
 $team_name = htmlspecialchars($settings['team_name']);
@@ -45,6 +52,13 @@ $team_name = htmlspecialchars($settings['team_name']);
     </style>
 </head>
 <body>
+
+    <!-- OVERLAY DE CHARGEMENT -->
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <h2 style="color: var(--text-main); font-size: 18px; margin: 0;">Chargement en cours...</h2>
+        <p style="color: var(--text-muted); font-size: 13px;">Initialisation de votre espace de travail</p>
+    </div>
 
     <!-- Inclusion de l'en-tête -->
     <?php include 'header.php'; ?>
