@@ -6,7 +6,7 @@ $db_dir = __DIR__ . '/db';
 $db_file = $db_dir . '/kanban.json';
 $settings_file = $db_dir . '/settings.json';
 $history_file = $db_dir . '/history.json'; 
-$admin_file = $db_dir . '/admin.json'; // Ajout du fichier de mdp
+$admin_file = $db_dir . '/admin.json'; 
 $uploads_dir = __DIR__ . '/uploads';
 
 if (!is_dir($db_dir)) { mkdir($db_dir, 0755, true); }
@@ -21,7 +21,11 @@ if (!file_exists($settings_file)) {
         "app_title" => "Gestion des Chantiers & Suivi",
         "team_name" => "IHMT",
         "app_logo" => "",
-        "projets" => ["VIYA 4", "Plateforme", "MCO"],
+        "projets" => [
+            ["name" => "VIYA 4", "color" => "#0052cc"],
+            ["name" => "Plateforme", "color" => "#00875a"],
+            ["name" => "MCO", "color" => "#ff9f1a"]
+        ],
         "acteurs" => ["Nicolas H.", "Kevin L.", "David M."],
         "priorites" => ["1", "2", "3", "En attente"],
         "reunions" => ["Point OPS", "Comité BI", "Coproj", "Point équipe"]
@@ -35,10 +39,22 @@ if (!file_exists($history_file)) {
 
 $current_settings = json_decode(file_get_contents($settings_file), true);
 $needs_update = false;
+
 if (!isset($current_settings['reunions'])) { $current_settings['reunions'] = ["Point OPS", "Comité BI", "Coproj", "Point équipe"]; $needs_update = true; }
 if (!isset($current_settings['app_title'])) { $current_settings['app_title'] = "Gestion des Chantiers & Suivi"; $needs_update = true; }
 if (!isset($current_settings['team_name'])) { $current_settings['team_name'] = "IHMT"; $needs_update = true; }
 if (!isset($current_settings['app_logo'])) { $current_settings['app_logo'] = ""; $needs_update = true; }
+
+// MIGRATION TRANSPARENTE : Convertit l'ancien format texte des projets vers le nouveau format objet avec couleur
+if (isset($current_settings['projets']) && count($current_settings['projets']) > 0 && is_string($current_settings['projets'][0])) {
+    $new_projets = [];
+    $default_palette = ['#0052cc', '#00875a', '#ff9f1a', '#de350b', '#5243aa'];
+    foreach($current_settings['projets'] as $idx => $p) {
+        $new_projets[] = ['name' => $p, 'color' => $default_palette[$idx % 5]];
+    }
+    $current_settings['projets'] = $new_projets;
+    $needs_update = true;
+}
 
 if ($needs_update) {
     file_put_contents($settings_file, json_encode($current_settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
@@ -64,9 +80,6 @@ function log_action($action_type, $details) {
 }
 
 $action = $_GET['action'] ?? '';
-
-// PROTECTION GLOBALE EN ÉCRITURE : Rejette l'action si le mode invité est actif
-// -> CORRECTION : Ajout de 'upload_logo' dans la liste des actions autorisées en écriture
 $write_actions = ['save_settings', 'move', 'add_task', 'edit_task', 'add_lot', 'add_note', 'edit_note', 'upload_attachment', 'delete_attachment', 'upload_logo', 'save_raw_json', 'import_backup_zip'];
 if (in_array($action, $write_actions) && !$is_logged_in) {
     echo json_encode(['success' => false, 'error' => 'Action non autorisée. Vous êtes en mode invité.']);
@@ -86,7 +99,6 @@ switch ($action) {
         echo json_encode(['success' => true]);
         break;
 
-    // --- CORRECTION : AJOUT DU ENDPOINT UPLOAD LOGO ---
     case 'upload_logo':
         if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
             $file = $_FILES['logo'];
@@ -146,7 +158,6 @@ switch ($action) {
                 'code_itbm'   => $_POST['code_itbm'] ?? '',
                 'prio'        => $_POST['prio'] ?? '',
                 'acteur'      => $_POST['acteur'] ?? '',
-                'couleur'     => $_POST['couleur'] ?? 'color-yellow',
                 'date_debut'  => $_POST['date_debut'] ?? '',
                 'date_fin'    => $_POST['date_fin'] ?? '',
                 'maj'         => date('d/m'),
@@ -183,7 +194,6 @@ switch ($action) {
                 $kanban[$col][$idx]['code_itbm']   = $_POST['code_itbm'] ?? '';
                 $kanban[$col][$idx]['prio']        = $_POST['prio'] ?? '';
                 $kanban[$col][$idx]['acteur']      = $_POST['acteur'] ?? '';
-                $kanban[$col][$idx]['couleur']     = $_POST['couleur'] ?? 'color-yellow';
                 $kanban[$col][$idx]['date_debut']  = $_POST['date_debut'] ?? '';
                 $kanban[$col][$idx]['date_fin']    = $_POST['date_fin'] ?? '';
                 $kanban[$col][$idx]['maj']         = date('d/m');
