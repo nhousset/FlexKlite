@@ -18,8 +18,11 @@ if (empty($settings['require_read_password'])) {
     exit;
 }
 
-// Récupération du logo
-$app_logo = $settings['app_logo'] ?? '';
+// Récupération du logo (Uniquement si le fichier est physiquement accessible)
+$app_logo = '';
+if (!empty($settings['app_logo']) && file_exists(__DIR__ . '/' . $settings['app_logo'])) {
+    $app_logo = htmlspecialchars($settings['app_logo']);
+}
 
 // Récupération du hash du mot de passe de lecture
 $readonly_hash = '';
@@ -61,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         <?php if (!empty($app_logo)): ?>
             <div style="margin-bottom:20px; text-align: center;">
-                <img src="<?= htmlspecialchars($app_logo) ?>?t=<?= time() ?>" alt="Logo de l'application" style="max-height: 70px; max-width: 100%; object-fit: contain; border-radius: 6px;">
+                <img src="<?= $app_logo ?>?t=<?= time() ?>" alt="Logo de l'application" style="max-height: 70px; max-width: 100%; object-fit: contain; border-radius: 6px;">
             </div>
         <?php else: ?>
             <div style="font-size:40px; margin-bottom:10px;">👁️</div>
