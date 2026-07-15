@@ -291,8 +291,14 @@ if (!$is_logged_in) {
 
                 if (settingsData.app_logo) {
                     const img = document.getElementById('current-logo-preview');
-                    img.src = settingsData.app_logo;
+                    img.src = settingsData.app_logo + '?t=' + Date.now();
                     img.style.display = 'inline-block';
+                    img.onerror = function() {
+                        this.style.display = 'none';
+                        const label = document.getElementById('logo-upload-label');
+                        label.innerText = '⚠️ Image introuvable. Veuillez renvoyer le logo.';
+                        label.style.color = '#de350b';
+                    };
                 }
 
                 initPalette();
@@ -410,6 +416,7 @@ if (!$is_logged_in) {
                     const img = document.getElementById('current-logo-preview');
                     img.src = data.logo_path + '?t=' + Date.now();
                     img.style.display = 'inline-block';
+                    img.onerror = null; // Retire l'erreur si la nouvelle image marche
                     label.innerText = '✅ Logo mis à jour';
                     label.style.color = '#00875a';
                     settingsData.app_logo = data.logo_path;
