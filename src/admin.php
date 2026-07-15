@@ -24,8 +24,8 @@ if (!$is_logged_in) {
         .add-group input:focus { outline: none; border-color: var(--primary); }
         
         .form-group-admin label { font-size: 13px; font-weight: 600; color: #172b4d; display: block; margin-bottom: 6px; }
-        .form-group-admin input { width: 100%; padding: 10px; border: 1px solid #dfe1e6; border-radius: 4px; font-size: 14px; box-sizing: border-box; background: #fafbfc;}
-        .form-group-admin input:focus { border-color: var(--primary); outline: none; background: white;}
+        .form-group-admin input, .form-group-admin select { width: 100%; padding: 10px; border: 1px solid #dfe1e6; border-radius: 4px; font-size: 14px; box-sizing: border-box; background: #fafbfc;}
+        .form-group-admin input:focus, .form-group-admin select:focus { border-color: var(--primary); outline: none; background: white;}
 
         .file-upload-wrapper {
             position: relative;
@@ -79,6 +79,27 @@ if (!$is_logged_in) {
         </div>
         
         <div class="admin-grid">
+
+            <div class="admin-card" style="grid-column: 1 / -1; border-left: 4px solid #ff8b00;">
+                <h3>Sécurité & Accès au tableau</h3>
+                <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-end;">
+                    <div class="form-group-admin" style="flex: 1; min-width: 250px;">
+                        <label>Protéger la lecture seule par mot de passe ?</label>
+                        <select id="input-require-read">
+                            <option value="0">Non, accès visiteur libre</option>
+                            <option value="1">Oui, exiger un mot de passe</option>
+                        </select>
+                    </div>
+                    <div class="form-group-admin" style="flex: 1; min-width: 250px;" id="read-password-container">
+                        <label>Nouveau mot de passe visiteur (laisser vide pour ne pas changer)</label>
+                        <input type="password" id="input-read-password" placeholder="Saisir un mot de passe...">
+                    </div>
+                    <div style="flex: 1; min-width: 150px;">
+                        <button onclick="saveSecurity()" class="btn" style="background: #ff8b00; width: 100%;">Mettre à jour la sécurité</button>
+                    </div>
+                </div>
+            </div>
+
             <div class="admin-card" style="grid-column: 1 / -1;">
                 <h3>Paramètres Généraux de l'Application</h3>
                 <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start;">
@@ -153,7 +174,7 @@ if (!$is_logged_in) {
         </div>
     </div>
 
-    <!-- Rest of JSON, Backup, and History panels remain exactly the same -->
+    <!-- Rest of JSON, Backup, and History panels -->
     <div id="panel-json" class="admin-tab-content">
         <div class="json-editor-container">
             <div class="json-card">
@@ -218,9 +239,8 @@ if (!$is_logged_in) {
     </div>
 
     <script>
-        let settingsData = { app_title: "", team_name: "", app_logo: "", projets: [], acteurs: [], priorites: [], reunions: [] };
+        let settingsData = { app_title: "", team_name: "", app_logo: "", require_read_password: false, projets: [], acteurs: [], priorites: [], reunions: [] };
 
-        // Palette de 32 couleurs
         const palette32 = [
             '#ff9f1a', '#ffb8d2', '#ff5630', '#ff7452', '#00875a', '#36b37e', '#00a3bf', '#00c7e6',
             '#0052cc', '#2684ff', '#5243aa', '#8777d9', '#172b4d', '#42526e', '#006644', '#b3bac5',
@@ -266,6 +286,9 @@ if (!$is_logged_in) {
                 document.getElementById('input-app-title').value = settingsData.app_title || '';
                 document.getElementById('input-team-name').value = settingsData.team_name || '';
                 
+                document.getElementById('input-require-read').value = settingsData.require_read_password ? "1" : "0";
+                toggleReadPasswordInput();
+
                 if (settingsData.app_logo) {
                     const img = document.getElementById('current-logo-preview');
                     img.src = settingsData.app_logo;
@@ -275,6 +298,37 @@ if (!$is_logged_in) {
                 initPalette();
                 renderLists();
             });
+
+        document.getElementById('input-require-read').addEventListener('change', toggleReadPasswordInput);
+
+        function toggleReadPasswordInput() {
+            const val = document.getElementById('input-require-read').value;
+            document.getElementById('read-password-container').style.display = val === "1" ? 'block' : 'none';
+        }
+
+        function saveSecurity() {
+            const req = document.getElementById('input-require-read').value === "1";
+            const pass = document.getElementById('input-read-password').value;
+
+            if (req && !pass && !settingsData.require_read_password) {
+                alert("Vous devez définir un mot de passe pour activer la protection d'accès.");
+                return;
+            }
+
+            fetch('api.php?action=save_security', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ require_read_password: req, readonly_password: pass })
+            })
+            .then(res => res.json())
+            .then(resData => {
+                if(resData.success) {
+                    alert('Sécurité enregistrée avec succès !');
+                    settingsData.require_read_password = req;
+                    document.getElementById('input-read-password').value = '';
+                }
+            });
+        }
 
         function renderLists() {
             ['projets', 'acteurs', 'priorites', 'reunions'].forEach(category => {
