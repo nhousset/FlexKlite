@@ -106,12 +106,10 @@ switch ($action) {
         $req_pass = $data['require_read_password'] ?? false;
         $new_pass = $data['readonly_password'] ?? '';
 
-        // Mise à jour de settings.json pour le statut du toggle
         $settings = read_db($settings_file);
         $settings['require_read_password'] = (bool)$req_pass;
         write_db($settings_file, $settings);
 
-        // Mise à jour de admin.json avec le hash du mot de passe invité
         if (!empty($new_pass)) {
             $admin_data = file_exists($admin_file) ? json_decode(file_get_contents($admin_file), true) : [];
             $admin_data['readonly_password'] = password_hash($new_pass, PASSWORD_DEFAULT);
@@ -133,6 +131,9 @@ switch ($action) {
                 $path = $uploads_dir . '/' . $filename;
                 
                 if (move_uploaded_file($file['tmp_name'], $path)) {
+                    // S'assurer que le fichier est bien lisible par le serveur web
+                    chmod($path, 0644);
+                    
                     $settings = json_decode(file_get_contents($settings_file), true);
                     $settings['app_logo'] = 'uploads/' . $filename;
                     write_db($settings_file, $settings);
