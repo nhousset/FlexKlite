@@ -21,6 +21,7 @@ if (!file_exists($settings_file)) {
         "app_title" => "Gestion des Chantiers & Suivi",
         "team_name" => "IHMT",
         "app_logo" => "",
+        "require_read_password" => false,
         "projets" => [
             ["name" => "VIYA 4", "color" => "#0052cc"],
             ["name" => "Plateforme", "color" => "#00875a"],
@@ -44,8 +45,8 @@ if (!isset($current_settings['reunions'])) { $current_settings['reunions'] = ["P
 if (!isset($current_settings['app_title'])) { $current_settings['app_title'] = "Gestion des Chantiers & Suivi"; $needs_update = true; }
 if (!isset($current_settings['team_name'])) { $current_settings['team_name'] = "IHMT"; $needs_update = true; }
 if (!isset($current_settings['app_logo'])) { $current_settings['app_logo'] = ""; $needs_update = true; }
+if (!isset($current_settings['require_read_password'])) { $current_settings['require_read_password'] = false; $needs_update = true; }
 
-// MIGRATION TRANSPARENTE : Convertit l'ancien format texte des projets vers le nouveau format objet avec couleur
 if (isset($current_settings['projets']) && count($current_settings['projets']) > 0 && is_string($current_settings['projets'][0])) {
     $new_projets = [];
     $default_palette = ['#0052cc', '#00875a', '#ff9f1a', '#de350b', '#5243aa'];
@@ -80,7 +81,8 @@ function log_action($action_type, $details) {
 }
 
 $action = $_GET['action'] ?? '';
-$write_actions = ['save_settings', 'move', 'add_task', 'edit_task', 'add_lot', 'add_note', 'edit_note', 'upload_attachment', 'delete_attachment', 'upload_logo', 'save_raw_json', 'import_backup_zip'];
+$write_actions = ['save_settings', 'save_security', 'move', 'add_task', 'edit_task', 'add_lot', 'add_note', 'edit_note', 'upload_attachment', 'delete_attachment', 'upload_logo', 'save_raw_json', 'import_backup_zip'];
+
 if (in_array($action, $write_actions) && !$is_logged_in) {
     echo json_encode(['success' => false, 'error' => 'Action non autorisée. Vous êtes en mode invité.']);
     exit;
@@ -96,6 +98,27 @@ switch ($action) {
     case 'save_settings':
         $data = json_decode(file_get_contents('php://input'), true);
         write_db($settings_file, $data);
+        echo json_encode(['success' => true]);
+        break;
+
+    case 'save_security':
+        $data = json_decode(file_get_contents('php://input'), true);
+        $req_pass = $data['require_read_password'] ?? false;
+        $new_pass = $data['readonly_password'] ?? '';
+
+        // Mise à jour de settings.json pour le statut du toggle
+        $settings = read_db($settings_file);
+        $settings['require_read_password'] = (bool)$req_pass;
+        write_db($settings_file, $settings);
+
+        // Mise à jour de admin.json avec le hash du mot de passe invité
+        if (!empty($new_pass)) {
+            $admin_data = file_exists($admin_file) ? json_decode(file_get_contents($admin_file), true) : [];
+            $admin_data['readonly_password'] = password_hash($new_pass, PASSWORD_DEFAULT);
+            file_put_contents($admin_file, json_encode($admin_data, JSON_PRETTY_PRINT));
+        }
+        
+        log_action('Sécurité', "Les paramètres d'accès en lecture seule ont été modifiés.");
         echo json_encode(['success' => true]);
         break;
 
