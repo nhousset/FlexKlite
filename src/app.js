@@ -70,10 +70,15 @@ function loadBoard() {
                     const pAttr = task.projet || '';
                     const aAttr = task.acteur || '';
                     const prAttr = task.prio || '';
+                    
+                    // Récupération de la couleur du projet
+                    const projColor = window.PROJECT_COLORS && window.PROJECT_COLORS[pAttr] ? window.PROJECT_COLORS[pAttr] : '#dfe1e6';
 
                     // 1. VUE KANBAN
                     const card = document.createElement('div');
-                    card.className = `card filter-item ${task.couleur ? task.couleur : 'color-yellow'}`;
+                    card.className = `card filter-item`;
+                    card.style.borderTop = `4px solid ${projColor}`;
+                    card.style.backgroundColor = '#ffffff';
                     card.dataset.index = index;
                     card.dataset.search = searchableText;
                     card.dataset.projet = pAttr;
@@ -96,7 +101,9 @@ function loadBoard() {
                     if(task.attachments && task.attachments.length > 0) extraTags += `<span class="tag" style="background:#fff3e0; color:#e65100; border-color:#ffcc80;">📎 ${task.attachments.length} Fichier(s)</span>`;
 
                     card.innerHTML = `
-                        <div class="tags-container"><span class="tag">📁 ${task.projet}</span>${extraTags}</div>
+                        <div class="tags-container">
+                            <span class="tag" style="border-left: 3px solid ${projColor};">📁 ${task.projet}</span>${extraTags}
+                        </div>
                         <div class="card-title">${task.titre}</div>
                         <div class="card-footer">
                             <span title="Assigné à">🧑‍💻 ${task.acteur || 'Non assigné'}</span>
@@ -146,7 +153,7 @@ function loadBoard() {
                         const prioLabel = task.prio || '-';
                         
                         tr.innerHTML = `
-                            <td><span class="tag tag-itbm" style="background:none; border:1px solid #dfe1e6;">📁 ${task.projet}</span></td>
+                            <td><span class="tag" style="border-left: 3px solid ${projColor}; background:white;">📁 ${task.projet}</span></td>
                             <td style="font-weight: 500;">${task.titre}</td>
                             <td><span class="status-badge status-${status}">${statusLabels[status]}</span></td>
                             <td style="font-weight:bold; color:#c62828;">${prioLabel !== '-' ? prioLabel : '-'}</td>
@@ -165,7 +172,7 @@ function loadBoard() {
                     if (allTaskNotes.length > 0) {
                         allTaskNotes.forEach(note => {
                             allNotesForActivity.push({
-                                taskTitle: task.titre, projet: task.projet,
+                                taskTitle: task.titre, projet: task.projet, projColor: projColor,
                                 texte: (note.sourceName ? `[${note.sourceName}] ` : '') + note.texte, 
                                 date: note.date, reunion: note.reunion,
                                 timestamp: note.timestamp || 0 
@@ -398,7 +405,7 @@ function renderRecentActivity(notes) {
         const badge = note.reunion ? `<span class="badge-reunion" style="font-size:10px;">${note.reunion}</span>` : '';
         item.innerHTML = `
             <div class="activity-header">
-                <span class="tag" style="font-size:10px; padding:2px 6px;">📁 ${note.projet}</span>
+                <span class="tag" style="font-size:10px; padding:2px 6px; border-left:3px solid ${note.projColor}; background:white;">📁 ${note.projet}</span>
                 <span style="font-size:11px; color:#5e6c84;">${note.date}</span>
             </div>
             <div class="activity-task">${note.taskTitle}</div>
@@ -438,7 +445,6 @@ function openEditTaskModal() {
     document.getElementById('edit_index').value = currentTaskRef.index;
 
     document.getElementById('edit_titre').value = task.titre || '';
-    document.getElementById('edit_couleur').value = task.couleur || 'color-yellow';
     document.getElementById('edit_projet').value = task.projet || '';
     document.getElementById('edit_code_projet').value = task.code_projet || '';
     document.getElementById('edit_code_itbm').value = task.code_itbm || '';
@@ -777,4 +783,3 @@ function deleteAttachment(attId) {
 }
 
 document.addEventListener('DOMContentLoaded', loadBoard);
-</script>
