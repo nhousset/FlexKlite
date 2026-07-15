@@ -24,9 +24,12 @@ if (file_exists($admin_file)) {
     }
 }
 
-// Récupération du logo
+// Récupération du logo (Uniquement si le fichier est physiquement accessible)
 $settings = file_exists($settings_file) ? json_decode(file_get_contents($settings_file), true) : [];
-$app_logo = $settings['app_logo'] ?? '';
+$app_logo = '';
+if (!empty($settings['app_logo']) && file_exists(__DIR__ . '/' . $settings['app_logo'])) {
+    $app_logo = htmlspecialchars($settings['app_logo']);
+}
 
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -81,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <?php if (!empty($app_logo)): ?>
             <div style="margin-bottom:20px; text-align: center;">
-                <img src="<?= htmlspecialchars($app_logo) ?>?t=<?= time() ?>" alt="Logo de l'application" style="max-height: 70px; max-width: 100%; object-fit: contain; border-radius: 6px;">
+                <img src="<?= $app_logo ?>?t=<?= time() ?>" alt="Logo de l'application" style="max-height: 70px; max-width: 100%; object-fit: contain; border-radius: 6px;">
             </div>
         <?php else: ?>
             <?php if (!$has_password): ?>
