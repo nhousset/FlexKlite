@@ -207,6 +207,13 @@ function loadBoard() {
             if(currentSort.column) {
                 applySort(currentSort.column, currentSort.asc);
             }
+
+            // MASQUER LE LOADER UNE FOIS LE RENDU TERMINÉ
+            const loader = document.getElementById('loading-overlay');
+            if (loader) {
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 400); // 400ms pour laisser la transition CSS s'exécuter
+            }
         });
 }
 
