@@ -1,6 +1,23 @@
 let currentTaskRef = { column: null, index: null, task: null, allNotes: [], editingNoteTimestamp: null };
 const statusLabels = { todo: 'À Faire', in_progress: 'En Cours', blocked: 'Bloqué / En attente', done: 'Terminé' };
 
+// Utilitaire pour convertir une couleur Hex (#RRGGBB) en RGBA pâle
+function hexToPale(hex) {
+    if (!hex || !hex.startsWith('#')) return '#ffffff';
+    let r = 0, g = 0, b = 0;
+    if (hex.length === 4) {
+        r = parseInt(hex[1] + hex[1], 16);
+        g = parseInt(hex[2] + hex[2], 16);
+        b = parseInt(hex[3] + hex[3], 16);
+    } else if (hex.length === 7) {
+        r = parseInt(hex.slice(1, 3), 16);
+        g = parseInt(hex.slice(3, 5), 16);
+        b = parseInt(hex.slice(5, 7), 16);
+    }
+    // Opacité fixée à 8% (0.08) pour un fond pastel lisible
+    return `rgba(${r}, ${g}, ${b}, 0.08)`;
+}
+
 // Helper pour regrouper toutes les notes d'une tâche (principale + lots)
 function getAllNotesAggregated(task) {
     let allNotes = [];
@@ -71,14 +88,15 @@ function loadBoard() {
                     const aAttr = task.acteur || '';
                     const prAttr = task.prio || '';
                     
-                    // Récupération de la couleur du projet
+                    // Récupération de la couleur du projet et génération de la version pâle
                     const projColor = window.PROJECT_COLORS && window.PROJECT_COLORS[pAttr] ? window.PROJECT_COLORS[pAttr] : '#dfe1e6';
+                    const paleColor = hexToPale(projColor);
 
                     // 1. VUE KANBAN
                     const card = document.createElement('div');
                     card.className = `card filter-item`;
                     card.style.borderTop = `4px solid ${projColor}`;
-                    card.style.backgroundColor = '#ffffff';
+                    card.style.backgroundColor = paleColor; // Application du fond pastel
                     card.dataset.index = index;
                     card.dataset.search = searchableText;
                     card.dataset.projet = pAttr;
@@ -102,7 +120,7 @@ function loadBoard() {
 
                     card.innerHTML = `
                         <div class="tags-container">
-                            <span class="tag" style="border-left: 3px solid ${projColor};">📁 ${task.projet}</span>${extraTags}
+                            <span class="tag" style="border-left: 3px solid ${projColor}; background: rgba(255,255,255,0.7);">📁 ${task.projet}</span>${extraTags}
                         </div>
                         <div class="card-title">${task.titre}</div>
                         <div class="card-footer">
@@ -120,7 +138,7 @@ function loadBoard() {
                         notesHtml = top5.map(n => {
                             const ctx = n.reunion ? ` - <strong>${n.reunion}</strong>` : '';
                             const srcBadge = n.sourceName ? `<span class="note-target-badge">${n.sourceName}</span><br/>` : '';
-                            return `<div style="font-size: 13px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed #ebecf0; line-height: 1.4;" class="note-entry">
+                            return `<div style="font-size: 13px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed rgba(0,0,0,0.1); line-height: 1.4;" class="note-entry">
                                         <span style="color:#5e6c84; font-weight: 600;">${n.date}${ctx} :</span> <br/>${srcBadge}${n.texte}
                                     </div>`;
                         }).join('');
@@ -153,7 +171,7 @@ function loadBoard() {
                         const prioLabel = task.prio || '-';
                         
                         tr.innerHTML = `
-                            <td><span class="tag" style="border-left: 3px solid ${projColor}; background:white;">📁 ${task.projet}</span></td>
+                            <td><span class="tag" style="border-left: 3px solid ${projColor}; background:${paleColor};">📁 ${task.projet}</span></td>
                             <td style="font-weight: 500;">${task.titre}</td>
                             <td><span class="status-badge status-${status}">${statusLabels[status]}</span></td>
                             <td style="font-weight:bold; color:#c62828;">${prioLabel !== '-' ? prioLabel : '-'}</td>
@@ -172,7 +190,7 @@ function loadBoard() {
                     if (allTaskNotes.length > 0) {
                         allTaskNotes.forEach(note => {
                             allNotesForActivity.push({
-                                taskTitle: task.titre, projet: task.projet, projColor: projColor,
+                                taskTitle: task.titre, projet: task.projet, projColor: projColor, paleColor: paleColor,
                                 texte: (note.sourceName ? `[${note.sourceName}] ` : '') + note.texte, 
                                 date: note.date, reunion: note.reunion,
                                 timestamp: note.timestamp || 0 
@@ -405,7 +423,7 @@ function renderRecentActivity(notes) {
         const badge = note.reunion ? `<span class="badge-reunion" style="font-size:10px;">${note.reunion}</span>` : '';
         item.innerHTML = `
             <div class="activity-header">
-                <span class="tag" style="font-size:10px; padding:2px 6px; border-left:3px solid ${note.projColor}; background:white;">📁 ${note.projet}</span>
+                <span class="tag" style="font-size:10px; padding:2px 6px; border-left:3px solid ${note.projColor}; background:${note.paleColor};">📁 ${note.projet}</span>
                 <span style="font-size:11px; color:#5e6c84;">${note.date}</span>
             </div>
             <div class="activity-task">${note.taskTitle}</div>
