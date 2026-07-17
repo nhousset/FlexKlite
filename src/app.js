@@ -279,20 +279,20 @@ function renderBoard() {
             }
             if(container) container.appendChild(card);
 
-            // Construction du bloc des notes
-            let notesHtml = '';
+            // Construction du bloc des notes pour la liste (Excel) - Sans emoji ni fioriture
+            let listNotesHtml = '';
             const allTaskNotes = getAllNotesAggregated(task);
             if (allTaskNotes.length > 0) {
                 const top5 = allTaskNotes.slice(0, 5);
-                notesHtml = top5.map(n => {
-                    const ctx = n.reunion ? ` - <strong>${n.reunion}</strong>` : '';
-                    const srcBadge = n.sourceName ? `<span class="note-target-badge">${n.sourceName}</span><br/>` : '';
-                    return `<div style="font-size: 13px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed rgba(0,0,0,0.1); line-height: 1.4;" class="note-entry">
-                                <span style="color:#5e6c84; font-weight: 600;">${n.date}${ctx} :</span> <br/>${srcBadge}${n.texte}
+                listNotesHtml = top5.map(n => {
+                    const ctx = n.reunion ? ` - ${n.reunion}` : '';
+                    const srcBadge = n.sourceName ? `[${n.sourceName}] ` : '';
+                    return `<div style="margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px solid #e0e0e0;">
+                                <strong>${n.date}${ctx} :</strong> ${srcBadge}${n.texte}
                             </div>`;
                 }).join('');
             } else {
-                notesHtml = `<span style="color:#aaa; font-style:italic; font-size:13px;" class="note-entry">Aucune note</span>`;
+                listNotesHtml = `<span style="color:#aaa; font-style:italic;">Aucune note</span>`;
             }
 
             // 2. VUE LISTE
@@ -316,17 +316,17 @@ function renderBoard() {
                     }
                 });
                 
-                const actLabel = task.acteur || '-';
-                const prioLabel = task.prio || '-';
+                const actLabel = task.acteur || '';
+                const prioLabel = task.prio || '';
                 
                 tr.innerHTML = `
-                    <td><span class="tag" style="border-left: 3px solid ${projColor}; background:${paleColor};">📁 ${task.projet}</span></td>
-                    <td style="font-weight: 500;">${task.titre}</td>
-                    <td><span class="status-badge status-${status}">${statusLabels[status]}</span></td>
-                    <td style="font-weight:bold; color:#c62828;">${prioLabel !== '-' ? prioLabel : '-'}</td>
-                    <td>🧑‍💻 ${actLabel}</td>
-                    <td style="color:#5e6c84; white-space:nowrap; font-weight: 600;">🕒 ${task.maj}</td>
-                    <td>${notesHtml}</td>
+                    <td style="font-weight: bold; color: ${projColor}; background-color: ${paleColor};">${task.projet}</td>
+                    <td>${task.titre}</td>
+                    <td>${statusLabels[status]}</td>
+                    <td style="color:#c62828;">${prioLabel}</td>
+                    <td>${actLabel}</td>
+                    <td style="white-space:nowrap;">${task.maj}</td>
+                    <td>${listNotesHtml}</td>
                 `;
                 listTableBody.appendChild(tr);
             }
