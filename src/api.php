@@ -62,7 +62,7 @@ if (isset($current_settings['projets']) && count($current_settings['projets']) >
 }
 
 if ($needs_update) {
-    file_put_contents($settings_file, json_encode($current_settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    @file_put_contents($settings_file, json_encode($current_settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
 
 function read_db($file) { return json_decode(file_get_contents($file), true); }
