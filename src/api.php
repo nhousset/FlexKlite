@@ -303,7 +303,7 @@ switch ($action) {
             write_db($db_file, $kanban);
             
             $ctxLog = !empty($reunion) ? " lors de : " . $reunion : "";
-            log_action('Suivi', "Note de suivi ajoutée à la tâche '" . $kanban[$col][$idx]['titre'] . "'${ctxLog}.");
+            log_action('Suivi', "Note de suivi ajoutée à la tâche '" . $kanban[$col][$idx]['titre'] . "'{$ctxLog}.");
             
             echo json_encode(['success' => true, 'task' => $kanban[$col][$idx]]);
         } else {
