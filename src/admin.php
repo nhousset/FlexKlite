@@ -129,6 +129,26 @@ if (!$is_logged_in) {
                 </div>
             </div>
 
+            <div class="admin-card" style="grid-column: 1 / -1;">
+                <h3>Configuration des Champs</h3>
+                <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start;">
+                    <div class="form-group-admin" style="flex: 1; min-width: 250px;">
+                        <label>Afficher le bloc "Code Projet" ?</label>
+                        <select id="input-enable-code-projet">
+                            <option value="1">Oui</option>
+                            <option value="0">Non</option>
+                        </select>
+                    </div>
+                    <div class="form-group-admin" style="flex: 1; min-width: 250px;">
+                        <label>Afficher le bloc "Code ITBM" ?</label>
+                        <select id="input-enable-code-itbm">
+                            <option value="1">Oui</option>
+                            <option value="0">Non</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
             <div class="admin-card">
                 <h3>Projets & Couleurs</h3>
                 <ul class="item-list" id="list-projets"></ul>
@@ -239,7 +259,7 @@ if (!$is_logged_in) {
     </div>
 
     <script>
-        let settingsData = { app_title: "", team_name: "", app_logo: "", require_read_password: false, projets: [], acteurs: [], priorites: [], reunions: [] };
+        let settingsData = { app_title: "", team_name: "", app_logo: "", require_read_password: false, enable_code_projet: true, enable_code_itbm: true, projets: [], acteurs: [], priorites: [], reunions: [] };
 
         const palette32 = [
             '#ff9f1a', '#ffb8d2', '#ff5630', '#ff7452', '#00875a', '#36b37e', '#00a3bf', '#00c7e6',
@@ -288,6 +308,9 @@ if (!$is_logged_in) {
                 
                 document.getElementById('input-require-read').value = settingsData.require_read_password ? "1" : "0";
                 toggleReadPasswordInput();
+
+                document.getElementById('input-enable-code-projet').value = settingsData.enable_code_projet === false ? "0" : "1";
+                document.getElementById('input-enable-code-itbm').value = settingsData.enable_code_itbm === false ? "0" : "1";
 
                 if (settingsData.app_logo) {
                     const img = document.getElementById('current-logo-preview');
@@ -384,6 +407,8 @@ if (!$is_logged_in) {
         function saveSettings() {
             settingsData.app_title = document.getElementById('input-app-title').value.trim();
             settingsData.team_name = document.getElementById('input-team-name').value.trim();
+            settingsData.enable_code_projet = document.getElementById('input-enable-code-projet').value === "1";
+            settingsData.enable_code_itbm = document.getElementById('input-enable-code-itbm').value === "1";
 
             fetch('api.php?action=save_settings', {
                 method: 'POST',
