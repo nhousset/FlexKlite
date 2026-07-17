@@ -37,7 +37,7 @@ if (!empty($settings['app_logo']) && file_exists(__DIR__ . '/' . $settings['app_
     <div class="header-actions">
         <div class="search-box">
             <span>🔍</span>
-            <input type="text" id="filter-search" placeholder="Recherche rapide..." onkeyup="applyFilters()">
+            <input type="text" id="filter-search" placeholder="Recherche rapide..." onkeyup="handleFiltersChange()">
         </div>
         
         <?php if($is_logged_in): ?>
