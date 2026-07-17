@@ -67,6 +67,95 @@ function toggleActivityPanel() {
     }
 }
 
+let boardData = null;
+
+function initFilters() {
+    const saved = localStorage.getItem('flexklite_filters');
+    if (saved) {
+        try {
+            const f = JSON.parse(saved);
+            if (document.getElementById('filter-search')) document.getElementById('filter-search').value = f.search || '';
+            if (document.getElementById('filter-projet')) document.getElementById('filter-projet').value = f.projet || '';
+            if (document.getElementById('filter-statut')) document.getElementById('filter-statut').value = f.statut || '';
+            if (document.getElementById('filter-prio')) document.getElementById('filter-prio').value = f.prio || '';
+            if (document.getElementById('filter-acteur')) document.getElementById('filter-acteur').value = f.acteur || '';
+            if (document.getElementById('compact-mode')) document.getElementById('compact-mode').checked = !!f.compact;
+        } catch(e) {}
+    }
+}
+
+function saveFilters() {
+    const f = {
+        search: document.getElementById('filter-search') ? document.getElementById('filter-search').value : '',
+        projet: document.getElementById('filter-projet') ? document.getElementById('filter-projet').value : '',
+        statut: document.getElementById('filter-statut') ? document.getElementById('filter-statut').value : '',
+        prio: document.getElementById('filter-prio') ? document.getElementById('filter-prio').value : '',
+        acteur: document.getElementById('filter-acteur') ? document.getElementById('filter-acteur').value : '',
+        compact: document.getElementById('compact-mode') ? document.getElementById('compact-mode').checked : false
+    };
+    localStorage.setItem('flexklite_filters', JSON.stringify(f));
+}
+
+let lastCompactState = false;
+
+function handleFiltersChange() {
+    saveFilters();
+    const isCompact = document.getElementById('compact-mode') ? document.getElementById('compact-mode').checked : false;
+    if (isCompact !== lastCompactState) {
+        lastCompactState = isCompact;
+        renderBoard(); // Re-render entirely to regroup by project
+    } else {
+        applyFilters(); // Just hide/show items
+    }
+}
+
+function applyFilters() {
+    saveFilters();
+    const searchEl = document.getElementById('filter-search');
+    const projetEl = document.getElementById('filter-projet');
+    const statutEl = document.getElementById('filter-statut');
+    const prioEl = document.getElementById('filter-prio');
+    const acteurEl = document.getElementById('filter-acteur');
+
+    const search = searchEl ? searchEl.value.toLowerCase() : '';
+    const projet = projetEl ? projetEl.value : '';
+    const statut = statutEl ? statutEl.value : '';
+    const prio = prioEl ? prioEl.value : '';
+    const acteur = acteurEl ? acteurEl.value : '';
+
+    document.querySelectorAll('.filter-item').forEach(item => {
+        const text = item.dataset.search || '';
+        const p = item.dataset.projet || '';
+        const s = item.dataset.statut || '';
+        const pr = item.dataset.prio || '';
+        const a = item.dataset.acteur || '';
+
+        let matchSearch = search === '' || text.includes(search);
+        let matchProjet = projet === '' || p === projet;
+        let matchStatut = statut === '' || s === statut;
+        let matchPrio = prio === '' || pr === prio;
+        let matchActeur = acteur === '' || a === acteur;
+
+        if (matchSearch && matchProjet && matchStatut && matchPrio && matchActeur) {
+            item.style.display = '';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+
+    // Hide empty compact project headers
+    document.querySelectorAll('.compact-project-header').forEach(header => {
+        const nextCards = [];
+        let el = header.nextElementSibling;
+        while (el && el.classList.contains('card')) {
+            nextCards.push(el);
+            el = el.nextElementSibling;
+        }
+        const hasVisibleCard = nextCards.some(card => card.style.display !== 'none');
+        header.style.display = hasVisibleCard ? '' : 'none';
+    });
+}
+
 function loadBoard() {
     fetch('api.php?action=get&_t=' + Date.now())
         .then(async res => {
@@ -79,143 +168,9 @@ function loadBoard() {
             }
         })
         .then(data => {
-            const listTableBody = document.getElementById('list-table-body');
-            if(listTableBody) listTableBody.innerHTML = '';
+            boardData = data;
+            renderBoard();
             
-            let kpi = { total: 0, status: { todo: 0, in_progress: 0, blocked: 0, done: 0 }, acteur: {}, prio: {} };
-            let allNotesForActivity = [];
-
-            Object.keys(data).forEach(status => {
-                const container = document.querySelector(`[data-status="${status}"]`);
-                if(container) container.innerHTML = ''; 
-                
-                data[status].forEach((task, index) => {
-                    
-                    const searchableText = `${task.titre} ${task.projet} ${task.code_projet||''} ${task.code_itbm||''}`.toLowerCase();
-                    const pAttr = task.projet || '';
-                    const aAttr = task.acteur || '';
-                    const prAttr = task.prio || '';
-                    
-                    // Récupération de la couleur du projet et génération de la version pâle
-                    const projColor = window.PROJECT_COLORS && window.PROJECT_COLORS[pAttr] ? window.PROJECT_COLORS[pAttr] : '#dfe1e6';
-                    const paleColor = hexToPale(projColor);
-
-                    // 1. VUE KANBAN
-                    const card = document.createElement('div');
-                    card.className = `card filter-item`;
-                    card.style.borderTop = `4px solid ${projColor}`;
-                    card.style.backgroundColor = paleColor; // Application du fond pastel
-                    card.dataset.index = index;
-                    card.dataset.search = searchableText;
-                    card.dataset.projet = pAttr;
-                    card.dataset.acteur = aAttr;
-                    card.dataset.statut = status;
-                    card.dataset.prio = prAttr;
-                    
-                    card.addEventListener('click', () => openHistoryModal(task, status, index));
-                    card.addEventListener('contextmenu', (e) => { 
-                        if (window.IS_LOGGED_IN) {
-                            e.preventDefault(); 
-                            showContextMenu(e, status, index, task); 
-                        }
-                    });
-                    
-                    let extraTags = '';
-                    if(task.code_itbm) extraTags += `<span class="tag tag-itbm">🎫 ${task.code_itbm}</span>`;
-                    if(task.prio) extraTags += `<span class="tag tag-prio" title="Priorité">${task.prio}</span>`;
-                    if(task.lots && task.lots.length > 0) extraTags += `<span class="tag" style="background:#e8f5e9; color:#006644; border-color:#b7eb8f;">📦 ${task.lots.length} Lot(s)</span>`;
-                    if(task.attachments && task.attachments.length > 0) extraTags += `<span class="tag" style="background:#fff3e0; color:#e65100; border-color:#ffcc80;">📎 ${task.attachments.length} Fichier(s)</span>`;
-
-                    card.innerHTML = `
-                        <div class="tags-container">
-                            <span class="tag" style="border-left: 3px solid ${projColor}; background: rgba(255,255,255,0.7);">📁 ${task.projet}</span>${extraTags}
-                        </div>
-                        <div class="card-title">${task.titre}</div>
-                        <div class="card-footer">
-                            <span title="Assigné à">🧑‍💻 ${task.acteur || 'Non assigné'}</span>
-                            <span title="Dernière mise à jour">🕒 ${task.maj}</span>
-                        </div>
-                    `;
-                    if(container) container.appendChild(card);
-
-                    // Construction du bloc des notes
-                    let notesHtml = '';
-                    const allTaskNotes = getAllNotesAggregated(task);
-                    if (allTaskNotes.length > 0) {
-                        const top5 = allTaskNotes.slice(0, 5);
-                        notesHtml = top5.map(n => {
-                            const ctx = n.reunion ? ` - <strong>${n.reunion}</strong>` : '';
-                            const srcBadge = n.sourceName ? `<span class="note-target-badge">${n.sourceName}</span><br/>` : '';
-                            return `<div style="font-size: 13px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed rgba(0,0,0,0.1); line-height: 1.4;" class="note-entry">
-                                        <span style="color:#5e6c84; font-weight: 600;">${n.date}${ctx} :</span> <br/>${srcBadge}${n.texte}
-                                    </div>`;
-                        }).join('');
-                    } else {
-                        notesHtml = `<span style="color:#aaa; font-style:italic; font-size:13px;" class="note-entry">Aucune note</span>`;
-                    }
-
-                    // 2. VUE LISTE
-                    if(listTableBody) {
-                        const tr = document.createElement('tr');
-                        tr.className = 'filter-item';
-                        tr.dataset.search = searchableText;
-                        tr.dataset.projet = pAttr;
-                        tr.dataset.acteur = aAttr;
-                        tr.dataset.statut = status;
-                        tr.dataset.prio = prAttr;
-                        tr.dataset.titre = task.titre.toLowerCase();
-                        const majParts = task.maj ? task.maj.split('/') : [];
-                        tr.dataset.maj = majParts.length === 2 ? `${majParts[1]}${majParts[0]}` : (task.maj || '');
-
-                        tr.addEventListener('click', () => openHistoryModal(task, status, index));
-                        tr.addEventListener('contextmenu', (e) => { 
-                            if (window.IS_LOGGED_IN) {
-                                e.preventDefault(); 
-                                showContextMenu(e, status, index, task); 
-                            }
-                        });
-                        
-                        const actLabel = task.acteur || '-';
-                        const prioLabel = task.prio || '-';
-                        
-                        tr.innerHTML = `
-                            <td><span class="tag" style="border-left: 3px solid ${projColor}; background:${paleColor};">📁 ${task.projet}</span></td>
-                            <td style="font-weight: 500;">${task.titre}</td>
-                            <td><span class="status-badge status-${status}">${statusLabels[status]}</span></td>
-                            <td style="font-weight:bold; color:#c62828;">${prioLabel !== '-' ? prioLabel : '-'}</td>
-                            <td>🧑‍💻 ${actLabel}</td>
-                            <td style="color:#5e6c84; white-space:nowrap; font-weight: 600;">🕒 ${task.maj}</td>
-                            <td>${notesHtml}</td>
-                        `;
-                        listTableBody.appendChild(tr);
-                    }
-
-                    // 3. KPI & ACTIVITÉ
-                    kpi.total++; kpi.status[status]++;
-                    const acteur = task.acteur || 'Non assigné'; kpi.acteur[acteur] = (kpi.acteur[acteur] || 0) + 1;
-                    const prio = task.prio || 'Aucune'; kpi.prio[prio] = (kpi.prio[prio] || 0) + 1;
-
-                    if (allTaskNotes.length > 0) {
-                        allTaskNotes.forEach(note => {
-                            allNotesForActivity.push({
-                                taskTitle: task.titre, projet: task.projet, projColor: projColor, paleColor: paleColor,
-                                texte: (note.sourceName ? `[${note.sourceName}] ` : '') + note.texte, 
-                                date: note.date, reunion: note.reunion,
-                                timestamp: note.timestamp || 0 
-                            });
-                        });
-                    }
-                });
-            });
-
-            renderKPIs(kpi);
-            renderRecentActivity(allNotesForActivity);
-            applyFilters();
-            
-            if(currentSort.column) {
-                applySort(currentSort.column, currentSort.asc);
-            }
-
             // MASQUER LE LOADER UNE FOIS LE RENDU TERMINÉ
             const loader = document.getElementById('loading-overlay');
             if (loader) {
@@ -230,6 +185,177 @@ function loadBoard() {
                 loader.style.display = 'none';
             }
         });
+}
+
+function renderBoard() {
+    if (!boardData) return;
+    const data = boardData;
+    const isCompact = document.getElementById('compact-mode') ? document.getElementById('compact-mode').checked : false;
+    lastCompactState = isCompact;
+
+    if (window.sortableInstances) {
+        window.sortableInstances.forEach(inst => inst.option('disabled', !window.IS_LOGGED_IN || isCompact));
+    }
+
+    const listTableBody = document.getElementById('list-table-body');
+    if(listTableBody) listTableBody.innerHTML = '';
+    
+    let kpi = { total: 0, status: { todo: 0, in_progress: 0, blocked: 0, done: 0 }, acteur: {}, prio: {} };
+    let allNotesForActivity = [];
+
+    Object.keys(data).forEach(status => {
+        const container = document.querySelector(`[data-status="${status}"]`);
+        if(container) container.innerHTML = ''; 
+        
+        let currentProjectHeader = null;
+        
+        let tasksToRender = data[status].map((t, i) => ({ task: t, originalIndex: i }));
+        if (isCompact) {
+            tasksToRender.sort((a, b) => (a.task.projet || '').localeCompare(b.task.projet || ''));
+        }
+
+        tasksToRender.forEach(({task, originalIndex: index}) => {
+            const searchableText = `${task.titre} ${task.projet} ${task.code_projet||''} ${task.code_itbm||''}`.toLowerCase();
+            const pAttr = task.projet || '';
+            const aAttr = task.acteur || '';
+            const prAttr = task.prio || '';
+            
+            const projColor = window.PROJECT_COLORS && window.PROJECT_COLORS[pAttr] ? window.PROJECT_COLORS[pAttr] : '#dfe1e6';
+            const paleColor = hexToPale(projColor);
+
+            // 1. VUE KANBAN
+            if (isCompact && pAttr !== currentProjectHeader && container) {
+                currentProjectHeader = pAttr;
+                const header = document.createElement('div');
+                header.className = 'compact-project-header';
+                header.style.cssText = `margin-top: 10px; padding: 4px 8px; font-weight: bold; font-size: 12px; color: ${projColor}; border-bottom: 2px solid ${projColor};`;
+                header.innerText = `📁 ${pAttr || 'Sans Projet'}`;
+                container.appendChild(header);
+            }
+
+            const card = document.createElement('div');
+            card.className = `card filter-item`;
+            card.style.borderTop = `4px solid ${projColor}`;
+            card.style.backgroundColor = paleColor; 
+            if (isCompact) {
+                card.style.padding = '8px 12px';
+                card.style.marginBottom = '4px';
+            }
+            
+            card.dataset.index = index;
+            card.dataset.search = searchableText;
+            card.dataset.projet = pAttr;
+            card.dataset.acteur = aAttr;
+            card.dataset.statut = status;
+            card.dataset.prio = prAttr;
+            
+            card.addEventListener('click', () => openHistoryModal(task, status, index));
+            card.addEventListener('contextmenu', (e) => { 
+                if (window.IS_LOGGED_IN) {
+                    e.preventDefault(); 
+                    showContextMenu(e, status, index, task); 
+                }
+            });
+            
+            let extraTags = '';
+            if(task.code_itbm) extraTags += `<span class="tag tag-itbm">🎫 ${task.code_itbm}</span>`;
+            if(task.prio) extraTags += `<span class="tag tag-prio" title="Priorité">${task.prio}</span>`;
+            if(task.lots && task.lots.length > 0) extraTags += `<span class="tag" style="background:#e8f5e9; color:#006644; border-color:#b7eb8f;">📦 ${task.lots.length} Lot(s)</span>`;
+            if(task.attachments && task.attachments.length > 0) extraTags += `<span class="tag" style="background:#fff3e0; color:#e65100; border-color:#ffcc80;">📎 ${task.attachments.length} Fichier(s)</span>`;
+
+            if (isCompact) {
+                card.innerHTML = `<div class="card-title" style="font-size: 13px; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${task.titre}">${task.titre}</div>`;
+            } else {
+                card.innerHTML = `
+                    <div class="tags-container">
+                        <span class="tag" style="border-left: 3px solid ${projColor}; background: rgba(255,255,255,0.7);">📁 ${task.projet}</span>${extraTags}
+                    </div>
+                    <div class="card-title">${task.titre}</div>
+                    <div class="card-footer">
+                        <span title="Assigné à">🧑‍💻 ${task.acteur || 'Non assigné'}</span>
+                        <span title="Dernière mise à jour">🕒 ${task.maj}</span>
+                    </div>
+                `;
+            }
+            if(container) container.appendChild(card);
+
+            // Construction du bloc des notes
+            let notesHtml = '';
+            const allTaskNotes = getAllNotesAggregated(task);
+            if (allTaskNotes.length > 0) {
+                const top5 = allTaskNotes.slice(0, 5);
+                notesHtml = top5.map(n => {
+                    const ctx = n.reunion ? ` - <strong>${n.reunion}</strong>` : '';
+                    const srcBadge = n.sourceName ? `<span class="note-target-badge">${n.sourceName}</span><br/>` : '';
+                    return `<div style="font-size: 13px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed rgba(0,0,0,0.1); line-height: 1.4;" class="note-entry">
+                                <span style="color:#5e6c84; font-weight: 600;">${n.date}${ctx} :</span> <br/>${srcBadge}${n.texte}
+                            </div>`;
+                }).join('');
+            } else {
+                notesHtml = `<span style="color:#aaa; font-style:italic; font-size:13px;" class="note-entry">Aucune note</span>`;
+            }
+
+            // 2. VUE LISTE
+            if(listTableBody) {
+                const tr = document.createElement('tr');
+                tr.className = 'filter-item';
+                tr.dataset.search = searchableText;
+                tr.dataset.projet = pAttr;
+                tr.dataset.acteur = aAttr;
+                tr.dataset.statut = status;
+                tr.dataset.prio = prAttr;
+                tr.dataset.titre = task.titre.toLowerCase();
+                const majParts = task.maj ? task.maj.split('/') : [];
+                tr.dataset.maj = majParts.length === 2 ? `${majParts[1]}${majParts[0]}` : (task.maj || '');
+
+                tr.addEventListener('click', () => openHistoryModal(task, status, index));
+                tr.addEventListener('contextmenu', (e) => { 
+                    if (window.IS_LOGGED_IN) {
+                        e.preventDefault(); 
+                        showContextMenu(e, status, index, task); 
+                    }
+                });
+                
+                const actLabel = task.acteur || '-';
+                const prioLabel = task.prio || '-';
+                
+                tr.innerHTML = `
+                    <td><span class="tag" style="border-left: 3px solid ${projColor}; background:${paleColor};">📁 ${task.projet}</span></td>
+                    <td style="font-weight: 500;">${task.titre}</td>
+                    <td><span class="status-badge status-${status}">${statusLabels[status]}</span></td>
+                    <td style="font-weight:bold; color:#c62828;">${prioLabel !== '-' ? prioLabel : '-'}</td>
+                    <td>🧑‍💻 ${actLabel}</td>
+                    <td style="color:#5e6c84; white-space:nowrap; font-weight: 600;">🕒 ${task.maj}</td>
+                    <td>${notesHtml}</td>
+                `;
+                listTableBody.appendChild(tr);
+            }
+
+            // 3. KPI & ACTIVITÉ
+            kpi.total++; kpi.status[status]++;
+            const acteur = task.acteur || 'Non assigné'; kpi.acteur[acteur] = (kpi.acteur[acteur] || 0) + 1;
+            const prio = task.prio || 'Aucune'; kpi.prio[prio] = (kpi.prio[prio] || 0) + 1;
+
+            if (allTaskNotes.length > 0) {
+                allTaskNotes.forEach(note => {
+                    allNotesForActivity.push({
+                        taskTitle: task.titre, projet: task.projet, projColor: projColor, paleColor: paleColor,
+                        texte: (note.sourceName ? `[${note.sourceName}] ` : '') + note.texte, 
+                        date: note.date, reunion: note.reunion,
+                        timestamp: note.timestamp || 0 
+                    });
+                });
+            }
+        });
+    });
+
+    renderKPIs(kpi);
+    renderRecentActivity(allNotesForActivity);
+    applyFilters();
+    
+    if(currentSort.column) {
+        applySort(currentSort.column, currentSort.asc);
+    }
 }
 
 async function exportToExcel() {
@@ -366,12 +492,15 @@ function applyFilters() {
     const statutEl = document.getElementById('filter-statut');
     const prioEl = document.getElementById('filter-prio');
     const acteurEl = document.getElementById('filter-acteur');
+    const compactMode = document.getElementById('compact-mode')?.checked || false;
 
     const search = searchEl ? searchEl.value.toLowerCase() : '';
     const projet = projetEl ? projetEl.value : '';
     const statut = statutEl ? statutEl.value : '';
     const prio = prioEl ? prioEl.value : '';
     const acteur = acteurEl ? acteurEl.value : '';
+
+    localStorage.setItem('filters', JSON.stringify({search, projet, statut, prio, acteur, compactMode}));
 
     document.querySelectorAll('.filter-item').forEach(item => {
         const text = item.dataset.search;
@@ -387,7 +516,8 @@ function applyFilters() {
         const matchActeur = acteur === '' || a === acteur;
 
         if (matchSearch && matchProjet && matchStatut && matchPrio && matchActeur) {
-            item.style.display = item.tagName === 'TR' ? 'table-row' : 'block';
+            item.style.display = item.tagName === 'TR' ? (compactMode ? 'table-row' : 'table-row') : 'block';
+            if (compactMode) item.classList.add('compact'); else item.classList.remove('compact');
         } else {
             item.style.display = 'none';
         }
@@ -836,16 +966,18 @@ function deleteAttachment(attId) {
 
 // Initialisation sécurisée de l'application
 function initApp() {
+    initFilters(); // Restore filters from localStorage before loading the board
+    window.sortableInstances = [];
     document.querySelectorAll('.list').forEach(listEl => {
         // Sécurité si le CDN de SortableJS met du temps à répondre ou est bloqué
         if (typeof Sortable !== 'undefined') {
-            new Sortable(listEl, {
+            const inst = new Sortable(listEl, {
                 group: 'kanban-board', 
                 animation: 200, 
                 ghostClass: 'sortable-ghost', 
                 delay: 100, 
                 delayOnTouchOnly: true,
-                disabled: !window.IS_LOGGED_IN,
+                disabled: !window.IS_LOGGED_IN || (document.getElementById('compact-mode') && document.getElementById('compact-mode').checked),
                 onEnd: function (evt) {
                     const fromColumn = evt.from.dataset.status; 
                     const toColumn = evt.to.dataset.status;
@@ -859,6 +991,7 @@ function initApp() {
                     }).then(() => loadBoard());
                 }
             });
+            window.sortableInstances.push(inst);
         } else {
             console.warn("SortableJS n'a pas pu être chargé depuis le CDN.");
         }
