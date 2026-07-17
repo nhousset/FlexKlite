@@ -82,6 +82,7 @@ $compilation_date = date("d/m/Y H:i", filemtime(__FILE__));
                     <button class="tab-btn active" onclick="switchTab('tab-kanban', this)">🗂️ Kanban</button>
                     <button class="tab-btn" onclick="switchTab('tab-list', this)">📋 Liste</button>
                     <button class="tab-btn" onclick="switchTab('tab-kpi', this)">📊 Tableau de Bord</button>
+                    <button class="tab-btn" onclick="switchTab('tab-archives', this)">🗄️ Archives</button>
                 </div>
                 <button class="tab-btn" id="btn-toggle-activity" onclick="toggleActivityPanel()" style="color: #5e6c84; font-size: 13px;">👁️ Masquer l'activité</button>
             </div>
@@ -136,6 +137,7 @@ $compilation_date = date("d/m/Y H:i", filemtime(__FILE__));
             include 'kanban.php';
             include 'liste.php';
             include 'kpi.php';
+            include 'archives.php';
             ?>
         </div>
 
