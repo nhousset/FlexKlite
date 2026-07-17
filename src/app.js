@@ -451,8 +451,14 @@ function openEditTaskModal() {
 
     document.getElementById('edit_titre').value = task.titre || '';
     document.getElementById('edit_projet').value = task.projet || '';
-    document.getElementById('edit_code_projet').value = task.code_projet || '';
-    document.getElementById('edit_code_itbm').value = task.code_itbm || '';
+    if(window.ENABLE_CODE_PROJET && document.getElementById('edit_code_projet')) {
+        document.getElementById('edit_code_projet').value = task.code_projet || '';
+        document.getElementById('edit_link_code_projet').value = task.link_code_projet || '';
+    }
+    if(window.ENABLE_CODE_ITBM && document.getElementById('edit_code_itbm')) {
+        document.getElementById('edit_code_itbm').value = task.code_itbm || '';
+        document.getElementById('edit_link_code_itbm').value = task.link_code_itbm || '';
+    }
     document.getElementById('edit_acteur').value = task.acteur || '';
     document.getElementById('edit_prio').value = task.prio || '';
     document.getElementById('edit_date_debut').value = task.date_debut || '';
@@ -468,10 +474,23 @@ function openHistoryModal(task, column, index) {
     document.getElementById('modal-title').innerText = task.titre;
     document.getElementById('modal-project').innerText = task.projet;
     document.getElementById('modal-acteur').innerText = task.acteur || 'Non assigné';
-    document.getElementById('modal-code-projet').innerText = task.code_projet || '';
-    document.getElementById('modal-code-projet-container').style.display = task.code_projet ? 'block' : 'none';
-    document.getElementById('modal-itbm').innerText = task.code_itbm || '';
-    document.getElementById('modal-itbm-container').style.display = task.code_itbm ? 'block' : 'none';
+    if(window.ENABLE_CODE_PROJET && task.code_projet) {
+        let text = task.code_projet;
+        if(task.link_code_projet) text = `<a href="${task.link_code_projet}" target="_blank" style="color:var(--primary); text-decoration:underline;">${text}</a>`;
+        document.getElementById('modal-code-projet').innerHTML = text;
+        document.getElementById('modal-code-projet-container').style.display = 'block';
+    } else {
+        document.getElementById('modal-code-projet-container').style.display = 'none';
+    }
+    
+    if(window.ENABLE_CODE_ITBM && task.code_itbm) {
+        let text = task.code_itbm;
+        if(task.link_code_itbm) text = `<a href="${task.link_code_itbm}" target="_blank" style="color:var(--primary); text-decoration:underline;">${text}</a>`;
+        document.getElementById('modal-itbm').innerHTML = text;
+        document.getElementById('modal-itbm-container').style.display = 'block';
+    } else {
+        document.getElementById('modal-itbm-container').style.display = 'none';
+    }
     
     const attContainer = document.getElementById('modal-attachments-container');
     attContainer.innerHTML = '';
@@ -554,10 +573,23 @@ function openAddNotePanel() {
     document.getElementById('panel-title').innerText = task.titre;
     document.getElementById('panel-project').innerText = task.projet;
     document.getElementById('panel-acteur').innerText = task.acteur || 'Non assigné';
-    document.getElementById('panel-code-projet').innerText = task.code_projet || '';
-    document.getElementById('panel-code-projet-container').style.display = task.code_projet ? 'block' : 'none';
-    document.getElementById('panel-itbm').innerText = task.code_itbm || '';
-    document.getElementById('panel-itbm-container').style.display = task.code_itbm ? 'block' : 'none';
+    if(window.ENABLE_CODE_PROJET && task.code_projet) {
+        let text = task.code_projet;
+        if(task.link_code_projet) text = `<a href="${task.link_code_projet}" target="_blank" style="color:var(--primary); text-decoration:underline;">${text}</a>`;
+        document.getElementById('panel-code-projet').innerHTML = text;
+        document.getElementById('panel-code-projet-container').style.display = 'block';
+    } else {
+        document.getElementById('panel-code-projet-container').style.display = 'none';
+    }
+    
+    if(window.ENABLE_CODE_ITBM && task.code_itbm) {
+        let text = task.code_itbm;
+        if(task.link_code_itbm) text = `<a href="${task.link_code_itbm}" target="_blank" style="color:var(--primary); text-decoration:underline;">${text}</a>`;
+        document.getElementById('panel-itbm').innerHTML = text;
+        document.getElementById('panel-itbm-container').style.display = 'block';
+    } else {
+        document.getElementById('panel-itbm-container').style.display = 'none';
+    }
 
     if(task.date_debut || task.date_fin) {
         const debut = task.date_debut ? task.date_debut.split('-').reverse().join('/') : '?';
