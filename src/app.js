@@ -214,6 +214,13 @@ function loadBoard() {
                 loader.style.opacity = '0';
                 setTimeout(() => loader.style.display = 'none', 400); // 400ms pour laisser la transition CSS s'exécuter
             }
+        })
+        .catch(err => {
+            console.error("Erreur lors du chargement des données :", err);
+            const loader = document.getElementById('loading-overlay');
+            if (loader) {
+                loader.style.display = 'none';
+            }
         });
 }
 
