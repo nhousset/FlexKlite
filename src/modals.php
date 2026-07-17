@@ -290,3 +290,27 @@
     <h4 style="margin-top: 40px; font-size:15px; color: #172b4d; border-bottom: 2px solid #ebecf0; padding-bottom: 10px;">Historique global (Tâche + Lots)</h4>
     <div id="panel-notes-list"></div>
 </div>
+
+<!-- Modale À Propos -->
+<div id="about-modal" class="modal-overlay" onclick="closeAboutModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 500px; text-align: center; padding: 30px;">
+        <div class="close-panel" onclick="closeAboutModal(event)" style="position: absolute; top: 15px; right: 15px;">×</div>
+        
+        <h2 style="color: var(--primary); margin-top: 0; margin-bottom: 5px; font-size: 24px;">
+            <?= htmlspecialchars($about_data['title'] ?? 'FlexKlite') ?>
+        </h2>
+        <p style="color: #5e6c84; font-size: 14px; margin-bottom: 20px;">
+            <?= nl2br(htmlspecialchars($about_data['description'] ?? '')) ?>
+        </p>
+        
+        <div style="background: #f4f5f7; padding: 15px; border-radius: 8px; text-align: left; font-size: 13px; color: #172b4d;">
+            <div style="margin-bottom: 8px;"><strong>🏢 Entreprise :</strong> <?= htmlspecialchars($about_data['company'] ?? '') ?></div>
+            <div style="margin-bottom: 8px;"><strong>✉️ Contact :</strong> <a href="mailto:<?= htmlspecialchars($about_data['contact'] ?? '') ?>" style="color: var(--primary);"><?= htmlspecialchars($about_data['contact'] ?? '') ?></a></div>
+            <div style="margin-top: 15px; border-top: 1px solid #dfe1e6; padding-top: 10px;">
+                <strong>🏷️ Version / Build :</strong> <?= $compilation_date ?>
+            </div>
+        </div>
+        
+        <button class="btn" style="margin-top: 25px; padding: 10px 30px; background: #0052cc;" onclick="closeAboutModal(event)">Fermer</button>
+    </div>
+</div>
