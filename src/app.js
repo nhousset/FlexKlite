@@ -69,7 +69,15 @@ function toggleActivityPanel() {
 
 function loadBoard() {
     fetch('api.php?action=get&_t=' + Date.now())
-        .then(res => res.json())
+        .then(async res => {
+            const text = await res.text();
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                alert("Erreur de format de données. Voici ce que le serveur a renvoyé :\n\n" + text.substring(0, 500));
+                throw e;
+            }
+        })
         .then(data => {
             const listTableBody = document.getElementById('list-table-body');
             if(listTableBody) listTableBody.innerHTML = '';
