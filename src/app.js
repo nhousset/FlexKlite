@@ -207,6 +207,8 @@ function renderBoard() {
     let allNotesForActivity = [];
 
     Object.keys(data).forEach(status => {
+        if (status === 'archives') return;
+        
         const container = document.querySelector(`[data-status="${status}"]`);
         if(container) container.innerHTML = ''; 
         
@@ -354,6 +356,63 @@ function renderBoard() {
 
     renderKPIs(kpi);
     renderRecentActivity(allNotesForActivity);
+    
+    // 3. VUE ARCHIVES
+    const archiveTableBody = document.getElementById('archive-table-body');
+    if (archiveTableBody && data.archives) {
+        archiveTableBody.innerHTML = '';
+        data.archives.forEach((task, index) => {
+            const searchableText = `${task.titre} ${task.projet} ${task.code_projet||''} ${task.code_itbm||''}`.toLowerCase();
+            const pAttr = task.projet || '';
+            const aAttr = task.acteur || '';
+            const prAttr = task.prio || '';
+            const projColor = window.PROJECT_COLORS && window.PROJECT_COLORS[pAttr] ? window.PROJECT_COLORS[pAttr] : '#dfe1e6';
+            const paleColor = hexToPale(projColor);
+
+            let listNotesHtml = '';
+            const allTaskNotes = getAllNotesAggregated(task);
+            if (allTaskNotes.length > 0) {
+                const top5 = allTaskNotes.slice(0, 5);
+                listNotesHtml = top5.map(n => {
+                    const ctx = n.reunion ? ` - ${n.reunion}` : '';
+                    const srcBadge = n.sourceName ? `[${n.sourceName}] ` : '';
+                    return `<div style="margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px solid #e0e0e0;">
+                                <strong>${n.date}${ctx} :</strong> ${srcBadge}${n.texte}
+                            </div>`;
+                }).join('');
+            } else {
+                listNotesHtml = `<span style="color:#aaa; font-style:italic;">Aucune note</span>`;
+            }
+
+            const tr = document.createElement('tr');
+            tr.className = 'filter-item';
+            tr.dataset.search = searchableText;
+            tr.dataset.projet = pAttr;
+            tr.dataset.acteur = aAttr;
+            tr.dataset.statut = ''; 
+            tr.dataset.prio = prAttr;
+            tr.dataset.titre = task.titre.toLowerCase();
+            const majParts = task.maj ? task.maj.split('/') : [];
+            tr.dataset.maj = majParts.length === 2 ? `${majParts[1]}${majParts[0]}` : (task.maj || '');
+
+            tr.addEventListener('click', () => openHistoryModal(task, 'archives', index));
+            
+            const actLabel = task.acteur || '';
+            const prioLabel = task.prio || '';
+            
+            tr.innerHTML = `
+                <td style="font-weight: bold; color: ${projColor}; background-color: ${paleColor};">${task.projet}</td>
+                <td>${task.titre}</td>
+                <td style="color:#888;">Archivée</td>
+                <td style="color:#c62828;">${prioLabel}</td>
+                <td>${actLabel}</td>
+                <td style="white-space:nowrap;">${task.maj}</td>
+                <td>${listNotesHtml}</td>
+            `;
+            archiveTableBody.appendChild(tr);
+        });
+    }
+
     applyFilters();
     
     if(currentSort.column) {
@@ -718,6 +777,29 @@ document.getElementById('menu-add-note').addEventListener('click', (e) => {
 document.getElementById('menu-edit-task').addEventListener('click', (e) => {
     e.stopPropagation(); document.getElementById('context-menu').style.display = 'none'; openEditTaskModal();
 });
+const archiveBtn = document.getElementById('menu-archive-task');
+if (archiveBtn) {
+    archiveBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); document.getElementById('context-menu').style.display = 'none'; archiveTask();
+    });
+}
+
+function archiveTask() {
+    if (!confirm("Voulez-vous vraiment archiver cette tâche ? Elle sera déplacée vers l'onglet Archives.")) return;
+    fetch('api.php?action=archive_task', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ column: currentTaskRef.column, index: currentTaskRef.index })
+    })
+    .then(res => res.json())
+    .then(resData => {
+        if(resData.success) {
+            loadBoard();
+        } else {
+            alert(resData.error || "Erreur lors de l'archivage.");
+        }
+    });
+}
 
 function openAddNotePanel() {
     const task = currentTaskRef.task;
