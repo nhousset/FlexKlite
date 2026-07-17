@@ -197,7 +197,7 @@ function renderBoard() {
     lastCompactState = isCompact;
 
     if (window.sortableInstances) {
-        window.sortableInstances.forEach(inst => inst.option('disabled', !window.IS_LOGGED_IN || isCompact));
+        window.sortableInstances.forEach(inst => inst.option('disabled', isCompact));
     }
 
     const listTableBody = document.getElementById('list-table-body');
@@ -256,9 +256,11 @@ function renderBoard() {
             
             card.addEventListener('click', () => openHistoryModal(task, status, index));
             card.addEventListener('contextmenu', (e) => { 
+                e.preventDefault(); 
                 if (window.IS_LOGGED_IN) {
-                    e.preventDefault(); 
                     showContextMenu(e, status, index, task); 
+                } else {
+                    showLoginRequiredModal(e);
                 }
             });
             
@@ -315,9 +317,11 @@ function renderBoard() {
 
                 tr.addEventListener('click', () => openHistoryModal(task, status, index));
                 tr.addEventListener('contextmenu', (e) => { 
+                    e.preventDefault(); 
                     if (window.IS_LOGGED_IN) {
-                        e.preventDefault(); 
                         showContextMenu(e, status, index, task); 
+                    } else {
+                        showLoginRequiredModal(e);
                     }
                 });
                 
@@ -763,6 +767,16 @@ function openAboutModal(e) {
     document.getElementById('about-modal').style.display = 'flex';
 }
 
+function showLoginRequiredModal(e) {
+    if(e) e.preventDefault();
+    document.getElementById('login-required-modal').style.display = 'flex';
+}
+
+function closeLoginRequiredModal(e) {
+    if(e) e.stopPropagation();
+    document.getElementById('login-required-modal').style.display = 'none';
+}
+
 function switchToAddNote() { closeModal(); openAddNotePanel(); }
 
 function showContextMenu(e, column, index, task) {
@@ -1068,8 +1082,13 @@ function initApp() {
                 ghostClass: 'sortable-ghost', 
                 delay: 100, 
                 delayOnTouchOnly: true,
-                disabled: !window.IS_LOGGED_IN || (document.getElementById('compact-mode') && document.getElementById('compact-mode').checked),
+                disabled: document.getElementById('compact-mode') && document.getElementById('compact-mode').checked,
                 onEnd: function (evt) {
+                    if (!window.IS_LOGGED_IN) {
+                        showLoginRequiredModal();
+                        renderBoard(); // Rétablit l'état initial du DOM
+                        return;
+                    }
                     const fromColumn = evt.from.dataset.status; 
                     const toColumn = evt.to.dataset.status;
                     const fromIndex = evt.oldIndex; 
