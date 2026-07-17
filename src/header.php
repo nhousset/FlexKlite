@@ -43,21 +43,26 @@ if (!empty($settings['app_logo']) && file_exists(__DIR__ . '/' . $settings['app_
         <?php if($is_logged_in): ?>
             <button onclick="openAddTaskModal()" class="btn-header btn-new-task">➕ Nouvelle Tâche</button>
             <div class="dropdown">
-                <button class="btn-header dropdown-btn" onclick="toggleHeaderMenu(event)">
+                <button class="btn-header dropdown-btn" onclick="toggleHeaderMenu(event, 'header-dropdown')">
                     ⚙️ Menu <span style="font-size: 10px;">▼</span>
                 </button>
                 <div class="dropdown-menu" id="header-dropdown">
                     <a href="admin.php" class="dropdown-item">⚙️ Paramètres globaux</a>
+                    <a href="#" class="dropdown-item" onclick="openAboutModal(event)">ℹ️ À propos</a>
                     <div class="dropdown-divider"></div>
                     <a href="logout.php" class="dropdown-item text-danger">🚪 Se déconnecter</a>
                 </div>
             </div>
         <?php else: ?>
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="background: #fff3e0; color: #e65100; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; border: 1px solid #ffcc80;">
-                    👁️ Mode Invité (Lecture seule)
-                </span>
-                <a href="login.php" class="btn-header" style="background: #0052cc; color: white; text-decoration: none;">Se connecter</a>
+            <div class="dropdown">
+                <button class="btn-header dropdown-btn" onclick="toggleHeaderMenu(event, 'guest-dropdown')" style="background: #0052cc; color: white;">
+                    Menu <span style="font-size: 10px;">▼</span>
+                </button>
+                <div class="dropdown-menu" id="guest-dropdown">
+                    <a href="login.php" class="dropdown-item">🔑 Se connecter</a>
+                    <div class="dropdown-divider"></div>
+                    <a href="#" class="dropdown-item" onclick="openAboutModal(event)">ℹ️ À propos</a>
+                </div>
             </div>
         <?php endif; ?>
     </div>
