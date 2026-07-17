@@ -305,8 +305,11 @@
         </p>
         
         <div style="background: #f4f5f7; padding: 15px; border-radius: 8px; text-align: left; font-size: 13px; color: #172b4d;">
-            <div style="margin-bottom: 8px;"><strong>🏢 Entreprise :</strong> <?= htmlspecialchars($about_data['company'] ?? '') ?></div>
+            <div style="margin-bottom: 8px;"><strong>👤 Auteur :</strong> <?= htmlspecialchars($about_data['author'] ?? '') ?></div>
             <div style="margin-bottom: 8px;"><strong>✉️ Contact :</strong> <a href="mailto:<?= htmlspecialchars($about_data['contact'] ?? '') ?>" style="color: var(--primary);"><?= htmlspecialchars($about_data['contact'] ?? '') ?></a></div>
+            <?php if (!empty($about_data['github'])): ?>
+            <div style="margin-bottom: 8px;"><strong>🔗 GitHub :</strong> <a href="<?= htmlspecialchars($about_data['github']) ?>" target="_blank" style="color: var(--primary);"><?= htmlspecialchars($about_data['github']) ?></a></div>
+            <?php endif; ?>
             <div style="margin-top: 15px; border-top: 1px solid #dfe1e6; padding-top: 10px;">
                 <strong>🏷️ Version / Build :</strong> <?= $compilation_date ?>
             </div>
@@ -315,3 +318,24 @@
         <button class="btn" style="margin-top: 25px; padding: 10px 30px; background: #0052cc;" onclick="closeAboutModal(event)">Fermer</button>
     </div>
 </div>
+
+<!-- Modale Login Requis -->
+<div id="login-required-modal" class="modal-overlay" onclick="closeLoginRequiredModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 400px; text-align: center; padding: 30px;">
+        <div class="close-panel" onclick="closeLoginRequiredModal(event)" style="position: absolute; top: 15px; right: 15px;">×</div>
+        
+        <div style="font-size: 40px; margin-bottom: 15px;">🔒</div>
+        <h2 style="color: #091e42; margin-top: 0; margin-bottom: 15px; font-size: 20px;">
+            Mode lecture seule
+        </h2>
+        <p style="color: #5e6c84; font-size: 14px; margin-bottom: 25px; line-height: 1.5;">
+            Vous devez être connecté en tant qu'administrateur pour modifier ou déplacer des tâches.
+        </p>
+        
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <button class="btn" style="background: #ebecf0; color: #42526e; padding: 10px 20px;" onclick="closeLoginRequiredModal(event)">Annuler</button>
+            <a href="login.php" class="btn" style="background: #0052cc; padding: 10px 20px; text-decoration: none; color: white;">Se connecter</a>
+        </div>
+    </div>
+</div>
+
