@@ -13,7 +13,7 @@ if (!is_dir($db_dir)) { mkdir($db_dir, 0755, true); }
 if (!is_dir($uploads_dir)) { mkdir($uploads_dir, 0755, true); }
 
 if (!file_exists($db_file)) {
-    file_put_contents($db_file, json_encode(["todo" => [], "in_progress" => [], "blocked" => [], "done" => []], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    file_put_contents($db_file, json_encode(["todo" => [], "in_progress" => [], "blocked" => [], "done" => [], "archives" => []], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
 
 if (!file_exists($settings_file)) {
@@ -85,7 +85,7 @@ function log_action($action_type, $details) {
 }
 
 $action = $_GET['action'] ?? '';
-$write_actions = ['save_settings', 'save_security', 'move', 'add_task', 'edit_task', 'add_lot', 'add_note', 'edit_note', 'upload_attachment', 'delete_attachment', 'upload_logo', 'save_raw_json', 'import_backup_zip'];
+$write_actions = ['archive_task', 'save_settings', 'save_security', 'move', 'add_task', 'edit_task', 'add_lot', 'add_note', 'edit_note', 'upload_attachment', 'delete_attachment', 'upload_logo', 'save_raw_json', 'import_backup_zip'];
 
 if (in_array($action, $write_actions) && !$is_logged_in) {
     echo json_encode(['success' => false, 'error' => 'Action non autorisée. Vous êtes en mode invité.']);
@@ -95,6 +95,26 @@ if (in_array($action, $write_actions) && !$is_logged_in) {
 $kanban = read_db($db_file);
 
 switch ($action) {
+    case 'archive_task':
+        $data = json_decode(file_get_contents('php://input'), true);
+        $col = $data['column'] ?? '';
+        $idx = $data['index'] ?? -1;
+
+        if (isset($kanban[$col][$idx])) {
+            $task = $kanban[$col][$idx];
+            array_splice($kanban[$col], $idx, 1);
+            if (!isset($kanban['archives'])) {
+                $kanban['archives'] = [];
+            }
+            array_unshift($kanban['archives'], $task);
+            @file_put_contents($db_file, json_encode($kanban, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            log_action('Archivage', "Tâche '{$task['titre']}' archivée.");
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false, 'error' => 'Tâche introuvable.']);
+        }
+        break;
+
     case 'get_settings':
         echo file_get_contents($settings_file);
         break;
