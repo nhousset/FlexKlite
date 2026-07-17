@@ -28,14 +28,26 @@
                         <?php endforeach; ?>
                     </select>
                 </div>
+                <?php if(!isset($settings['enable_code_projet']) || $settings['enable_code_projet']): ?>
                 <div class="form-group">
                     <label>Code Projet</label>
                     <input type="text" name="code_projet" placeholder="Ex: PRJ-2026">
                 </div>
                 <div class="form-group">
+                    <label>Lien du Code Projet (URL)</label>
+                    <input type="url" name="link_code_projet" placeholder="https://...">
+                </div>
+                <?php endif; ?>
+                <?php if(!isset($settings['enable_code_itbm']) || $settings['enable_code_itbm']): ?>
+                <div class="form-group">
                     <label>Code ITBM</label>
                     <input type="text" name="code_itbm" placeholder="Ex: TSK0123456">
                 </div>
+                <div class="form-group">
+                    <label>Lien du Code ITBM (URL)</label>
+                    <input type="url" name="link_code_itbm" placeholder="https://...">
+                </div>
+                <?php endif; ?>
                 <div class="form-group">
                     <label>Acteur / Porteur</label>
                     <select name="acteur">
@@ -108,14 +120,26 @@
                         <?php endforeach; ?>
                     </select>
                 </div>
+                <?php if(!isset($settings['enable_code_projet']) || $settings['enable_code_projet']): ?>
                 <div class="form-group">
                     <label>Code Projet</label>
                     <input type="text" name="code_projet" id="edit_code_projet" placeholder="Ex: PRJ-2026">
                 </div>
                 <div class="form-group">
+                    <label>Lien du Code Projet (URL)</label>
+                    <input type="url" name="link_code_projet" id="edit_link_code_projet" placeholder="https://...">
+                </div>
+                <?php endif; ?>
+                <?php if(!isset($settings['enable_code_itbm']) || $settings['enable_code_itbm']): ?>
+                <div class="form-group">
                     <label>Code ITBM</label>
                     <input type="text" name="code_itbm" id="edit_code_itbm" placeholder="Ex: TSK0123456">
                 </div>
+                <div class="form-group">
+                    <label>Lien du Code ITBM (URL)</label>
+                    <input type="url" name="link_code_itbm" id="edit_link_code_itbm" placeholder="https://...">
+                </div>
+                <?php endif; ?>
                 <div class="form-group">
                     <label>Acteur / Porteur</label>
                     <select name="acteur" id="edit_acteur">
