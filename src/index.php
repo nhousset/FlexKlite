@@ -69,11 +69,56 @@ $team_name = htmlspecialchars($settings['team_name']);
         <div class="main-content">
             <div class="tabs-header" style="display: flex; justify-content: space-between; align-items: flex-end;">
                 <div style="display: flex; gap: 15px;">
-                    <button class="tab-btn active" onclick="switchTab('tab-kanban', this)">🗂️ Vue Kanban</button>
-                    <button class="tab-btn" onclick="switchTab('tab-list', this)">📋 Vue Liste (Excel)</button>
+                    <button class="tab-btn active" onclick="switchTab('tab-kanban', this)">🗂️ Kanban</button>
+                    <button class="tab-btn" onclick="switchTab('tab-list', this)">📋 Liste</button>
                     <button class="tab-btn" onclick="switchTab('tab-kpi', this)">📊 Tableau de Bord</button>
                 </div>
                 <button class="tab-btn" id="btn-toggle-activity" onclick="toggleActivityPanel()" style="color: #5e6c84; font-size: 13px;">👁️ Masquer l'activité</button>
+            </div>
+
+            <!-- Barre de filtres globaux -->
+            <div class="global-filters" style="background: white; padding: 10px 15px; border-radius: 6px; border: 1px solid #dfe1e6; margin-bottom: 15px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <span style="font-size: 13px; font-weight: 600; color: #5e6c84;">Projet:</span>
+                    <select id="filter-projet" class="table-filter" onchange="handleFiltersChange()">
+                        <option value="">Tous</option>
+                        <?php foreach($settings['projets'] as $p): $pName = is_array($p) ? $p['name'] : $p; ?>
+                            <option value="<?= htmlspecialchars($pName) ?>"><?= htmlspecialchars($pName) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <span style="font-size: 13px; font-weight: 600; color: #5e6c84;">Statut:</span>
+                    <select id="filter-statut" class="table-filter" onchange="handleFiltersChange()">
+                        <option value="">Tous</option>
+                        <option value="todo">À Faire</option>
+                        <option value="in_progress">En Cours</option>
+                        <option value="blocked">Bloqué</option>
+                        <option value="done">Terminé</option>
+                    </select>
+                </div>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <span style="font-size: 13px; font-weight: 600; color: #5e6c84;">Priorité:</span>
+                    <select id="filter-prio" class="table-filter" onchange="handleFiltersChange()">
+                        <option value="">Toutes</option>
+                        <?php foreach($settings['priorites'] as $p): ?>
+                            <option value="<?= htmlspecialchars($p) ?>"><?= htmlspecialchars($p) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <span style="font-size: 13px; font-weight: 600; color: #5e6c84;">Acteur:</span>
+                    <select id="filter-acteur" class="table-filter" onchange="handleFiltersChange()">
+                        <option value="">Tous</option>
+                        <?php foreach($settings['acteurs'] as $a): ?>
+                            <option value="<?= htmlspecialchars($a) ?>"><?= htmlspecialchars($a) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div style="margin-left: auto; display: flex; align-items: center; gap: 5px; background: #e3f2fd; padding: 5px 10px; border-radius: 4px; border: 1px solid #bbdefb;">
+                    <input type="checkbox" id="compact-mode" onchange="handleFiltersChange()" style="cursor: pointer;">
+                    <label for="compact-mode" style="font-size: 13px; font-weight: bold; color: #0052cc; cursor: pointer; margin:0;">Mode Compact</label>
+                </div>
             </div>
 
             <!-- Inclusion des différentes vues -->
