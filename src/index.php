@@ -18,6 +18,16 @@ if (!empty($settings['require_read_password']) && !$has_read_access) {
 
 $app_title = htmlspecialchars($settings['app_title']);
 $team_name = htmlspecialchars($settings['team_name']);
+
+// Chargement des informations "A propos" et de la date de compilation
+$about_file = __DIR__ . '/about.json';
+$about_data = file_exists($about_file) ? json_decode(file_get_contents($about_file), true) : [
+    "title" => "FlexKlite",
+    "description" => "Application de gestion de tâches et de chantiers.",
+    "company" => "Mon Entreprise",
+    "contact" => "support@example.com"
+];
+$compilation_date = date("d/m/Y H:i", filemtime(__FILE__));
 ?>
 <!DOCTYPE html>
 <html lang="fr">
