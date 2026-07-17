@@ -31,6 +31,8 @@ $team_name = htmlspecialchars($settings['team_name']);
     <!-- Injection du statut de connexion et des couleurs de projets pour le JavaScript -->
     <script>
         window.IS_LOGGED_IN = <?= $is_logged_in ? 'true' : 'false' ?>;
+        window.ENABLE_CODE_PROJET = <?= !isset($settings['enable_code_projet']) || $settings['enable_code_projet'] ? 'true' : 'false' ?>;
+        window.ENABLE_CODE_ITBM = <?= !isset($settings['enable_code_itbm']) || $settings['enable_code_itbm'] ? 'true' : 'false' ?>;
         window.PROJECT_COLORS = {};
         <?php foreach($settings['projets'] as $p): 
             if(is_array($p)): ?>
