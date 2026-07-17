@@ -179,6 +179,7 @@
 <div id="context-menu">
     <div class="context-menu-item" id="menu-add-note">➕ Ajouter un point de suivi</div>
     <div class="context-menu-item" id="menu-edit-task">✏️ Modifier les paramètres</div>
+    <div class="context-menu-item" id="menu-archive-task" style="color: #de350b;">🗄️ Archiver la tâche</div>
 </div>
 
 <!-- Modale d'historique (Vue Rapide + Affichage des Pièces jointes) -->
