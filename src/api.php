@@ -22,6 +22,8 @@ if (!file_exists($settings_file)) {
         "team_name" => "IHMT",
         "app_logo" => "",
         "require_read_password" => false,
+        "enable_code_projet" => true,
+        "enable_code_itbm" => true,
         "projets" => [
             ["name" => "VIYA 4", "color" => "#0052cc"],
             ["name" => "Plateforme", "color" => "#00875a"],
@@ -46,6 +48,8 @@ if (!isset($current_settings['app_title'])) { $current_settings['app_title'] = "
 if (!isset($current_settings['team_name'])) { $current_settings['team_name'] = "IHMT"; $needs_update = true; }
 if (!isset($current_settings['app_logo'])) { $current_settings['app_logo'] = ""; $needs_update = true; }
 if (!isset($current_settings['require_read_password'])) { $current_settings['require_read_password'] = false; $needs_update = true; }
+if (!isset($current_settings['enable_code_projet'])) { $current_settings['enable_code_projet'] = true; $needs_update = true; }
+if (!isset($current_settings['enable_code_itbm'])) { $current_settings['enable_code_itbm'] = true; $needs_update = true; }
 
 if (isset($current_settings['projets']) && count($current_settings['projets']) > 0 && is_string($current_settings['projets'][0])) {
     $new_projets = [];
@@ -178,8 +182,10 @@ switch ($action) {
             $new_task = [
                 'projet'      => $_POST['projet'] ?? '',
                 'code_projet' => $_POST['code_projet'] ?? '',
+                'link_code_projet' => $_POST['link_code_projet'] ?? '',
                 'titre'       => $_POST['titre'] ?? '',
                 'code_itbm'   => $_POST['code_itbm'] ?? '',
+                'link_code_itbm' => $_POST['link_code_itbm'] ?? '',
                 'prio'        => $_POST['prio'] ?? '',
                 'acteur'      => $_POST['acteur'] ?? '',
                 'date_debut'  => $_POST['date_debut'] ?? '',
@@ -214,8 +220,10 @@ switch ($action) {
             if ($col !== '' && $idx !== -1 && isset($kanban[$col][$idx])) {
                 $kanban[$col][$idx]['projet']      = $_POST['projet'] ?? '';
                 $kanban[$col][$idx]['code_projet'] = $_POST['code_projet'] ?? '';
+                $kanban[$col][$idx]['link_code_projet'] = $_POST['link_code_projet'] ?? '';
                 $kanban[$col][$idx]['titre']       = $_POST['titre'] ?? '';
                 $kanban[$col][$idx]['code_itbm']   = $_POST['code_itbm'] ?? '';
+                $kanban[$col][$idx]['link_code_itbm'] = $_POST['link_code_itbm'] ?? '';
                 $kanban[$col][$idx]['prio']        = $_POST['prio'] ?? '';
                 $kanban[$col][$idx]['acteur']      = $_POST['acteur'] ?? '';
                 $kanban[$col][$idx]['date_debut']  = $_POST['date_debut'] ?? '';
