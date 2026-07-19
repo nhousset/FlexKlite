@@ -56,6 +56,10 @@ function switchTab(tabId, btn) {
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
     document.getElementById(tabId).classList.add('active');
     btn.classList.add('active');
+    
+    if (tabId === 'tab-gantt') {
+        if (typeof renderGantt === 'function') renderGantt();
+    }
 }
 
 function toggleActivityPanel() {
@@ -173,6 +177,7 @@ function loadBoard() {
         .then(data => {
             boardData = data;
             renderBoard();
+            if (typeof renderGantt === 'function') renderGantt();
             
             // MASQUER LE LOADER UNE FOIS LE RENDU TERMINÉ
             const loader = document.getElementById('loading-overlay');
