@@ -265,6 +265,8 @@ function renderBoard() {
             });
             
             let extraTags = '';
+            if(task.charge_jh) extraTags += `<span class="tag" style="background:#e3f2fd; color:#0d47a1; border-color:#90caf9;">⏱️ ${task.charge_jh} JH</span>`;
+            if(task.prerequis) extraTags += `<span class="tag" style="background:#ffebee; color:#b71c1c; border-color:#ef9a9a;" title="Prérequis">🔗 ${task.prerequis}</span>`;
             if(task.code_itbm) extraTags += `<span class="tag tag-itbm">🎫 ${task.code_itbm}</span>`;
             if(task.prio) extraTags += `<span class="tag tag-prio" title="Priorité">${task.prio}</span>`;
             if(task.lots && task.lots.length > 0) extraTags += `<span class="tag" style="background:#e8f5e9; color:#006644; border-color:#b7eb8f;">📦 ${task.lots.length} Lot(s)</span>`;
@@ -651,7 +653,36 @@ function renderRecentActivity(notes) {
     });
 }
 
-function openAddTaskModal() { document.getElementById('add-task-modal').style.display = 'flex'; }
+function populatePrerequisSelect(selectId, excludeTitle = '') {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    
+    select.innerHTML = '<option value="">-- Aucun --</option>';
+    if (!boardData) return;
+    
+    let allTasks = [];
+    Object.keys(boardData).forEach(status => {
+        if (status === 'archives') return;
+        boardData[status].forEach(t => {
+            if (t.titre && t.titre !== excludeTitle) {
+                allTasks.push(t.titre);
+            }
+        });
+    });
+    
+    allTasks.sort((a, b) => a.localeCompare(b));
+    allTasks.forEach(titre => {
+        const opt = document.createElement('option');
+        opt.value = titre;
+        opt.textContent = titre;
+        select.appendChild(opt);
+    });
+}
+
+function openAddTaskModal() { 
+    populatePrerequisSelect('add_prerequis');
+    document.getElementById('add-task-modal').style.display = 'flex'; 
+}
 function closeAddTaskModal(e) { if(e) e.stopPropagation(); document.getElementById('add-task-modal').style.display = 'none'; }
 
 function openEditTaskModal() {
@@ -674,6 +705,13 @@ function openEditTaskModal() {
     document.getElementById('edit_prio').value = task.prio || '';
     document.getElementById('edit_date_debut').value = task.date_debut || '';
     document.getElementById('edit_date_fin').value = task.date_fin || '';
+    
+    const chargeInput = document.getElementById('edit_charge_jh');
+    if (chargeInput) chargeInput.value = task.charge_jh || '';
+    
+    populatePrerequisSelect('edit_prerequis', task.titre);
+    const prerequisSelect = document.getElementById('edit_prerequis');
+    if (prerequisSelect) prerequisSelect.value = task.prerequis || '';
 
     document.getElementById('edit-task-modal').style.display = 'flex';
 }
@@ -701,6 +739,20 @@ function openHistoryModal(task, column, index) {
         document.getElementById('modal-itbm-container').style.display = 'block';
     } else {
         document.getElementById('modal-itbm-container').style.display = 'none';
+    }
+    
+    if (task.charge_jh) {
+        document.getElementById('modal-charge').innerText = `${task.charge_jh} JH`;
+        document.getElementById('modal-charge-container').style.display = 'block';
+    } else {
+        document.getElementById('modal-charge-container').style.display = 'none';
+    }
+    
+    if (task.prerequis) {
+        document.getElementById('modal-prerequis').innerText = task.prerequis;
+        document.getElementById('modal-prerequis-container').style.display = 'block';
+    } else {
+        document.getElementById('modal-prerequis-container').style.display = 'none';
     }
     
     const attContainer = document.getElementById('modal-attachments-container');
@@ -848,6 +900,20 @@ function openAddNotePanel() {
         document.getElementById('panel-dates-container').style.display = 'block';
     } else {
         document.getElementById('panel-dates-container').style.display = 'none';
+    }
+    
+    if (task.charge_jh) {
+        document.getElementById('panel-charge').innerText = `${task.charge_jh} JH`;
+        document.getElementById('panel-charge-container').style.display = 'block';
+    } else {
+        document.getElementById('panel-charge-container').style.display = 'none';
+    }
+    
+    if (task.prerequis) {
+        document.getElementById('panel-prerequis').innerText = task.prerequis;
+        document.getElementById('panel-prerequis-container').style.display = 'block';
+    } else {
+        document.getElementById('panel-prerequis-container').style.display = 'none';
     }
 
     if (window.IS_LOGGED_IN) {
