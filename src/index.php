@@ -37,6 +37,9 @@ $compilation_date = date("d/m/Y H:i", filemtime(__FILE__));
     <link rel="stylesheet" href="style.css?<?= time() ?>">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <!-- Frappe Gantt -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.js"></script>
     
     <!-- Injection du statut de connexion et des couleurs de projets pour le JavaScript -->
     <script>
@@ -81,6 +84,7 @@ $compilation_date = date("d/m/Y H:i", filemtime(__FILE__));
                 <div style="display: flex; gap: 15px;">
                     <button class="tab-btn active" onclick="switchTab('tab-kanban', this)">🗂️ Kanban</button>
                     <button class="tab-btn" onclick="switchTab('tab-list', this)">📋 Liste</button>
+                    <button class="tab-btn" onclick="switchTab('tab-gantt', this)">📅 Gantt</button>
                     <button class="tab-btn" onclick="switchTab('tab-kpi', this)">📊 Tableau de Bord</button>
                     <button class="tab-btn" onclick="switchTab('tab-archives', this)">🗄️ Archives</button>
                 </div>
@@ -136,6 +140,7 @@ $compilation_date = date("d/m/Y H:i", filemtime(__FILE__));
             <?php 
             include 'kanban.php';
             include 'liste.php';
+            include 'gantt.php';
             include 'kpi.php';
             include 'archives.php';
             ?>
