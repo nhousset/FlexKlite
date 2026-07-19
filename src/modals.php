@@ -74,6 +74,16 @@
                     <label>Échéance</label>
                     <input type="date" name="date_fin">
                 </div>
+                <div class="form-group">
+                    <label>Charge (JH)</label>
+                    <input type="number" name="charge_jh" id="add_charge_jh" step="0.5" min="0" placeholder="Ex: 1.5">
+                </div>
+                <div class="form-group">
+                    <label>Tâche Prérequis</label>
+                    <select name="prerequis" id="add_prerequis">
+                        <option value="">-- Aucun --</option>
+                    </select>
+                </div>
                 <div class="form-group full-width">
                     <label>Note de suivi initiale (Optionnelle)</label>
                     <textarea name="note_initiale" rows="3" placeholder="Contexte initial..."></textarea>
@@ -166,6 +176,16 @@
                     <label>Échéance</label>
                     <input type="date" name="date_fin" id="edit_date_fin">
                 </div>
+                <div class="form-group">
+                    <label>Charge (JH)</label>
+                    <input type="number" name="charge_jh" id="edit_charge_jh" step="0.5" min="0" placeholder="Ex: 1.5">
+                </div>
+                <div class="form-group">
+                    <label>Tâche Prérequis</label>
+                    <select name="prerequis" id="edit_prerequis">
+                        <option value="">-- Aucun --</option>
+                    </select>
+                </div>
             </div>
             <div style="text-align: right; border-top: 1px solid #dfe1e6; padding-top: 20px;">
                 <button type="button" class="btn" style="background: #ebecf0; color: #42526e; margin-right: 10px;" onclick="closeEditTaskModal(event)">Annuler</button>
@@ -207,6 +227,8 @@
             <div id="modal-code-projet-container" style="display:none;">Code Projet : <strong id="modal-code-projet"></strong></div>
             <div id="modal-itbm-container" style="display:none;">ITBM : <strong id="modal-itbm"></strong></div>
             <div>Acteur : <strong id="modal-acteur"></strong></div>
+            <div id="modal-charge-container" style="display:none;">Charge : <strong id="modal-charge"></strong></div>
+            <div id="modal-prerequis-container" style="display:none;">Prérequis : <strong id="modal-prerequis"></strong></div>
         </div>
 
         <!-- ZONE DES PIÈCES JOINTES EN MODE LECTURE SEULE -->
@@ -241,6 +263,8 @@
         <div id="panel-itbm-container" style="display:none;">ITBM : <strong id="panel-itbm"></strong></div>
         <div>Acteur : <strong id="panel-acteur"></strong></div>
         <div id="panel-dates-container" style="display:none;">Dates : <strong id="panel-dates"></strong></div>
+        <div id="panel-charge-container" style="display:none;">Charge : <strong id="panel-charge"></strong></div>
+        <div id="panel-prerequis-container" style="display:none;">Prérequis : <strong id="panel-prerequis"></strong></div>
     </div>
     
     <h4 style="margin-bottom: 10px; font-size:15px; color: #172b4d;">Lots / Sous-tâches :</h4>
