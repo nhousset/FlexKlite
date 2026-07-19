@@ -197,6 +197,24 @@ switch ($action) {
         echo json_encode(['success' => true]);
         break;
 
+    case 'update_task_dates':
+        $data = json_decode(file_get_contents('php://input'), true);
+        $col = $data['column'] ?? '';
+        $idx = (int)($data['index'] ?? -1);
+        $start = $data['start'] ?? '';
+        $end = $data['end'] ?? '';
+        
+        if ($col !== '' && $idx !== -1 && isset($kanban[$col][$idx])) {
+            $kanban[$col][$idx]['date_debut'] = $start;
+            $kanban[$col][$idx]['date_fin'] = $end;
+            $kanban[$col][$idx]['maj'] = date('d/m');
+            write_db($db_file, $kanban);
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false, 'error' => 'Tâche introuvable.']);
+        }
+        break;
+
     case 'add_task':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $new_task = [
