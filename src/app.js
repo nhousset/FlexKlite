@@ -1186,3 +1186,127 @@ if (document.readyState === 'loading') {
 } else {
     initApp();
 }
+
+// --- GANTT VIEW LOGIC ---
+let ganttInstance = null;
+
+function renderGantt() {
+    if (!boardData) return;
+    
+    // Convert boardData to Frappe Gantt tasks
+    const ganttTasks = [];
+    
+    const statusMap = {
+        'todo': 0,
+        'in_progress': 50,
+        'blocked': 20,
+        'done': 100
+    };
+
+    Object.keys(boardData).forEach(status => {
+        if (status === 'archives') return;
+        
+        boardData[status].forEach((task, idx) => {
+            // Gantt requires dates
+            let start = task.date_debut;
+            let end = task.date_fin;
+            
+            if (!start && !end) {
+                // If both are missing, use today
+                const today = new Date().toISOString().split('T')[0];
+                start = today;
+                end = today;
+            } else if (!start) {
+                start = end; // Fallback
+            } else if (!end) {
+                end = start; // Fallback
+            }
+            
+            const dependencies = task.prerequis ? task.prerequis : '';
+            const progress = statusMap[status] !== undefined ? statusMap[status] : 0;
+            
+            ganttTasks.push({
+                id: task.titre, // Using title as ID since it's unique enough for dependencies here
+                name: task.titre,
+                start: start,
+                end: end,
+                progress: progress,
+                dependencies: dependencies,
+                custom_class: task.projet ? 'gantt-proj-' + task.projet.replace(/[^a-zA-Z0-9]/g, '') : '',
+                // Save meta info for updating
+                meta: { column: status, index: idx }
+            });
+        });
+    });
+    
+    // Don't render if no tasks
+    if (ganttTasks.length === 0) {
+        document.getElementById('gantt').innerHTML = '<text x="10" y="20" fill="#172b4d">Aucune tâche disponible pour le Gantt.</text>';
+        return;
+    }
+
+    document.getElementById('gantt').innerHTML = ''; // Clear SVG
+    
+    ganttInstance = new Gantt("#gantt", ganttTasks, {
+        on_date_change: function(task, start, end) {
+            // Convert back to YYYY-MM-DD
+            const startStr = start.toISOString().split('T')[0];
+            const endStr = end.toISOString().split('T')[0];
+            
+            if (!window.IS_LOGGED_IN) {
+                showLoginRequiredModal();
+                loadBoard(); // Revert visual change
+                return;
+            }
+            
+            fetch('api.php?action=update_task_dates', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    column: task.meta.column,
+                    index: task.meta.index,
+                    start: startStr,
+                    end: endStr
+                })
+            }).then(res => res.json()).then(resData => {
+                if (!resData.success) {
+                    alert(resData.error || 'Erreur lors de la mise à jour des dates.');
+                    loadBoard();
+                } else {
+                    loadBoard(); // Reload to sync Kanban and Gantt
+                }
+            });
+        },
+        view_mode: 'Week',
+        language: 'fr'
+    });
+    
+    // Force active button
+    document.querySelectorAll('.gantt-view-modes button').forEach(btn => {
+        btn.style.background = '#ebecf0';
+        btn.style.color = '#42526e';
+    });
+    const weekBtn = document.getElementById('btn-gantt-week');
+    if (weekBtn) {
+        weekBtn.style.background = 'var(--primary)';
+        weekBtn.style.color = 'white';
+    }
+}
+
+function changeGanttView(mode) {
+    if (ganttInstance) {
+        ganttInstance.change_view_mode(mode);
+        
+        document.querySelectorAll('.gantt-view-modes button').forEach(btn => {
+            btn.style.background = '#ebecf0';
+            btn.style.color = '#42526e';
+        });
+        
+        const btnId = 'btn-gantt-' + mode.toLowerCase();
+        const activeBtn = document.getElementById(btnId);
+        if (activeBtn) {
+            activeBtn.style.background = 'var(--primary)';
+            activeBtn.style.color = 'white';
+        }
+    }
+}
