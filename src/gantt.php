@@ -20,7 +20,7 @@
     .gantt .bar-wrapper { cursor: pointer; }
     .gantt .bar-progress { fill: var(--primary); }
     .gantt .bar { fill: #b3d4ff; stroke: var(--primary); stroke-width: 1; }
-    .gantt .bar-label { font-family: "Calibri", "Segoe UI", sans-serif; font-size: 12px; font-weight: bold; fill: #172b4d; }
+    .gantt .bar-label { font-family: "Calibri", "Segoe UI", sans-serif; font-size: 12px; font-weight: normal; fill: #172b4d; }
     .gantt .grid-header { fill: #f4f5f7; }
     .gantt .grid-row { fill: #ffffff; }
     .gantt .grid-row:nth-child(even) { fill: #fafbfc; }
