@@ -210,6 +210,8 @@ switch ($action) {
                 'acteur'      => $_POST['acteur'] ?? '',
                 'date_debut'  => $_POST['date_debut'] ?? '',
                 'date_fin'    => $_POST['date_fin'] ?? '',
+                'charge_jh'   => isset($_POST['charge_jh']) && $_POST['charge_jh'] !== '' ? (float)$_POST['charge_jh'] : null,
+                'prerequis'   => $_POST['prerequis'] ?? '',
                 'maj'         => date('d/m'),
                 'notes'       => [],
                 'lots'        => [], 
@@ -248,6 +250,8 @@ switch ($action) {
                 $kanban[$col][$idx]['acteur']      = $_POST['acteur'] ?? '';
                 $kanban[$col][$idx]['date_debut']  = $_POST['date_debut'] ?? '';
                 $kanban[$col][$idx]['date_fin']    = $_POST['date_fin'] ?? '';
+                $kanban[$col][$idx]['charge_jh']   = isset($_POST['charge_jh']) && $_POST['charge_jh'] !== '' ? (float)$_POST['charge_jh'] : null;
+                $kanban[$col][$idx]['prerequis']   = $_POST['prerequis'] ?? '';
                 $kanban[$col][$idx]['maj']         = date('d/m');
                 
                 $kanban[$col][$idx]['lots']        = $kanban[$col][$idx]['lots'] ?? [];
