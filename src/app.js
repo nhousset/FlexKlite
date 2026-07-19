@@ -1203,6 +1203,27 @@ function renderGantt() {
         'done': 100
     };
 
+    // Injection dynamique des couleurs de projets pour le Gantt
+    let ganttStyle = document.getElementById('dynamic-gantt-styles');
+    if (!ganttStyle) {
+        ganttStyle = document.createElement('style');
+        ganttStyle.id = 'dynamic-gantt-styles';
+        document.head.appendChild(ganttStyle);
+    }
+    let cssRules = '';
+    if (window.PROJECT_COLORS) {
+        Object.keys(window.PROJECT_COLORS).forEach(proj => {
+            const safeName = proj.replace(/[^a-zA-Z0-9]/g, '');
+            const color = window.PROJECT_COLORS[proj];
+            if (color) {
+                const paleColor = typeof hexToPale === 'function' ? hexToPale(color) : '#b3d4ff';
+                cssRules += `.gantt .bar-wrapper.gantt-proj-${safeName} .bar { fill: ${paleColor} !important; stroke: ${color} !important; }\n`;
+                cssRules += `.gantt .bar-wrapper.gantt-proj-${safeName} .bar-progress { fill: ${color} !important; }\n`;
+            }
+        });
+    }
+    ganttStyle.innerHTML = cssRules;
+
     Object.keys(boardData).forEach(status => {
         if (status === 'archives') return;
         
