@@ -8,6 +8,10 @@ if (!$is_logged_in) {
 $settings_file = __DIR__ . '/db/settings.json';
 $settings = file_exists($settings_file) ? json_decode(file_get_contents($settings_file), true) : [];
 $app_theme = $settings['app_theme'] ?? 'classic';
+
+$about_file = __DIR__ . '/db/about.json';
+$about_data = file_exists($about_file) ? json_decode(file_get_contents($about_file), true) : [];
+$compilation_date = $about_data['build_date'] ?? '20/07/2026 08:20';
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -40,7 +44,7 @@ $app_theme = $settings['app_theme'] ?? 'classic';
         <button class="admin-tab-btn" onclick="switchAdminTab('panel-history', this)">📜 Journal des Actions</button>
         
         <div style="margin-left: auto; padding-right: 15px;">
-            <img src="img/logo.png?t=<?= time() ?>" alt="Logo FlexKlite" style="height: 35px; object-fit: contain; vertical-align: middle;">
+            <img src="img/logo.png?t=<?= time() ?>" alt="Logo FlexKlite" style="height: 60px; object-fit: contain; vertical-align: middle;">
         </div>
     </div>
 
@@ -714,5 +718,11 @@ $app_theme = $settings['app_theme'] ?? 'classic';
                 });
         }
     </script>
+    
+    <div style="text-align: center; margin-top: 40px; padding-bottom: 20px; font-size: 13px; color: #888;">
+        &copy; <?= htmlspecialchars($about_data['author'] ?? 'Nicolas Housset') ?> | 
+        <a href="<?= htmlspecialchars($about_data['github'] ?? '') ?>" target="_blank" style="color: #0052cc; text-decoration: none;">GitHub</a> | 
+        Version : <?= $compilation_date ?>
+    </div>
 </body>
 </html>
