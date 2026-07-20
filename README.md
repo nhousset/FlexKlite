@@ -1,5 +1,3 @@
-# Présentation du projet FlexKlite
-
 <div align="center">
   <img src="src/img/logo.png" alt="Logo FlexKlite" height="220">
 </div>
