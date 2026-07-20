@@ -580,3 +580,14 @@ body {
 .admin-sub-tab-btn.active { background: white; color: #0052cc; border: 2px solid #dfe1e6; border-bottom: 2px solid white; box-shadow: 0 -2px 10px rgba(0,0,0,0.02); }
 .admin-sub-content { display: none; }
 .admin-sub-content.active { display: block; animation: fadeIn 0.3s ease; }
+/* Styles pour la page d'Aide (Markdown) */
+.markdown-body { color: var(--text-main); font-size: 15px; line-height: 1.6; }
+.markdown-body h1, .markdown-body h2, .markdown-body h3 { color: var(--primary); margin-top: 1.5em; margin-bottom: 0.5em; border-bottom: 1px solid var(--border-color); padding-bottom: 5px; }
+.markdown-body h1 { font-size: 2em; border-bottom: 2px solid var(--primary); }
+.markdown-body h2 { font-size: 1.5em; }
+.markdown-body h3 { font-size: 1.25em; border: none; }
+.markdown-body p, .markdown-body ul, .markdown-body ol { margin-bottom: 1em; }
+.markdown-body img { max-width: 100%; border-radius: 8px; border: 1px solid var(--border-color); display: block; margin: 15px auto; box-shadow: var(--shadow-main); }
+.markdown-body blockquote { margin: 1.5em 0; padding: 10px 20px; color: #5e6c84; border-left: 4px solid var(--primary); background: var(--column-bg); border-radius: 4px; }
+.markdown-body code { background: var(--column-bg); padding: 2px 5px; border-radius: 4px; font-family: monospace; font-size: 0.9em; border: 1px solid var(--border-color); }
+.markdown-body hr { height: 2px; border: none; background-color: var(--border-color); margin: 30px 0; }
