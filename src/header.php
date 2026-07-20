@@ -34,7 +34,7 @@ if (!empty($settings['app_logo']) && file_exists(__DIR__ . '/' . $settings['app_
                     ⚙️ Menu <span style="font-size: 10px;">▼</span>
                 </button>
                 <div class="dropdown-menu" id="header-dropdown">
-                    <a href="admin.php" class="dropdown-item">⚙️ Paramètres globaux</a>
+                    <a href="admin.php" class="dropdown-item">⚙️ Administration</a>
                     <a href="#" class="dropdown-item" onclick="openAboutModal(event)">ℹ️ À propos</a>
                     <div class="dropdown-divider"></div>
                     <a href="logout.php" class="dropdown-item text-danger">🚪 Se déconnecter</a>
