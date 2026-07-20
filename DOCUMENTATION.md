@@ -1,4 +1,4 @@
-[DOCUMENTATION.md](https://github.com/user-attachments/files/30188859/DOCUMENTATION.md)
+[DOCUMENTATION.md](https://github.com/user-attachments/files/30189665/DOCUMENTATION.md)
 # 📘 Documentation Fonctionnelle - FlexKlite
 
 <div align="center">
@@ -119,7 +119,7 @@ Accessible depuis le menu supérieur (icône engrenage) :
 - **Personnalisation & Thèmes :** Sélectionnez l'apparence globale de l'application parmi 4 thèmes complets (Classique, Sombre, Moderne, Architect).
 - **Listes déroulantes personnalisables :** Ajoutez ou modifiez vos Acteurs, Projets, Niveaux de priorité et Types de réunion. Les couleurs des projets sont également personnalisables.
 - **Sécurité :** Définition du mot de passe Admin, et possibilité de forcer un mot de passe même pour la simple lecture de l'application (mode privé).
-- **Maintenance :** Outils pour exporter la base de données brute (`kanban.json`) en sauvegarde, et importer un fichier ZIP pour restaurer un environnement.
+- **Maintenance (Sauvegarde & Restauration) :** Un système complet de sauvegarde persistante. En un clic, l'application génère une archive ZIP complète (base de données JSON, paramètres et pièces jointes) qu'elle stocke en sécurité sur le serveur. Ces archives sont listées dans un tableau d'historique dédié. Vous pouvez à tout moment **télécharger** une ancienne sauvegarde, ou lancer une **restauration en 1-clic** (après confirmation) pour écraser les données actuelles et revenir à l'état exact de l'archive choisie. Il est aussi possible d'importer un ancien fichier ZIP manuellement.
 
 ---
 
