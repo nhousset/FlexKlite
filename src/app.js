@@ -855,8 +855,17 @@ if (archiveBtn) {
     });
 }
 
+function closeArchiveConfirmModal(e) {
+    if(e) e.stopPropagation();
+    document.getElementById('archive-confirm-modal').style.display = 'none';
+}
+
 function archiveTask() {
-    if (!confirm("Voulez-vous vraiment archiver cette tâche ? Elle sera déplacée vers l'onglet Archives.")) return;
+    document.getElementById('archive-confirm-modal').style.display = 'flex';
+}
+
+function confirmArchiveTask() {
+    closeArchiveConfirmModal();
     fetch('api.php?action=archive_task', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
