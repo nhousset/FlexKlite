@@ -367,3 +367,22 @@
     </div>
 </div>
 
+<!-- Modale de Confirmation d'Archivage -->
+<div id="archive-confirm-modal" class="modal-overlay" onclick="closeArchiveConfirmModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 450px; text-align: center; padding: 30px;">
+        <div class="close-panel" onclick="closeArchiveConfirmModal(event)" style="position: absolute; top: 15px; right: 15px;">×</div>
+        
+        <div style="font-size: 40px; margin-bottom: 15px;">🗄️</div>
+        <h2 style="color: var(--text-main); margin-top: 0; margin-bottom: 15px; font-size: 20px;">
+            Archiver la tâche
+        </h2>
+        <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 25px; line-height: 1.5;">
+            Voulez-vous vraiment archiver cette tâche ? Elle sera déplacée vers l'onglet Archives.
+        </p>
+        
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <button class="btn" style="background: #ebecf0; color: #42526e; padding: 10px 20px;" onclick="closeArchiveConfirmModal(event)">Annuler</button>
+            <button class="btn" style="background: var(--primary); padding: 10px 20px; color: white;" onclick="confirmArchiveTask()">Archiver</button>
+        </div>
+    </div>
+</div>
