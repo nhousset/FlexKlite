@@ -292,7 +292,7 @@ $compilation_date = $about_data['build_date'] ?? '20/07/2026 08:20';
                 <h3 style="margin:0; color:#091e42; font-size:18px;">Restaurer une sauvegarde</h3>
                 <p style="color:var(--text-muted); font-size:14px; margin:0 0 10px 0; max-width:280px;">Importez une archive de sauvegarde précédemment exportée pour restaurer l'état complet.</p>
                 
-                <form action="api.php?action=import_backup_zip" method="POST" enctype="multipart/form-data" style="width:100%;" onsubmit="return confirm('Êtes-vous sûr de vouloir restaurer cette sauvegarde ? Cela écrasera toutes les données actuelles.');">
+                <form action="api.php?action=import_backup_zip" method="POST" enctype="multipart/form-data" style="width:100%;" onsubmit="showConfirmRestoreModal(event, this);">
                     <div class="file-upload-wrapper">
                         <span id="file-upload-label" style="font-weight:600; font-size:14px; color:#5e6c84;">📁 Cliquez ou glissez votre archive ZIP ici</span>
                         <input type="file" name="backup_zip" accept=".zip" required onchange="updateUploadLabel(this)">
@@ -340,7 +340,7 @@ $compilation_date = $about_data['build_date'] ?? '20/07/2026 08:20';
                             <td style="padding:10px 8px; border-bottom:1px solid #f4f5f7; font-size:14px;"><?= date('d/m/Y H:i', $b['date']) ?></td>
                             <td style="padding:10px 8px; border-bottom:1px solid #f4f5f7; font-size:14px;"><?= round($b['size'] / 1024, 1) ?> Ko</td>
                             <td style="padding:10px 8px; border-bottom:1px solid #f4f5f7; text-align:right;">
-                                <a href="api.php?action=restore_server_backup&filename=<?= urlencode($b['name']) ?>" class="btn" style="background:#00875a; padding:6px 12px; font-size:13px; text-decoration:none; display:inline-block;" onclick="return confirm('Êtes-vous sûr de vouloir restaurer la sauvegarde <?= htmlspecialchars($b['name']) ?> ? Cela remplacera vos données actuelles.')">Restaurer</a>
+                                <a href="api.php?action=restore_server_backup&filename=<?= urlencode($b['name']) ?>" class="btn" style="background:#00875a; padding:6px 12px; font-size:13px; text-decoration:none; display:inline-block;" onclick="showConfirmRestoreModal(event, this);">Restaurer</a>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -792,7 +792,47 @@ $compilation_date = $about_data['build_date'] ?? '20/07/2026 08:20';
                     });
                 });
         }
+        let currentRestoreForm = null;
+        let currentRestoreUrl = null;
+
+        function showConfirmRestoreModal(event, element) {
+            event.preventDefault();
+            document.getElementById('confirm-restore-modal').style.display = 'flex';
+            
+            if (element.tagName && element.tagName.toLowerCase() === 'form') {
+                currentRestoreForm = element;
+                currentRestoreUrl = null;
+            } else if (element.tagName && element.tagName.toLowerCase() === 'a') {
+                currentRestoreUrl = element.href;
+                currentRestoreForm = null;
+            }
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirm-restore-modal').style.display = 'none';
+            currentRestoreForm = null;
+            currentRestoreUrl = null;
+        }
+
+        document.getElementById('btn-confirm-restore').addEventListener('click', function() {
+            if (currentRestoreForm) {
+                currentRestoreForm.submit();
+            } else if (currentRestoreUrl) {
+                window.location.href = currentRestoreUrl;
+            }
+        });
     </script>
+    
+    <div class="modal-overlay" id="confirm-restore-modal" style="display:none; z-index:9999;">
+        <div class="modal" style="max-width: 400px; text-align: center;">
+            <h2 style="margin-top: 0; color: #091e42;">Confirmer la restauration</h2>
+            <p style="color: #5e6c84; font-size: 14px; margin-bottom: 25px;">Êtes-vous sûr de vouloir restaurer cette sauvegarde ? Cela écrasera <b>toutes</b> les données actuelles.</p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button onclick="closeConfirmModal()" class="btn" style="background:#ebecf0; color:#42526e; border:none; padding:10px 20px;">Annuler</button>
+                <button id="btn-confirm-restore" class="btn" style="background:#00875a; border:none; padding:10px 20px;">Oui, restaurer</button>
+            </div>
+        </div>
+    </div>
     
     <div style="text-align: center; margin-top: 40px; padding-bottom: 20px; font-size: 13px; color: #888;">
         &copy; <?= htmlspecialchars($about_data['author'] ?? 'Nicolas Housset') ?> | 
