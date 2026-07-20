@@ -35,6 +35,8 @@ $compilation_date = $about_data['build_date'] ?? '20/07/2026 08:20';
             <div class="alert-banner alert-success">✅ Restauration réussie ! Les fichiers JSON ont été importés et validés avec succès.</div>
         <?php elseif($_GET['status'] === 'import_error'): ?>
             <div class="alert-banner alert-danger">❌ Erreur lors de la restauration. Assurez-vous que l'archive ZIP contient des fichiers JSON valides.</div>
+        <?php elseif($_GET['status'] === 'backup_ok'): ?>
+            <div class="alert-banner alert-success">📦 Sauvegarde générée avec succès ! Elle a été ajoutée à la liste ci-dessous.</div>
         <?php endif; ?>
     <?php endif; ?>
 
@@ -283,8 +285,8 @@ $compilation_date = $about_data['build_date'] ?? '20/07/2026 08:20';
             <div class="backup-card">
                 <div style="background: #e3f2fd; color: #0052cc; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px;">📦</div>
                 <h3 style="margin:0; color:#091e42; font-size:18px;">Exporter la base de données</h3>
-                <p style="color:var(--text-muted); font-size:14px; margin:0 0 10px 0; max-width:280px;">Générez et téléchargez instantanément une archive ZIP contenant vos tâches, vos notes et vos paramètres.</p>
-                <a href="api.php?action=export_backup_zip" class="btn" style="text-decoration:none; background:#0052cc; padding:12px 24px;">Créer un Backup (.ZIP)</a>
+                <p style="color:var(--text-muted); font-size:14px; margin:0 0 10px 0; max-width:280px;">Générez une archive ZIP contenant vos tâches, vos notes et vos paramètres, et ajoutez-la à la liste de vos sauvegardes.</p>
+                <a href="api.php?action=export_backup_zip" class="btn" style="text-decoration:none; background:#0052cc; padding:12px 24px;">Générer une sauvegarde</a>
             </div>
             
             <div class="backup-card">
@@ -340,6 +342,7 @@ $compilation_date = $about_data['build_date'] ?? '20/07/2026 08:20';
                             <td style="padding:10px 8px; border-bottom:1px solid #f4f5f7; font-size:14px;"><?= date('d/m/Y H:i', $b['date']) ?></td>
                             <td style="padding:10px 8px; border-bottom:1px solid #f4f5f7; font-size:14px;"><?= round($b['size'] / 1024, 1) ?> Ko</td>
                             <td style="padding:10px 8px; border-bottom:1px solid #f4f5f7; text-align:right;">
+                                <a href="api.php?action=download_server_backup&filename=<?= urlencode($b['name']) ?>" class="btn" style="background:#0052cc; padding:6px 12px; font-size:13px; text-decoration:none; display:inline-block; margin-right:5px;">Télécharger</a>
                                 <a href="api.php?action=restore_server_backup&filename=<?= urlencode($b['name']) ?>" class="btn" style="background:#00875a; padding:6px 12px; font-size:13px; text-decoration:none; display:inline-block;" onclick="showConfirmRestoreModal(event, this);">Restaurer</a>
                             </td>
                         </tr>
