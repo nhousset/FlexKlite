@@ -546,14 +546,9 @@ switch ($action) {
                 mkdir($backup_dir, 0755, true);
             }
             copy($tmp_file, $backup_dir . '/' . $backup_name);
-            
-            if (ob_get_level()) { ob_end_clean(); }
-            
-            header('Content-Type: application/zip');
-            header('Content-Disposition: attachment; filename="'.$backup_name.'"');
-            header('Content-Length: ' . filesize($tmp_file));
-            readfile($tmp_file);
             unlink($tmp_file);
+            
+            header('Location: admin.php?status=backup_ok');
             exit;
         }
         echo "Erreur critique de compression.";
@@ -673,6 +668,22 @@ switch ($action) {
                         exit;
                     }
                 }
+            }
+        }
+        header('Location: admin.php?status=import_error');
+        exit;
+
+    case 'download_server_backup':
+        if (isset($_GET['filename'])) {
+            $filename = basename($_GET['filename']);
+            $backup_file = $uploads_dir . '/backup___/' . $filename;
+            if (file_exists($backup_file)) {
+                if (ob_get_level()) { ob_end_clean(); }
+                header('Content-Type: application/zip');
+                header('Content-Disposition: attachment; filename="'.$filename.'"');
+                header('Content-Length: ' . filesize($backup_file));
+                readfile($backup_file);
+                exit;
             }
         }
         header('Location: admin.php?status=import_error');
