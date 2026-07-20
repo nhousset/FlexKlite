@@ -1255,7 +1255,7 @@ function renderGantt() {
                 dependencies: dependencies,
                 custom_class: task.projet ? 'gantt-proj-' + task.projet.replace(/[^a-zA-Z0-9]/g, '') : '',
                 // Save meta info for updating
-                meta: { column: status, index: idx }
+                meta: { column: status, index: idx, charge_jh: task.charge_jh }
             });
         });
     });
@@ -1297,6 +1297,26 @@ function renderGantt() {
                     loadBoard(); // Reload to sync Kanban and Gantt
                 }
             });
+        },
+        on_click: function (task) {
+            if (!window.IS_LOGGED_IN) {
+                showLoginRequiredModal();
+                return;
+            }
+            const realTask = boardData[task.meta.column][task.meta.index];
+            currentTaskRef = { column: task.meta.column, index: task.meta.index, task: realTask };
+            openEditTaskModal();
+        },
+        custom_popup_html: function(task) {
+            return `
+                <div class="details-container" style="padding: 12px; font-family: 'Calibri', sans-serif; min-width: 160px;">
+                    <h5 style="margin: 0 0 8px 0; font-size: 14px; color: #172b4d;">${task.name}</h5>
+                    <div style="margin: 0 0 4px 0; font-size: 12px; color: #0d47a1; background: #e3f2fd; padding: 2px 6px; border-radius: 4px; display: inline-block;">
+                        ⏱️ ${task.meta.charge_jh || 0} JH
+                    </div>
+                    <p style="margin: 8px 0 0 0; font-size: 11px; color: #888; font-style: italic;">💡 Cliquez pour éditer</p>
+                </div>
+            `;
         },
         view_mode: 'Week',
         language: 'fr'
