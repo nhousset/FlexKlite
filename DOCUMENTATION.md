@@ -1,4 +1,4 @@
-[DOCUMENTATION.md](https://github.com/user-attachments/files/30187717/DOCUMENTATION.md)
+[DOCUMENTATION.md](https://github.com/user-attachments/files/30187845/DOCUMENTATION.md)
 # 📘 Documentation Fonctionnelle - FlexKlite
 
 <div align="center">
@@ -37,17 +37,29 @@ C'est le tableau de bord opérationnel quotidien.
 
 ### 2. 📋 Vue Liste
 Une vue structurée pensée pour ressembler à un **tableau Excel**.
+
+<div align="center">
+  <img src="src/img/help_vue_liste.png" alt="Vue Liste" style="max-width: 100%; border-radius: 8px; margin: 15px 0; border: 1px solid #dfe1e6;">
+</div>
 - Affichage brut des données sans fioritures ni icônes parasites.
 - Les 5 dernières notes de l'historique d'une tâche y sont directement intégrées et lisibles d'un coup d'œil.
 - **Export Excel :** Un bouton permet d'exporter la vue filtrée instantanément au format `.xlsx`.
 
 ### 3. 📊 Tableau de Bord (KPI)
 Analyse en temps réel de votre activité.
+
+<div align="center">
+  <img src="src/img/help_kpi.png" alt="Tableau de Bord KPI" style="max-width: 100%; border-radius: 8px; margin: 15px 0; border: 1px solid #dfe1e6;">
+</div>
 - Volume total de tâches.
 - Répartition par statut, par acteur et par priorité pour équilibrer la charge de travail.
 
 ### 4. 🗄️ Archives
 Le stockage à froid de l'application.
+
+<div align="center">
+  <img src="src/img/help_archive.png" alt="Vue Archives" style="max-width: 100%; border-radius: 8px; margin: 15px 0; border: 1px solid #dfe1e6;">
+</div>
 - Les tâches archivées sortent du cycle actif (Kanban/Liste) pour ne pas polluer l'espace de travail.
 - Elles restent consultables via le même affichage "Excel" avec un accès total à leur historique et à leurs pièces jointes.
 
