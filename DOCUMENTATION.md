@@ -1,4 +1,4 @@
-[DOCUMENTATION.md](https://github.com/user-attachments/files/30188295/DOCUMENTATION.md)
+[DOCUMENTATION.md](https://github.com/user-attachments/files/30188386/DOCUMENTATION.md)
 # 📘 Documentation Fonctionnelle - FlexKlite
 
 <div align="center">
@@ -86,6 +86,11 @@ Une barre de filtre est omniprésente en haut de l'écran :
 
 ### 🖱️ Le Menu Contextuel Rapide
 Un simple **clic-droit** sur n'importe quelle carte ou ligne de tableau ouvre un menu contextuel :
+
+<div align="center">
+  <img src="src/img/help_menu_contextuel.png" alt="Menu Contextuel" style="max-width: 100%; border-radius: 8px; margin: 15px 0; border: 1px solid #dfe1e6;">
+</div>
+
 - **➕ Ajouter un point de suivi :** Ouvre le panneau pour saisir immédiatement une note.
 - **✏️ Modifier les paramètres :** Ouvre la modale d'édition globale de la tâche.
 - **🗄️ Archiver la tâche :** Bascule la tâche dans l'onglet Archives.
