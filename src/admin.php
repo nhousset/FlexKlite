@@ -292,7 +292,7 @@ $compilation_date = $about_data['build_date'] ?? '20/07/2026 08:20';
                 <h3 style="margin:0; color:#091e42; font-size:18px;">Restaurer une sauvegarde</h3>
                 <p style="color:var(--text-muted); font-size:14px; margin:0 0 10px 0; max-width:280px;">Importez une archive de sauvegarde précédemment exportée pour restaurer l'état complet.</p>
                 
-                <form action="api.php?action=import_backup_zip" method="POST" enctype="multipart/form-data" style="width:100%;">
+                <form action="api.php?action=import_backup_zip" method="POST" enctype="multipart/form-data" style="width:100%;" onsubmit="return confirm('Êtes-vous sûr de vouloir restaurer cette sauvegarde ? Cela écrasera toutes les données actuelles.');">
                     <div class="file-upload-wrapper">
                         <span id="file-upload-label" style="font-weight:600; font-size:14px; color:#5e6c84;">📁 Cliquez ou glissez votre archive ZIP ici</span>
                         <input type="file" name="backup_zip" accept=".zip" required onchange="updateUploadLabel(this)">
@@ -301,6 +301,54 @@ $compilation_date = $about_data['build_date'] ?? '20/07/2026 08:20';
                 </form>
             </div>
         </div>
+
+        <?php
+        $backup_dir_path = __DIR__ . '/../uploads/backup___';
+        $backups = [];
+        if (is_dir($backup_dir_path)) {
+            $files = scandir($backup_dir_path);
+            foreach ($files as $f) {
+                if (substr($f, -4) === '.zip') {
+                    $backups[] = [
+                        'name' => $f,
+                        'date' => filemtime($backup_dir_path . '/' . $f),
+                        'size' => filesize($backup_dir_path . '/' . $f)
+                    ];
+                }
+            }
+            usort($backups, function($a, $b) { return $b['date'] - $a['date']; });
+        }
+        ?>
+        
+        <?php if (!empty($backups)): ?>
+        <div class="json-card" style="margin-top: 25px;">
+            <h3 style="margin:0; font-size:16px; color:#091e42; border-bottom: 1px solid #ebecf0; padding-bottom: 10px; margin-bottom: 15px;">Sauvegardes disponibles sur le serveur</h3>
+            <div style="overflow-x:auto;">
+                <table class="notes-table" style="width:100%; border-collapse:collapse;">
+                    <thead>
+                        <tr>
+                            <th style="text-align:left; padding:8px; border-bottom:1px solid #dfe1e6; color:#5e6c84; font-size:13px;">Nom du fichier</th>
+                            <th style="text-align:left; padding:8px; border-bottom:1px solid #dfe1e6; color:#5e6c84; font-size:13px;">Date</th>
+                            <th style="text-align:left; padding:8px; border-bottom:1px solid #dfe1e6; color:#5e6c84; font-size:13px;">Taille</th>
+                            <th style="text-align:right; padding:8px; border-bottom:1px solid #dfe1e6; color:#5e6c84; font-size:13px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach($backups as $b): ?>
+                        <tr>
+                            <td style="padding:10px 8px; border-bottom:1px solid #f4f5f7; font-size:14px;"><code><?= htmlspecialchars($b['name']) ?></code></td>
+                            <td style="padding:10px 8px; border-bottom:1px solid #f4f5f7; font-size:14px;"><?= date('d/m/Y H:i', $b['date']) ?></td>
+                            <td style="padding:10px 8px; border-bottom:1px solid #f4f5f7; font-size:14px;"><?= round($b['size'] / 1024, 1) ?> Ko</td>
+                            <td style="padding:10px 8px; border-bottom:1px solid #f4f5f7; text-align:right;">
+                                <a href="api.php?action=restore_server_backup&filename=<?= urlencode($b['name']) ?>" class="btn" style="background:#00875a; padding:6px 12px; font-size:13px; text-decoration:none; display:inline-block;" onclick="return confirm('Êtes-vous sûr de vouloir restaurer la sauvegarde <?= htmlspecialchars($b['name']) ?> ? Cela remplacera vos données actuelles.')">Restaurer</a>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <?php endif; ?>
     </div>
 
     <div id="panel-history" class="admin-tab-content">
