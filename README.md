@@ -1,4 +1,4 @@
-[README.md](https://github.com/user-attachments/files/30187706/README.md)
+[README.md](https://github.com/user-attachments/files/30188214/README.md)
 # Présentation du projet FlexKlite
 
 <div align="center">
@@ -39,7 +39,7 @@ Le projet est conçu pour être déployé très facilement via Docker.
 Vous pouvez lancer l'application directement avec la commande suivante en ajustant les chemins des volumes locaux (l'image `flexklite-app` doit avoir été buildée au préalable) :
 
 ```bash
-docker rm --force kanban-ihmt; docker run -d --name kanban-ihmt --restart unless-stopped -p 7011:80 -v "/home/rocky/kanban_ihmt/db:/var/www/html/db" -v "/home/rocky/kanban_ihmt/uploads/:/var/www/html/uploads" flexklite-app
+docker rm --force flexklite-app; docker run -d --name flexklite-app --restart unless-stopped -p 7011:80 -v "/chemin/absolu/vers/votre/dossier/db:/var/www/html/db" -v "/chemin/absolu/vers/votre/dossier/uploads:/var/www/html/uploads" flexklite-app
 ```
 
 > **Note :** L'application sera accessible sur le port `7011` (ex: `http://localhost:7011`).
