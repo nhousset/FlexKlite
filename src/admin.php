@@ -174,17 +174,23 @@ if (!$is_logged_in) {
             </div>
 
             <div class="admin-card">
-                <h3>Projets & Couleurs</h3>
+                <h3>Projets</h3>
                 <ul class="item-list" id="list-projets"></ul>
-                <div class="add-group" style="background: #fafbfc; padding: 15px; border-radius: 8px; border: 1px dashed #dfe1e6;">
+                <div class="add-group" id="project-form-container" style="background: #fafbfc; padding: 15px; border-radius: 8px; border: 1px dashed #dfe1e6;">
                     <label style="font-size: 13px; font-weight: 600; color: #172b4d;">1. Choisir une couleur</label>
                     <div id="palette-container" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom: 10px;"></div>
                     <input type="hidden" id="selected-project-color" value="#0052cc">
+                    <input type="hidden" id="edit-project-index" value="-1">
                     
                     <label style="font-size: 13px; font-weight: 600; color: #172b4d;">2. Nom du projet</label>
+                    <input type="text" id="input-projets" placeholder="Nouveau projet..." style="margin-bottom: 10px; width: 100%;">
+                    
+                    <label style="font-size: 13px; font-weight: 600; color: #172b4d;">3. Description (Optionnelle)</label>
+                    <textarea id="input-projet-desc" placeholder="Description courte du projet..." rows="2" style="width:100%; padding:8px; border:1px solid #dfe1e6; border-radius:4px; margin-bottom:10px; font-family: inherit; font-size: 14px;"></textarea>
+                    
                     <div style="display:flex; gap:10px;">
-                        <input type="text" id="input-projets" placeholder="Nouveau projet...">
-                        <button class="btn" onclick="addItem('projets')">Ajouter</button>
+                        <button class="btn" id="btn-save-project" onclick="saveProject()">Ajouter le projet</button>
+                        <button class="btn" id="btn-cancel-project" style="display:none; background:#ebecf0; color:#42526e;" onclick="cancelEditProject()">Annuler</button>
                     </div>
                 </div>
             </div>
@@ -400,7 +406,20 @@ if (!$is_logged_in) {
                     settingsData[category].forEach((item, index) => {
                         const li = document.createElement('li');
                         if (category === 'projets' && typeof item === 'object') {
-                            li.innerHTML = `<div><span class="project-badge" style="background-color:${item.color};"></span> ${item.name}</div> <button onclick="removeItem('${category}', ${index})" title="Supprimer">X</button>`;
+                            li.style.display = 'flex';
+                            li.style.justifyContent = 'space-between';
+                            li.style.alignItems = 'flex-start';
+                            const descHtml = item.description ? `<div style="font-size:11px; color:#5e6c84; margin-left: 20px; margin-top: 4px;">${item.description}</div>` : '';
+                            li.innerHTML = `
+                                <div style="flex-grow: 1;">
+                                    <div><span class="project-badge" style="background-color:${item.color};"></span> <span style="font-weight:bold;">${item.name}</span></div>
+                                    ${descHtml}
+                                </div> 
+                                <div style="display:flex; gap: 5px;">
+                                    <button onclick="editProject(${index})" title="Modifier" style="background:#e3f2fd; color:#0052cc;">✏️</button>
+                                    <button onclick="removeItem('${category}', ${index})" title="Supprimer">X</button>
+                                </div>
+                            `;
                         } else {
                             li.innerHTML = `${item} <button onclick="removeItem('${category}', ${index})" title="Supprimer">X</button>`;
                         }
@@ -416,20 +435,79 @@ if (!$is_logged_in) {
             
             if (!val) return;
 
-            if (category === 'projets') {
-                if (!settingsData.projets.some(p => p.name === val)) {
-                    const color = document.getElementById('selected-project-color').value;
-                    settingsData.projets.push({ name: val, color: color });
-                    input.value = '';
-                    renderLists();
-                }
-            } else {
-                if (!settingsData[category].includes(val)) {
-                    settingsData[category].push(val);
-                    input.value = '';
-                    renderLists();
-                }
+            if (!settingsData[category].includes(val)) {
+                settingsData[category].push(val);
+                input.value = '';
+                renderLists();
             }
+        }
+
+        // Helper for rgb to hex since element.style.backgroundColor returns rgb()
+        function rgb2hex(rgb) {
+            if (/^#[0-9A-F]{6}$/i.test(rgb)) return rgb;
+            const match = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+            if (!match) return null;
+            function hex(x) { return ("0" + parseInt(x).toString(16)).slice(-2); }
+            return "#" + hex(match[1]) + hex(match[2]) + hex(match[3]);
+        }
+
+        function editProject(index) {
+            const p = settingsData.projets[index];
+            document.getElementById('edit-project-index').value = index;
+            document.getElementById('input-projets').value = p.name;
+            document.getElementById('input-projet-desc').value = p.description || '';
+            
+            // Set color
+            document.getElementById('selected-project-color').value = p.color;
+            document.querySelectorAll('.color-swatch').forEach(el => {
+                const elColor = rgb2hex(el.style.backgroundColor);
+                const pColor = p.color.toLowerCase();
+                if (elColor === pColor || el.style.backgroundColor === pColor) {
+                    el.classList.add('selected');
+                } else {
+                    el.classList.remove('selected');
+                }
+            });
+
+            document.getElementById('btn-save-project').innerText = "Enregistrer";
+            document.getElementById('btn-cancel-project').style.display = "block";
+            document.getElementById('project-form-container').style.background = "#e3f2fd";
+        }
+
+        function cancelEditProject() {
+            document.getElementById('edit-project-index').value = "-1";
+            document.getElementById('input-projets').value = "";
+            document.getElementById('input-projet-desc').value = "";
+            document.getElementById('btn-save-project').innerText = "Ajouter le projet";
+            document.getElementById('btn-cancel-project').style.display = "none";
+            document.getElementById('project-form-container').style.background = "#fafbfc";
+        }
+
+        function saveProject() {
+            const name = document.getElementById('input-projets').value.trim();
+            const desc = document.getElementById('input-projet-desc').value.trim();
+            const color = document.getElementById('selected-project-color').value;
+            const editIndex = parseInt(document.getElementById('edit-project-index').value);
+
+            if (!name) return;
+
+            if (editIndex >= 0) {
+                // Check if renaming to an existing name (different index)
+                if (settingsData.projets.some((p, i) => p.name === name && i !== editIndex)) {
+                    showAdminModal("Un projet avec ce nom existe déjà.", true);
+                    return;
+                }
+                settingsData.projets[editIndex] = { name: name, color: color, description: desc };
+            } else {
+                if (settingsData.projets.some(p => p.name === name)) {
+                    showAdminModal("Un projet avec ce nom existe déjà.", true);
+                    return;
+                }
+                settingsData.projets.push({ name: name, color: color, description: desc });
+            }
+
+            cancelEditProject();
+            renderLists();
         }
 
         function removeItem(category, index) {
