@@ -49,17 +49,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Accès Protégé</title>
+    <link rel="stylesheet" href="style.css?<?= time() ?>">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f4f5f7; margin:0; }
-        .login-card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); width: 100%; max-width: 400px; text-align: center; border: 1px solid #ebecf0; }
-        .login-card input { width: 100%; padding: 12px; margin: 10px 0 20px 0; border: 1px solid #dfe1e6; border-radius: 6px; box-sizing: border-box; font-size:15px; background: #fafbfc; }
-        .login-card input:focus { outline: none; border-color: #0052cc; background: white; }
-        .login-card button { width: 100%; padding: 12px; background: #0052cc; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size:15px; transition: 0.2s; }
-        .login-card button:hover { background: #0047b3; }
+        body { font-family: var(--font-main); display: flex; justify-content: center; align-items: center; height: 100vh; background: var(--bg-color); margin:0; }
+        .login-card { background: var(--card-bg); padding: 40px; border-radius: var(--card-radius); box-shadow: var(--shadow-main); width: 100%; max-width: 400px; text-align: center; border: 1px solid var(--border-color); color: var(--text-main); }
+        .login-card input { width: 100%; padding: 12px; margin: 10px 0 20px 0; border: 1px solid var(--border-color); border-radius: var(--border-radius); box-sizing: border-box; font-size:15px; background: var(--column-bg); color: var(--text-main); }
+        .login-card input:focus { outline: none; border-color: var(--primary); background: var(--card-bg); }
+        .login-card button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: var(--border-radius); font-weight: bold; cursor: pointer; font-size:15px; transition: 0.2s; }
+        .login-card button:hover { opacity: 0.9; }
         .alert-error { color: #de350b; background: #ffebee; padding: 10px; border-radius: 4px; margin-bottom: 20px; font-size:14px; font-weight:bold; }
     </style>
 </head>
-<body>
+<body data-theme="<?= htmlspecialchars($settings['app_theme'] ?? 'classic') ?>">
     <div class="login-card">
         
         <?php if (!empty($app_logo)): ?>
@@ -70,8 +71,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div style="font-size:40px; margin-bottom:10px;">👁️</div>
         <?php endif; ?>
 
-        <h2 style="margin-top:0; color:#091e42;">Espace Consultatif</h2>
-        <p style="color: #5e6c84; font-size: 14px; margin-bottom:25px;">Saisissez le mot de passe pour consulter l'avancement des chantiers.</p>
+        <h2 style="margin-top:0; color:var(--text-main);">Espace Consultatif</h2>
+        <p style="color: var(--text-muted); font-size: 14px; margin-bottom:25px;">Saisissez le mot de passe pour consulter l'avancement des chantiers.</p>
         
         <?php if($error): ?><div class="alert-error"><?= $error ?></div><?php endif; ?>
         
@@ -80,8 +81,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <button type="submit">Accéder au Kanban</button>
         </form>
         
-        <div style="margin-top: 25px; border-top: 1px solid #ebecf0; padding-top: 20px;">
-            <a href="login.php" style="color: #5e6c84; text-decoration: none; font-size: 13px; font-weight: 600;">Accès Édition Administrateur</a>
+        <div style="margin-top: 25px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+            <a href="login.php" style="color: var(--text-muted); text-decoration: none; font-size: 13px; font-weight: 600;">Accès Édition Administrateur</a>
         </div>
     </div>
 </body>
