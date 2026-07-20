@@ -26,7 +26,7 @@ if (file_exists($admin_file)) {
 
 // Récupération du logo (Uniquement si le fichier est physiquement accessible)
 $settings = file_exists($settings_file) ? json_decode(file_get_contents($settings_file), true) : [];
-$app_logo = '';
+$app_logo = 'img/logo.png';
 if (!empty($settings['app_logo']) && file_exists(__DIR__ . '/' . $settings['app_logo'])) {
     $app_logo = htmlspecialchars($settings['app_logo']);
 }
