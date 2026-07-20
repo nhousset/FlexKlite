@@ -1,4 +1,3 @@
-[README.md](https://github.com/user-attachments/files/30188214/README.md)
 # Présentation du projet FlexKlite
 
 <div align="center">
