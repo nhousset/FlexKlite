@@ -44,15 +44,15 @@ body[data-theme="dark"] {
 
 body[data-theme="modern"] {
     --bg-image: linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%);
-    --glass-filter: blur(15px);
+    --glass-filter: blur(8px);
     --bg-color: #fafafa;
-    --column-bg: rgba(255, 255, 255, 0.4);
-    --card-bg: rgba(255, 255, 255, 0.65);
+    --column-bg: rgba(255, 255, 255, 0.7);
+    --card-bg: #ffffff;
     --text-main: #18181b;
     --text-muted: #71717a;
     --primary: #6366f1;
     --border-color: rgba(255, 255, 255, 0.6);
-    --header-bg: rgba(255, 255, 255, 0.7);
+    --header-bg: rgba(255, 255, 255, 0.9);
     --header-text: #18181b;
     --header-btn-bg: rgba(99, 102, 241, 0.1);
     --header-btn-border: rgba(99, 102, 241, 0.2);
