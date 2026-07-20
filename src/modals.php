@@ -325,6 +325,10 @@
     <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 500px; text-align: center; padding: 30px;">
         <div class="close-panel" onclick="closeAboutModal(event)" style="position: absolute; top: 15px; right: 15px;">×</div>
         
+        <div style="margin-bottom: 20px;">
+            <img src="img/logo.png" alt="Logo FlexKlite" style="max-height: 80px; object-fit: contain;">
+        </div>
+        
         <h2 style="color: var(--primary); margin-top: 0; margin-bottom: 5px; font-size: 24px;">
             <?= htmlspecialchars($about_data['title'] ?? 'FlexKlite') ?>
         </h2>
