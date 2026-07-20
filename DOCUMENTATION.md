@@ -1,4 +1,4 @@
-[DOCUMENTATION.md](https://github.com/user-attachments/files/30189665/DOCUMENTATION.md)
+[DOCUMENTATION.md](https://github.com/user-attachments/files/30189850/DOCUMENTATION.md)
 # 📘 Documentation Fonctionnelle - FlexKlite
 
 <div align="center">
@@ -119,7 +119,13 @@ Accessible depuis le menu supérieur (icône engrenage) :
 - **Personnalisation & Thèmes :** Sélectionnez l'apparence globale de l'application parmi 4 thèmes complets (Classique, Sombre, Moderne, Architect).
 - **Listes déroulantes personnalisables :** Ajoutez ou modifiez vos Acteurs, Projets, Niveaux de priorité et Types de réunion. Les couleurs des projets sont également personnalisables.
 - **Sécurité :** Définition du mot de passe Admin, et possibilité de forcer un mot de passe même pour la simple lecture de l'application (mode privé).
-- **Maintenance (Sauvegarde & Restauration) :** Un système complet de sauvegarde persistante. En un clic, l'application génère une archive ZIP complète (base de données JSON, paramètres et pièces jointes) qu'elle stocke en sécurité sur le serveur. Ces archives sont listées dans un tableau d'historique dédié. Vous pouvez à tout moment **télécharger** une ancienne sauvegarde, ou lancer une **restauration en 1-clic** (après confirmation) pour écraser les données actuelles et revenir à l'état exact de l'archive choisie. Il est aussi possible d'importer un ancien fichier ZIP manuellement.
+- **Maintenance (Sauvegarde & Restauration) :** Un système complet de sauvegarde persistante. En un clic, l'application génère une archive ZIP complète (base de données JSON, paramètres et pièces jointes) qu'elle stocke en sécurité sur le serveur dans le dossier `uploads/backup___`. Ces archives sont listées dans un tableau d'historique dédié. Vous pouvez à tout moment **télécharger** une ancienne sauvegarde, ou lancer une **restauration en 1-clic** (après confirmation) pour écraser les données actuelles et revenir à l'état exact de l'archive choisie. Il est aussi possible d'importer un ancien fichier ZIP manuellement.
+
+  <div align="center">
+    <img src="src/img/help_backup.png" alt="Vue Sauvegarde et Restauration" style="max-width: 100%; border-radius: 8px; margin: 15px 0; border: 1px solid #dfe1e6;">
+  </div>
+
+  > **⚠️ Avertissement Docker :** Si vous ne téléchargez pas vos archives ZIP localement, il est **crucial** de monter le volume `uploads/` en dehors de votre conteneur Docker (ex: `-v /chemin/local/uploads:/var/www/html/uploads`). Dans le cas contraire, toutes vos sauvegardes (ainsi que vos pièces jointes) seront définitivement perdues lors de la suppression ou recréation du conteneur.
 
 ---
 
