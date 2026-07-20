@@ -270,7 +270,7 @@ function renderBoard() {
             });
             
             let extraTags = '';
-            if(task.charge_jh) extraTags += `<span class="tag" style="background:#e3f2fd; color:#0d47a1; border-color:#90caf9;">⏱️ ${task.charge_jh} JH</span>`;
+            if(window.ENABLE_CHARGE_JH !== false && task.charge_jh) extraTags += `<span class="tag" style="background:#e3f2fd; color:#0d47a1; border-color:#90caf9;">⏱️ ${task.charge_jh} JH</span>`;
             if(task.prerequis) extraTags += `<span class="tag" style="background:#ffebee; color:#b71c1c; border-color:#ef9a9a;" title="Prérequis">🔗 ${task.prerequis}</span>`;
             if(task.code_itbm) extraTags += `<span class="tag tag-itbm">🎫 ${task.code_itbm}</span>`;
             if(task.prio) extraTags += `<span class="tag tag-prio" title="Priorité">${task.prio}</span>`;
@@ -746,7 +746,7 @@ function openHistoryModal(task, column, index) {
         document.getElementById('modal-itbm-container').style.display = 'none';
     }
     
-    if (task.charge_jh) {
+    if (window.ENABLE_CHARGE_JH !== false && task.charge_jh) {
         document.getElementById('modal-charge').innerText = `${task.charge_jh} JH`;
         document.getElementById('modal-charge-container').style.display = 'block';
     } else {
@@ -1191,6 +1191,7 @@ if (document.readyState === 'loading') {
 let ganttInstance = null;
 
 function renderGantt() {
+    if (window.ENABLE_GANTT === false) return;
     if (!boardData) return;
     
     // Convert boardData to Frappe Gantt tasks
