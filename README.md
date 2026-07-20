@@ -1,5 +1,9 @@
+[README.md](https://github.com/user-attachments/files/30183568/README.md)
 # Présentation du projet FlexKlite
 
+<div align="center">
+  <img src="src/img/logo.png" alt="Logo FlexKlite" height="150">
+</div>
 FlexKlite est une application web légère de gestion de tâches et de projets, développée en PHP et conteneurisée via Docker. Le projet s'appuie sur une architecture simple et portable sans base de données relationnelle complexe, privilégiant l'utilisation de fichiers JSON pour le stockage des données.
 
 ## Architecture et Technologies
@@ -33,7 +37,7 @@ Le projet est conçu pour être déployé très facilement via Docker.
 Vous pouvez lancer l'application directement avec la commande suivante en ajustant les chemins des volumes locaux (l'image `flexklite-app` doit avoir été buildée au préalable) :
 
 ```bash
-docker run -d --name mon-kanban --restart unless-stopped -p 7011:80 -v "/home/rocky/kanban/db:/var/www/html/db" -v "/home/rocky/kanban/uploads/:/var/www/html/uploads" flexklite-app
+docker rm --force kanban-ihmt; docker run -d --name kanban-ihmt --restart unless-stopped -p 7011:80 -v "/home/rocky/kanban_ihmt/db:/var/www/html/db" -v "/home/rocky/kanban_ihmt/uploads/:/var/www/html/uploads" flexklite-app
 ```
 
 > **Note :** L'application sera accessible sur le port `7011` (ex: `http://localhost:7011`).
