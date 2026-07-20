@@ -6,7 +6,10 @@ $app_title = $current_settings['app_title'] ?? 'Kanban Agile';
 $app_theme = $current_settings['app_theme'] ?? 'classic';
 
 // Get the documentation content
-$doc_path = __DIR__ . '/../DOCUMENTATION.md';
+$doc_path = __DIR__ . '/DOCUMENTATION.md';
+if (!file_exists($doc_path)) {
+    $doc_path = __DIR__ . '/../DOCUMENTATION.md';
+}
 $markdown_content = file_exists($doc_path) ? file_get_contents($doc_path) : "# Erreur\nFichier DOCUMENTATION.md introuvable.";
 
 // Adjust image paths since help.php is inside src/
