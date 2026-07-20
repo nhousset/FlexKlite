@@ -1,6 +1,6 @@
 <?php
 // On s'assure que le fichier existe physiquement sur le disque avant de tenter de l'afficher
-$logo_path = '';
+$logo_path = 'img/logo.png';
 if (!empty($settings['app_logo']) && file_exists(__DIR__ . '/' . $settings['app_logo'])) {
     $logo_path = htmlspecialchars($settings['app_logo']);
 }
@@ -8,20 +8,7 @@ if (!empty($settings['app_logo']) && file_exists(__DIR__ . '/' . $settings['app_
 <div class="main-header">
     <div class="header-title-wrapper">
         <div class="app-logo-container" style="background: transparent; padding: 0; display: flex; align-items: center; justify-content: center; width: auto;">
-            <?php if ($logo_path): ?>
-                <img src="<?= $logo_path ?>?t=<?= time() ?>" alt="Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" style="max-height: 40px; max-width: 150px; object-fit: contain; border-radius: 6px;">
-                <svg style="display:none; width: 24px; height: 24px; color: var(--primary);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                    <line x1="9" y1="3" x2="9" y2="21"></line>
-                    <line x1="15" y1="3" x2="15" y2="21"></line>
-                </svg>
-            <?php else: ?>
-                <svg style="width: 24px; height: 24px; color: var(--primary);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                    <line x1="9" y1="3" x2="9" y2="21"></line>
-                    <line x1="15" y1="3" x2="15" y2="21"></line>
-                </svg>
-            <?php endif; ?>
+            <img src="<?= $logo_path ?>?t=<?= time() ?>" alt="Logo" style="max-height: 40px; max-width: 150px; object-fit: contain; border-radius: 6px;">
         </div>
         
         <h1>
