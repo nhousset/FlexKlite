@@ -1,4 +1,4 @@
-[DOCUMENTATION.md](https://github.com/user-attachments/files/30188386/DOCUMENTATION.md)
+[DOCUMENTATION.md](https://github.com/user-attachments/files/30188859/DOCUMENTATION.md)
 # 📘 Documentation Fonctionnelle - FlexKlite
 
 <div align="center">
@@ -49,6 +49,11 @@ Une vue structurée pensée pour ressembler à un **tableau Excel**.
 
 ### 3. 📅 Vue Gantt (Planning)
 Une représentation chronologique de vos chantiers et tâches.
+
+<div align="center">
+  <img src="src/img/help_gantt.png" alt="Vue Gantt" style="max-width: 100%; border-radius: 8px; margin: 15px 0; border: 1px solid #dfe1e6;">
+</div>
+
 - **Visualisation dans le temps :** Les tâches ayant une date de début et une date de fin s'affichent sous forme de barres horizontales sur un calendrier.
 - **Interactivité :** (En mode administrateur) Glissez-déposez les barres pour modifier les dates ou cliquez dessus pour ouvrir la fiche de la tâche.
 - **Filtres globaux :** La timeline s'adapte instantanément à vos recherches et filtres (Projet, Acteur, Statut).
