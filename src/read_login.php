@@ -19,7 +19,7 @@ if (empty($settings['require_read_password'])) {
 }
 
 // Récupération du logo (Uniquement si le fichier est physiquement accessible)
-$app_logo = '';
+$app_logo = 'img/logo.png';
 if (!empty($settings['app_logo']) && file_exists(__DIR__ . '/' . $settings['app_logo'])) {
     $app_logo = htmlspecialchars($settings['app_logo']);
 }
