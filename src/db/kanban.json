@@ -1,0 +1,117 @@
+{
+  "todo": [
+    {
+      "id": "tsk_1780000001",
+      "titre": "Déployer la nouvelle version de l'API REST",
+      "projet": "Développement",
+      "acteur": "Alice",
+      "prio": "Haute",
+      "date_debut": "2026-08-01",
+      "charge_jh": "2",
+      "notes": [],
+      "lots": [],
+      "attachments": []
+    },
+    {
+      "id": "tsk_1780000002",
+      "titre": "Audit de sécurité annuel et test d'intrusion",
+      "projet": "Sécurité",
+      "acteur": "Bob",
+      "prio": "Moyenne",
+      "charge_jh": "5",
+      "notes": [],
+      "lots": [
+        {
+          "id": "lot_1",
+          "titre": "Préparation environnement de test",
+          "statut": "todo"
+        }
+      ],
+      "attachments": []
+    },
+    {
+      "id": "tsk_1780000003",
+      "titre": "Migration des boîtes mail vers Office 365",
+      "projet": "Infrastructure",
+      "acteur": "Charlie",
+      "prio": "Basse",
+      "notes": [],
+      "lots": [],
+      "attachments": []
+    }
+  ],
+  "in_progress": [
+    {
+      "id": "tsk_1780000004",
+      "titre": "Résoudre les lenteurs réseau sur le VLAN 40",
+      "projet": "Support IT",
+      "acteur": "Charlie",
+      "prio": "Urgente",
+      "notes": [
+        {
+          "date": "2026-07-20",
+          "reunion": "Point de crise",
+          "texte": "Analyse de trames en cours. Le switch coeur de réseau montre des pics CPU."
+        }
+      ],
+      "lots": [],
+      "attachments": []
+    },
+    {
+      "id": "tsk_1780000005",
+      "titre": "Refonte graphique de l'intranet",
+      "projet": "Développement",
+      "acteur": "Alice",
+      "prio": "Moyenne",
+      "charge_jh": "10",
+      "notes": [
+        {
+          "date": "2026-07-18",
+          "reunion": "Point Hebdo",
+          "texte": "Maquettes validées, intégration CSS en cours."
+        }
+      ],
+      "lots": [],
+      "attachments": []
+    }
+  ],
+  "blocked": [
+    {
+      "id": "tsk_1780000006",
+      "titre": "Mise à jour des OS serveurs de production",
+      "projet": "Infrastructure",
+      "acteur": "Bob",
+      "prio": "Basse",
+      "notes": [
+        {
+          "date": "2026-07-19",
+          "reunion": "Comité CAB",
+          "texte": "En attente de l'approbation du métier pour la fenêtre d'interruption de service ce week-end."
+        }
+      ],
+      "lots": [],
+      "attachments": []
+    }
+  ],
+  "done": [
+    {
+      "id": "tsk_1780000007",
+      "titre": "Automatisation des sauvegardes BDD MySQL",
+      "projet": "Infrastructure",
+      "acteur": "Charlie",
+      "prio": "Haute",
+      "date_fin": "2026-07-15",
+      "charge_jh": "1.5",
+      "notes": [
+        {
+          "date": "2026-07-15",
+          "reunion": "Validation",
+          "texte": "Script bash déployé via cron. Les tests de restauration sont OK."
+        }
+      ],
+      "lots": [],
+      "attachments": []
+    }
+  ],
+  "archives": []
+}
