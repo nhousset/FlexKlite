@@ -54,7 +54,7 @@ if (!$is_logged_in) {
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
         <h1 style="margin: 0;">Console d'Administration</h1>
         <div>
-            <a href="index.php" class="btn" style="background: #ebecf0; color: #42526e; text-decoration: none; margin-right: 10px;">📊 Retour au Tableau</a>
+            <button onclick="returnToBoard()" class="btn" style="background: #ebecf0; color: #42526e; text-decoration: none; margin-right: 10px; border:none; cursor:pointer; font-size:14px; font-weight:bold; font-family:inherit;">📊 Retour au Tableau</button>
         </div>
     </div>
 
@@ -329,6 +329,17 @@ if (!$is_logged_in) {
                 }
             });
         });
+
+        function returnToBoard() {
+            if (window.hasUnsavedChanges) {
+                showConfirmModal("Quitter la page d'administration ?\nVos modifications n'ont pas été enregistrées et seront perdues.", () => {
+                    window.hasUnsavedChanges = false;
+                    window.location.href = 'index.php';
+                });
+            } else {
+                window.location.href = 'index.php';
+            }
+        }
 
         function showAdminModal(msg, isError = false) {
             document.getElementById('admin-modal-icon').innerText = isError ? '❌' : '✅';
