@@ -1,5 +1,3 @@
-# 📘 Documentation Fonctionnelle - FlexKlite
-
 <div align="center">
   <img src="src/img/logo.png" alt="Logo FlexKlite" height="150">
 </div>
