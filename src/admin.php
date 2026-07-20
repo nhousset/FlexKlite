@@ -824,7 +824,7 @@ $compilation_date = $about_data['build_date'] ?? '20/07/2026 08:20';
     </script>
     
     <div class="modal-overlay" id="confirm-restore-modal" style="display:none; z-index:9999;">
-        <div class="modal" style="max-width: 400px; text-align: center;">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
             <h2 style="margin-top: 0; color: #091e42;">Confirmer la restauration</h2>
             <p style="color: #5e6c84; font-size: 14px; margin-bottom: 25px;">Êtes-vous sûr de vouloir restaurer cette sauvegarde ? Cela écrasera <b>toutes</b> les données actuelles.</p>
             <div style="display: flex; gap: 10px; justify-content: center;">
