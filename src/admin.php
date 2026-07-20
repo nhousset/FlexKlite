@@ -146,6 +146,20 @@ if (!$is_logged_in) {
                             <option value="0">Non</option>
                         </select>
                     </div>
+                    <div class="form-group-admin" style="flex: 1; min-width: 250px;">
+                        <label>Activer le module Charge (JH) ?</label>
+                        <select id="input-enable-charge-jh">
+                            <option value="1">Oui</option>
+                            <option value="0">Non</option>
+                        </select>
+                    </div>
+                    <div class="form-group-admin" style="flex: 1; min-width: 250px;">
+                        <label>Activer la vue Gantt ?</label>
+                        <select id="input-enable-gantt">
+                            <option value="1">Oui</option>
+                            <option value="0">Non</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -311,6 +325,8 @@ if (!$is_logged_in) {
 
                 document.getElementById('input-enable-code-projet').value = settingsData.enable_code_projet === false ? "0" : "1";
                 document.getElementById('input-enable-code-itbm').value = settingsData.enable_code_itbm === false ? "0" : "1";
+                document.getElementById('input-enable-charge-jh').value = settingsData.enable_charge_jh === false ? "0" : "1";
+                document.getElementById('input-enable-gantt').value = settingsData.enable_gantt === false ? "0" : "1";
 
                 if (settingsData.app_logo) {
                     const img = document.getElementById('current-logo-preview');
@@ -409,6 +425,8 @@ if (!$is_logged_in) {
             settingsData.team_name = document.getElementById('input-team-name').value.trim();
             settingsData.enable_code_projet = document.getElementById('input-enable-code-projet').value === "1";
             settingsData.enable_code_itbm = document.getElementById('input-enable-code-itbm').value === "1";
+            settingsData.enable_charge_jh = document.getElementById('input-enable-charge-jh').value === "1";
+            settingsData.enable_gantt = document.getElementById('input-enable-gantt').value === "1";
 
             fetch('api.php?action=save_settings', {
                 method: 'POST',
