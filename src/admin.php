@@ -124,14 +124,27 @@ $compilation_date = $about_data['build_date'] ?? '20/07/2026 08:20';
                                 <label>Nom de l'équipe</label>
                                 <input type="text" id="input-team-name">
                             </div>
-                            <div class="form-group-admin">
+                            <div class="form-group-admin" style="grid-column: 1 / -1;">
                                 <label>Thème global de l'application</label>
-                                <select id="input-app-theme" onchange="document.body.setAttribute('data-theme', this.value); markDirty();">
-                                    <option value="classic">Classique (Pro / Clair)</option>
-                                    <option value="dark">Sombre (Nuit / Cyber)</option>
-                                    <option value="modern">Moderne (Verre / Coloré)</option>
-                                    <option value="architect">Architect (Dashboard Clean)</option>
-                                </select>
+                                <input type="hidden" id="input-app-theme" value="classic">
+                                <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 10px;">
+                                    <div class="theme-card" data-value="classic" onclick="selectTheme(this)" style="cursor: pointer; border: 2px solid transparent; border-radius: 6px; overflow: hidden; width: 140px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                        <img src="img/theme_classic.png" alt="Classique" style="width: 100%; height: 90px; object-fit: cover; display: block;">
+                                        <div style="padding: 6px; text-align: center; font-size: 13px; font-weight: 500; background: #fff; color: #172b4d;">Classique</div>
+                                    </div>
+                                    <div class="theme-card" data-value="dark" onclick="selectTheme(this)" style="cursor: pointer; border: 2px solid transparent; border-radius: 6px; overflow: hidden; width: 140px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                        <img src="img/theme_sombre.png" alt="Sombre" style="width: 100%; height: 90px; object-fit: cover; display: block;">
+                                        <div style="padding: 6px; text-align: center; font-size: 13px; font-weight: 500; background: #fff; color: #172b4d;">Sombre</div>
+                                    </div>
+                                    <div class="theme-card" data-value="modern" onclick="selectTheme(this)" style="cursor: pointer; border: 2px solid transparent; border-radius: 6px; overflow: hidden; width: 140px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                        <img src="img/theme_modern.png" alt="Moderne" style="width: 100%; height: 90px; object-fit: cover; display: block;">
+                                        <div style="padding: 6px; text-align: center; font-size: 13px; font-weight: 500; background: #fff; color: #172b4d;">Moderne</div>
+                                    </div>
+                                    <div class="theme-card" data-value="architect" onclick="selectTheme(this)" style="cursor: pointer; border: 2px solid transparent; border-radius: 6px; overflow: hidden; width: 140px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                        <img src="img/theme_architec.png" alt="Architect" style="width: 100%; height: 90px; object-fit: cover; display: block;">
+                                        <div style="padding: 6px; text-align: center; font-size: 13px; font-weight: 500; background: #fff; color: #172b4d;">Architect</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -412,6 +425,10 @@ $compilation_date = $about_data['build_date'] ?? '20/07/2026 08:20';
                 document.getElementById('input-team-name').value = settingsData.team_name || '';
                 document.getElementById('input-app-theme').value = settingsData.app_theme || 'classic';
                 
+                document.querySelectorAll('.theme-card').forEach(c => c.style.borderColor = 'transparent');
+                let activeCard = document.querySelector(`.theme-card[data-value="${settingsData.app_theme || 'classic'}"]`);
+                if (activeCard) activeCard.style.borderColor = '#0052cc';
+                
                 document.getElementById('input-require-read').value = settingsData.require_read_password ? "1" : "0";
                 toggleReadPasswordInput();
 
@@ -603,6 +620,15 @@ $compilation_date = $about_data['build_date'] ?? '20/07/2026 08:20';
                 markDirty();
                 renderLists();
             });
+        }
+
+        function selectTheme(el) {
+            document.querySelectorAll('.theme-card').forEach(c => c.style.borderColor = 'transparent');
+            el.style.borderColor = '#0052cc';
+            const val = el.getAttribute('data-value');
+            document.getElementById('input-app-theme').value = val;
+            document.body.setAttribute('data-theme', val);
+            markDirty();
         }
 
         function saveSettings() {
