@@ -25,8 +25,9 @@ $compilation_date = $about_data['build_date'] ?? '20/07/2026 08:20';
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
         <h1 style="margin: 0;">Console d'Administration</h1>
-        <div>
-            <button onclick="returnToBoard()" class="btn" style="background: #ebecf0; color: #42526e; text-decoration: none; margin-right: 10px; border:none; cursor:pointer; font-size:14px; font-weight:bold; font-family:inherit;">📊 Retour au Tableau</button>
+        <div style="display: flex; gap: 10px;">
+            <a href="help.php" target="_blank" class="btn" style="background: #ebecf0; color: #42526e; text-decoration: none; border:none; cursor:pointer; font-size:14px; font-weight:bold;">❓ Aide</a>
+            <button onclick="returnToBoard()" class="btn" style="background: #ebecf0; color: #42526e; text-decoration: none; border:none; cursor:pointer; font-size:14px; font-weight:bold; font-family:inherit;">📊 Retour au Tableau</button>
         </div>
     </div>
 
