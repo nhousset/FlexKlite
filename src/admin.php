@@ -26,7 +26,7 @@ $compilation_date = $about_data['build_date'] ?? '20/07/2026 08:20';
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
         <h1 style="margin: 0;">Console d'Administration</h1>
         <div style="display: flex; gap: 10px;">
-            <a href="help.php" target="_blank" class="btn" style="background: #ebecf0; color: #42526e; text-decoration: none; border:none; cursor:pointer; font-size:14px; font-weight:bold;">❓ Aide</a>
+            <button onclick="openHelpPanel()" class="btn" style="background: #ebecf0; color: #42526e; text-decoration: none; border:none; cursor:pointer; font-size:14px; font-weight:bold;">❓ Aide</button>
             <button onclick="returnToBoard()" class="btn" style="background: #ebecf0; color: #42526e; text-decoration: none; border:none; cursor:pointer; font-size:14px; font-weight:bold; font-family:inherit;">📊 Retour au Tableau</button>
         </div>
     </div>
@@ -854,5 +854,7 @@ $compilation_date = $about_data['build_date'] ?? '20/07/2026 08:20';
         <a href="<?= htmlspecialchars($about_data['github'] ?? '') ?>" target="_blank" style="color: #0052cc; text-decoration: none;">GitHub</a> | 
         Version : <?= $compilation_date ?>
     </div>
+
+    <?php include 'help_modal.php'; ?>
 </body>
 </html>
