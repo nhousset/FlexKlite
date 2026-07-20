@@ -22,7 +22,7 @@ $markdown_content = str_replace('src/img/', 'img/', $markdown_content);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aide - <?= htmlspecialchars($app_title) ?></title>
     <link rel="stylesheet" href="style.css">
-    <script src="js/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         .help-container {
             max-width: 900px;
