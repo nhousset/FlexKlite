@@ -1,4 +1,9 @@
+[DOCUMENTATION.md](https://github.com/user-attachments/files/30187717/DOCUMENTATION.md)
 # 📘 Documentation Fonctionnelle - FlexKlite
+
+<div align="center">
+  <img src="src/img/logo.png" alt="Logo FlexKlite" height="150">
+</div>
 
 **FlexKlite** est une application web légère, intuitive et réactive conçue pour la gestion de tâches et le suivi de chantiers. Elle permet de suivre l'avancement des projets via de multiples vues synchronisées et offre un système avancé de traçabilité et d'historisation.
 
@@ -22,6 +27,10 @@ FlexKlite fonctionne avec deux niveaux d'accès fluides :
 
 ### 1. 🗂️ Vue Kanban
 C'est le tableau de bord opérationnel quotidien.
+
+<div align="center">
+  <img src="src/img/help_kanban.png" alt="Vue Kanban" style="max-width: 100%; border-radius: 8px; margin: 15px 0; border: 1px solid #dfe1e6;">
+</div>
 - **Colonnes :** Les tâches transitent de gauche à droite (`À Faire` ➔ `En Cours` ➔ `Bloqué` ➔ `Terminé`).
 - **Drag & Drop :** Glissez et déposez facilement les cartes d'une colonne à l'autre (mode Admin uniquement).
 - **Mode Compact :** Accessible via une case à cocher dans la barre de filtre. Ce mode condense les cartes et les **regroupe visuellement par projet** au sein de chaque colonne pour une lecture analytique.
