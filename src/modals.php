@@ -326,7 +326,7 @@
         <div class="close-panel" onclick="closeAboutModal(event)" style="position: absolute; top: 15px; right: 15px;">×</div>
         
         <div style="margin-bottom: 20px;">
-            <img src="img/logo.png?t=<?= time() ?>" alt="Logo FlexKlite" style="max-height: 80px; object-fit: contain;">
+            <img src="img/logo.png?t=<?= time() ?>" alt="Logo FlexKlite" style="max-height: 130px; object-fit: contain;">
         </div>
         <p style="color: #5e6c84; font-size: 14px; margin-bottom: 20px;">
             <?= nl2br(htmlspecialchars($about_data['description'] ?? '')) ?>
