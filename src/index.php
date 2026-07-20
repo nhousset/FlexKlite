@@ -161,6 +161,7 @@ $compilation_date = date("d/m/Y H:i", filemtime(__FILE__));
 
     <!-- Inclusion de toutes les fenêtres modales -->
     <?php include 'modals.php'; ?>
+    <?php include 'help_modal.php'; ?>
 
     <!-- Inclusion de la logique JavaScript -->
     <script src="app.js?v=<?= time() ?>"></script>
