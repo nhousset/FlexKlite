@@ -457,3 +457,47 @@ body {
 @keyframes spin {
     100% { transform: rotate(360deg); }
 }
+
+/* --- Admin Styles --- */
+.admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+.admin-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(9, 30, 66, 0.05); border: 1px solid #ebecf0;}
+.admin-card h3 { margin-top: 0; color: #091e42; font-size: 16px; font-weight: 600; border-bottom: 2px solid #f4f5f7; padding-bottom: 12px; margin-bottom: 20px;}
+.item-list { list-style: none; padding: 0; margin: 0 0 20px 0; }
+.item-list li { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #f4f5f7; margin-bottom: 8px; border-radius: 4px; font-size: 14px; border: 1px solid #ebecf0;}
+.item-list li button { background: #ffebee; border: none; color: #d32f2f; cursor: pointer; font-weight: bold; border-radius: 4px; padding: 4px 8px; transition: background 0.2s;}
+.item-list li button:hover { background: #ffcdd2; }
+.add-group { display: flex; flex-direction: column; gap: 10px; }
+.add-group input { width: 100%; padding: 10px; border: 1px solid #dfe1e6; border-radius: 4px; font-size: 14px; box-sizing: border-box;}
+.add-group input:focus { outline: none; border-color: var(--primary); }
+
+.form-group-admin label { font-size: 13px; font-weight: 600; color: #172b4d; display: block; margin-bottom: 6px; }
+.form-group-admin input, .form-group-admin select { width: 100%; padding: 10px; border: 1px solid #dfe1e6; border-radius: 4px; font-size: 14px; box-sizing: border-box; background: #fafbfc;}
+.form-group-admin input:focus, .form-group-admin select:focus { border-color: var(--primary); outline: none; background: white;}
+
+.file-upload-wrapper {
+    position: relative;
+    width: 100%;
+    padding: 40px 20px;
+    border: 2px dashed #dfe1e6;
+    border-radius: 8px;
+    background: #fafbfc;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: background 0.2s, border-color 0.2s;
+    text-align: center;
+    margin-bottom: 15px;
+}
+.file-upload-wrapper:hover { background: #f4f5f7; border-color: var(--primary); }
+.file-upload-wrapper input[type="file"] { width: 100%; height: 100%; position: absolute; top:0; left:0; opacity: 0; cursor: pointer; }
+
+.color-swatch { width: 24px; height: 24px; border-radius: 4px; cursor: pointer; border: 2px solid transparent; transition: transform 0.1s;}
+.color-swatch:hover { transform: scale(1.1); }
+.color-swatch.selected { border-color: #172b4d; box-shadow: 0 0 0 2px white inset; }
+.project-badge { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; }
+
+.admin-sub-tabs-header { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; border-bottom: 1px solid #dfe1e6; padding-bottom: 10px; }
+.admin-sub-tab-btn { background: none; border: none; padding: 8px 12px; cursor: pointer; font-size: 14px; font-weight: 600; color: #5e6c84; border-radius: 4px; transition: 0.2s; }
+.admin-sub-tab-btn:hover { background: #f4f5f7; color: #172b4d; }
+.admin-sub-tab-btn.active { background: #e3f2fd; color: #0052cc; }
+.admin-sub-content { display: none; }
+.admin-sub-content.active { display: block; animation: fadeIn 0.3s ease; }
