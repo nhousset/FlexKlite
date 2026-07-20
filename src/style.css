@@ -1,4 +1,6 @@
 :root {
+    --bg-image: none;
+    --glass-filter: none;
     --bg-color: #f0f2f5;
     --column-bg: #f4f5f7;
     --card-bg: #ffffff;
@@ -23,45 +25,72 @@
 }
 
 body[data-theme="dark"] {
+    --bg-image: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+    --glass-filter: blur(12px);
     --bg-color: #111827;
-    --column-bg: #1f2937;
-    --card-bg: #374151;
+    --column-bg: rgba(31, 41, 55, 0.5);
+    --card-bg: rgba(55, 65, 81, 0.6);
     --text-main: #f3f4f6;
     --text-muted: #9ca3af;
     --primary: #3b82f6;
-    --border-color: #4b5563;
-    --header-bg: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+    --border-color: rgba(255, 255, 255, 0.08);
+    --header-bg: linear-gradient(135deg, rgba(31,41,55,0.7) 0%, rgba(17,24,39,0.7) 100%);
     --header-text: #f3f4f6;
     --header-btn-bg: rgba(255, 255, 255, 0.1);
     --header-btn-border: rgba(255, 255, 255, 0.1);
-    --shadow-main: 0 4px 20px rgba(0, 0, 0, 0.3);
-    --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.5);
+    --shadow-main: 0 4px 20px rgba(0, 0, 0, 0.4);
+    --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.6);
 }
 
 body[data-theme="modern"] {
+    --bg-image: linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%);
+    --glass-filter: blur(15px);
     --bg-color: #fafafa;
-    --column-bg: #f4f4f5;
-    --card-bg: rgba(255, 255, 255, 0.9);
+    --column-bg: rgba(255, 255, 255, 0.4);
+    --card-bg: rgba(255, 255, 255, 0.65);
     --text-main: #18181b;
     --text-muted: #71717a;
     --primary: #6366f1;
-    --border-color: rgba(228, 228, 231, 0.8);
-    --header-bg: rgba(255, 255, 255, 0.85);
+    --border-color: rgba(255, 255, 255, 0.6);
+    --header-bg: rgba(255, 255, 255, 0.7);
     --header-text: #18181b;
     --header-btn-bg: rgba(99, 102, 241, 0.1);
     --header-btn-border: rgba(99, 102, 241, 0.2);
-    --shadow-main: 0 10px 40px rgba(0, 0, 0, 0.03);
-    --shadow-hover: 0 15px 50px rgba(0, 0, 0, 0.06);
+    --shadow-main: 0 10px 40px rgba(31, 38, 135, 0.07);
+    --shadow-hover: 0 15px 50px rgba(31, 38, 135, 0.1);
     --border-radius: 12px;
     --card-radius: 20px;
 }
 
+body[data-theme="architect"] {
+    --bg-image: none;
+    --glass-filter: none;
+    --bg-color: #f1f4f6;
+    --column-bg: #f8f9fa;
+    --card-bg: #ffffff;
+    --text-main: #3f4254;
+    --text-muted: #a1a5b7;
+    --primary: #3f6ad8;
+    --border-color: rgba(0, 0, 0, 0.05);
+    --header-bg: #ffffff;
+    --header-text: #3f4254;
+    --header-btn-bg: #f5f8fa;
+    --header-btn-border: #f5f8fa;
+    --shadow-main: 0 0.46875rem 2.1875rem rgba(4,9,20,0.03), 0 0.9375rem 1.40625rem rgba(4,9,20,0.03), 0 0.25rem 0.53125rem rgba(4,9,20,0.05), 0 0.125rem 0.1875rem rgba(4,9,20,0.03);
+    --shadow-hover: 0 0.5rem 2.5rem rgba(4,9,20,0.06);
+    --border-radius: 0.3rem;
+    --card-radius: 0.5rem;
+    
+    --col-todo: #f6c23e;
+    --col-inprogress: #3f6ad8;
+    --col-blocked: #e74a3b;
+    --col-done: #1cc88a;
+}
+
 body { 
     font-family: var(--font-main); 
-    /* Background avec motif à pois (dots) */
     background-color: var(--bg-color);
-    background-image: radial-gradient(#d1d5db 2px, transparent 2px);
-    background-size: 24px 24px;
+    background-image: var(--bg-image);
     background-attachment: fixed;
     min-height: 100vh;
     color: var(--text-main); 
@@ -83,7 +112,7 @@ body {
     position: sticky;
     top: 20px;
     z-index: 1000;
-    backdrop-filter: blur(10px);
+    backdrop-filter: var(--glass-filter);
     border: 1px solid var(--border-color);
 }
 
@@ -166,6 +195,7 @@ body {
     border: 1px solid var(--border-color);
     z-index: 2000;
     overflow: hidden;
+    backdrop-filter: var(--glass-filter);
 }
 
 .dropdown-menu.show {
@@ -214,6 +244,7 @@ body {
     border-radius: var(--card-radius);
     box-shadow: var(--shadow-main);
     border: 1px solid var(--border-color);
+    backdrop-filter: var(--glass-filter);
 }
 
 /* Sidebar d'activité */
@@ -221,6 +252,7 @@ body {
     width: 320px; background: var(--card-bg); border-radius: var(--card-radius); padding: 24px;
     box-shadow: var(--shadow-main); border: 1px solid var(--border-color);
     flex-shrink: 0; position: sticky; top: 120px; max-height: calc(100vh - 140px); overflow-y: auto;
+    backdrop-filter: var(--glass-filter);
 }
 .activity-sidebar h3 { margin: 0 0 20px 0; font-size: 16px; color: var(--text-main); border-bottom: 2px solid var(--border-color); padding-bottom: 12px; display: flex; align-items: center; gap: 8px; }
 .activity-item { padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); }
@@ -241,7 +273,7 @@ body {
 
 /* Grille Kanban */
 .board { display: flex; gap: 24px; align-items: flex-start; overflow-x: auto; padding-bottom: 10px;}
-.column { background: var(--column-bg); border-radius: 10px; width: 320px; min-width: 320px; padding: 16px; min-height: 600px; border-top: 4px solid transparent; border: 1px solid var(--border-color);}
+.column { background: var(--column-bg); border-radius: 10px; width: 320px; min-width: 320px; padding: 16px; min-height: 600px; border-top: 4px solid transparent; border: 1px solid var(--border-color); backdrop-filter: var(--glass-filter); }
 #todo { border-top-color: var(--col-todo); }
 #in_progress { border-top-color: var(--col-inprogress); }
 #blocked { border-top-color: var(--col-blocked); }
@@ -293,7 +325,7 @@ body {
 
 /* Vue KPI */
 .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
-.kpi-card { background: var(--card-bg); padding: 24px; border-radius: var(--card-radius); border: 1px solid var(--border-color); box-shadow: var(--shadow-main); }
+.kpi-card { background: var(--card-bg); padding: 24px; border-radius: var(--card-radius); border: 1px solid var(--border-color); box-shadow: var(--shadow-main); backdrop-filter: var(--glass-filter); }
 .kpi-card h3 { margin: 0 0 16px 0; font-size: 14px; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;}
 .kpi-value-main { font-size: 42px; font-weight: 800; color: var(--primary); margin-bottom: 8px; display: flex; align-items: baseline; gap: 8px;}
 .kpi-value-label { font-size: 14px; color: var(--text-muted); font-weight: 500; }
@@ -303,12 +335,12 @@ body {
 .kpi-count { background: #ebecf0; color: var(--text-main); padding: 2px 10px; border-radius: 12px; font-size: 13px; font-weight: 700;}
 
 /* Modales & Menus */
-#context-menu { position: absolute; background: var(--card-bg); border-radius: 6px; box-shadow: var(--shadow-hover); padding: 8px 0; display: none; z-index: 3000; min-width: 200px; border: 1px solid var(--border-color); }
+#context-menu { position: absolute; background: var(--card-bg); border-radius: 6px; box-shadow: var(--shadow-hover); padding: 8px 0; display: none; z-index: 3000; min-width: 200px; border: 1px solid var(--border-color); backdrop-filter: var(--glass-filter); }
 .context-menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: var(--text-main); display: flex; align-items: center; gap: 10px; transition: background 0.2s; font-weight: 500;}
 .context-menu-item:hover { background: var(--column-bg); color: var(--primary); }
 
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(9, 30, 66, 0.6); backdrop-filter: blur(3px); display: none; justify-content: center; align-items: center; z-index: 4000; }
-.modal-content { background: var(--card-bg); border-radius: 12px; padding: 30px; width: 90%; max-width: 900px; max-height: 85vh; overflow-y: auto; box-shadow: var(--shadow-main); position: relative; }
+.modal-content { background: var(--card-bg); border-radius: 12px; padding: 30px; width: 90%; max-width: 900px; max-height: 85vh; overflow-y: auto; box-shadow: var(--shadow-main); position: relative; backdrop-filter: var(--glass-filter); }
 .panel-header-container { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-color); padding-bottom: 15px; margin-bottom: 25px; }
 .panel-header-title { font-size: 20px; font-weight: 700; color: var(--text-main); margin: 0; display: flex; align-items: center; gap: 12px; }
 .close-panel { width: 40px; height: 40px; background: var(--column-bg); color: var(--text-muted); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
@@ -331,7 +363,7 @@ body {
 .badge-reunion { background: #e3f2fd; color: #0d47a1; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; white-space: nowrap; }
 
 /* Panneau latéral des détails/ajout note */
-#details-panel { position: fixed; right: -50vw; top: 0; width: 50vw; height: 100%; background: var(--card-bg); box-shadow: var(--shadow-hover); padding: 40px; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; z-index: 5000; box-sizing: border-box; }
+#details-panel { position: fixed; right: -50vw; top: 0; width: 50vw; height: 100%; background: var(--card-bg); box-shadow: var(--shadow-hover); padding: 40px; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; z-index: 5000; box-sizing: border-box; backdrop-filter: var(--glass-filter); }
 #details-panel.open { right: 0; }
 .task-meta-info { display: flex; gap: 15px; flex-wrap: wrap; font-size: 13px; color: var(--text-muted); margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); }
 .task-meta-info div { background: var(--column-bg); padding: 8px 14px; border-radius: 6px; border: 1px solid var(--border-color);}
@@ -387,6 +419,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 15px;
+    backdrop-filter: var(--glass-filter);
 }
 
 .json-textarea {
@@ -426,6 +459,7 @@ body {
     align-items: center;
     justify-content: center;
     gap: 20px;
+    backdrop-filter: var(--glass-filter);
 }
 
 .file-upload-wrapper {
@@ -456,7 +490,7 @@ body {
 /* --- Styles pour les Lots / Sous-tâches --- */
 .lot-card { 
     background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; 
-    padding: 12px 16px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); 
+    padding: 12px 16px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); backdrop-filter: var(--glass-filter); 
 }
 .lot-header { 
     display: flex; justify-content: space-between; align-items: center; 
