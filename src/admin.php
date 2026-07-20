@@ -73,6 +73,16 @@ if (!$is_logged_in) {
         <button class="admin-tab-btn" onclick="switchAdminTab('panel-history', this)">📜 Journal des Actions</button>
     </div>
 
+    <!-- Modale de notification -->
+    <div id="admin-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(9,30,66,0.54); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:white; padding:30px; border-radius:8px; max-width:400px; width:90%; text-align:center; box-shadow:0 8px 16px rgba(0,0,0,0.2);">
+            <div style="font-size:40px; margin-bottom:15px;" id="admin-modal-icon">✅</div>
+            <h3 style="margin-top:0; color:#091e42; font-size:20px;" id="admin-modal-title">Succès</h3>
+            <p id="admin-modal-msg" style="color:#5e6c84; font-size:14px; margin-bottom:25px; line-height: 1.5;"></p>
+            <button onclick="document.getElementById('admin-modal').style.display='none'" class="btn" style="background:#0052cc; color:white; padding:10px 20px;">OK</button>
+        </div>
+    </div>
+
     <div id="panel-lists" class="admin-tab-content active">
         <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
             <button onclick="saveSettings()" class="btn" style="background: #00875a;">Enregistrer la configuration</button>
@@ -273,6 +283,13 @@ if (!$is_logged_in) {
     </div>
 
     <script>
+        function showAdminModal(msg, isError = false) {
+            document.getElementById('admin-modal-icon').innerText = isError ? '❌' : '✅';
+            document.getElementById('admin-modal-title').innerText = isError ? 'Erreur' : 'Succès';
+            document.getElementById('admin-modal-msg').innerText = msg;
+            document.getElementById('admin-modal').style.display = 'flex';
+        }
+
         let settingsData = { app_title: "", team_name: "", app_logo: "", require_read_password: false, enable_code_projet: true, enable_code_itbm: true, projets: [], acteurs: [], priorites: [], reunions: [] };
 
         const palette32 = [
@@ -356,7 +373,7 @@ if (!$is_logged_in) {
             const pass = document.getElementById('input-read-password').value;
 
             if (req && !pass && !settingsData.require_read_password) {
-                alert("Vous devez définir un mot de passe pour activer la protection d'accès.");
+                showAdminModal("Vous devez définir un mot de passe pour activer la protection d'accès.", true);
                 return;
             }
 
@@ -368,7 +385,7 @@ if (!$is_logged_in) {
             .then(res => res.json())
             .then(resData => {
                 if(resData.success) {
-                    alert('Sécurité enregistrée avec succès !');
+                    showAdminModal('Sécurité enregistrée avec succès !');
                     settingsData.require_read_password = req;
                     document.getElementById('input-read-password').value = '';
                 }
@@ -435,7 +452,7 @@ if (!$is_logged_in) {
             })
             .then(res => res.json())
             .then(resData => {
-                if(resData.success) alert('Configuration enregistrée avec succès !');
+                if(resData.success) showAdminModal('Configuration enregistrée avec succès !');
             });
         }
 
@@ -464,7 +481,7 @@ if (!$is_logged_in) {
                     label.style.color = '#00875a';
                     settingsData.app_logo = data.logo_path;
                 } else {
-                    alert(data.error || "Erreur lors de l'envoi.");
+                    showAdminModal(data.error || "Erreur lors de l'envoi.", true);
                     label.innerText = '🖼️ Modifier le logo';
                     label.style.color = '#5e6c84';
                 }
@@ -490,8 +507,8 @@ if (!$is_logged_in) {
             })
             .then(res => res.json())
             .then(data => {
-                if (data.success) { alert(`Fichier ${fileName}.json enregistré.`); } 
-                else { alert(`Erreur : ${data.error}`); }
+                if (data.success) { showAdminModal(`Fichier ${fileName}.json enregistré.`); } 
+                else { showAdminModal(`Erreur : ${data.error}`, true); }
             });
         }
 
