@@ -389,6 +389,12 @@ $compilation_date = $about_data['build_date'] ?? '20/07/2026 08:20';
 
         // Ajout d'écouteurs sur les champs généraux
         document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (['import_ok', 'import_error', 'backup_ok'].includes(urlParams.get('status'))) {
+                const btnBackup = document.querySelector(`button[onclick*="panel-backup"]`);
+                if (btnBackup) switchAdminTab('panel-backup', btnBackup);
+            }
+
             const inputsToWatch = [
                 'input-app-title', 'input-team-name', 'input-require-read', 'input-read-password',
                 'input-enable-code-projet', 'input-enable-code-itbm', 'input-enable-charge-jh', 'input-enable-gantt'
