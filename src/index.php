@@ -70,7 +70,7 @@ $compilation_date = date("d/m/Y H:i", filemtime(__FILE__));
         .attachment-item a:hover { text-decoration:underline; }
     </style>
 </head>
-<body>
+<body data-theme="<?= $settings['app_theme'] ?? 'classic' ?>">
 
     <!-- OVERLAY DE CHARGEMENT -->
     <div id="loading-overlay">
