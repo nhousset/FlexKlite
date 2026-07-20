@@ -8,6 +8,7 @@ if (!$is_logged_in) {
 $settings_file = __DIR__ . '/db/settings.json';
 $settings = file_exists($settings_file) ? json_decode(file_get_contents($settings_file), true) : [];
 $app_theme = $settings['app_theme'] ?? 'classic';
+$app_logo = (!empty($settings['app_logo']) && file_exists(__DIR__ . '/' . $settings['app_logo'])) ? htmlspecialchars($settings['app_logo']) : 'img/logo.png';
 
 $about_file = __DIR__ . '/db/about.json';
 $about_data = file_exists($about_file) ? json_decode(file_get_contents($about_file), true) : [];
@@ -44,7 +45,7 @@ $compilation_date = $about_data['build_date'] ?? '20/07/2026 08:20';
         <button class="admin-tab-btn" onclick="switchAdminTab('panel-history', this)">📜 Journal des Actions</button>
         
         <div style="margin-left: auto; padding-right: 15px;">
-            <img src="img/logo.png?t=<?= time() ?>" alt="Logo FlexKlite" style="height: 60px; object-fit: contain; vertical-align: middle;">
+            <img src="<?= $app_logo ?>?t=<?= time() ?>" alt="Logo FlexKlite" style="height: 60px; object-fit: contain; vertical-align: middle;">
         </div>
     </div>
 
