@@ -16,6 +16,7 @@ RUN a2enmod rewrite
 
 # Copie de l'intégralité du code source dans le dossier par défaut d'Apache
 COPY ./src /var/www/html/
+COPY ./DOCUMENTATION.md /var/www/html/DOCUMENTATION.md
 
 # Gestion des droits : on s'assure que le serveur web (www-data) a les droits d'écriture sur le dossier db
 RUN chown -R www-data:www-data /var/www/html/db \
