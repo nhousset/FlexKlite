@@ -1,4 +1,3 @@
-[DOCUMENTATION.md](https://github.com/user-attachments/files/30180863/DOCUMENTATION.md)
 # 📘 Documentation Fonctionnelle - FlexKlite
 
 **FlexKlite** est une application web légère, intuitive et réactive conçue pour la gestion de tâches et le suivi de chantiers. Elle permet de suivre l'avancement des projets via de multiples vues synchronisées et offre un système avancé de traçabilité et d'historisation.
