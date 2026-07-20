@@ -71,7 +71,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div style="font-size:40px; margin-bottom:10px;">👁️</div>
         <?php endif; ?>
 
-        <h2 style="margin-top:0; color:var(--text-main);">Espace Consultatif</h2>
         <p style="color: var(--text-muted); font-size: 14px; margin-bottom:25px;">Saisissez le mot de passe pour consulter l'avancement des chantiers.</p>
         
         <?php if($error): ?><div class="alert-error"><?= $error ?></div><?php endif; ?>
