@@ -40,7 +40,7 @@ $app_theme = $settings['app_theme'] ?? 'classic';
         <button class="admin-tab-btn" onclick="switchAdminTab('panel-history', this)">📜 Journal des Actions</button>
         
         <div style="margin-left: auto; padding-right: 15px;">
-            <img src="img/logo.png" alt="Logo FlexKlite" style="height: 35px; object-fit: contain; vertical-align: middle;">
+            <img src="img/logo.png?t=<?= time() ?>" alt="Logo FlexKlite" style="height: 35px; object-fit: contain; vertical-align: middle;">
         </div>
     </div>
 
