@@ -273,7 +273,7 @@ body {
 
 /* Grille Kanban */
 .board { display: flex; gap: 24px; align-items: flex-start; overflow-x: auto; padding-bottom: 10px;}
-.column { background: var(--column-bg); border-radius: 10px; width: 320px; min-width: 320px; padding: 16px; min-height: 600px; border-top: 4px solid transparent; border: 1px solid var(--border-color); backdrop-filter: var(--glass-filter); }
+.column { background: var(--column-bg); border-radius: 10px; flex: 1; min-width: 320px; padding: 16px; min-height: 600px; border-top: 4px solid transparent; border: 1px solid var(--border-color); backdrop-filter: var(--glass-filter); }
 #todo { border-top-color: var(--col-todo); }
 #in_progress { border-top-color: var(--col-inprogress); }
 #blocked { border-top-color: var(--col-blocked); }
