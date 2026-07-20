@@ -18,20 +18,16 @@ if (!file_exists($db_file)) {
 
 if (!file_exists($settings_file)) {
     $default_settings = [
-        "app_title" => "Gestion des Chantiers & Suivi",
-        "team_name" => "IHMT",
+        "app_title" => "Kanban Agile",
+        "team_name" => "Mon Équipe",
         "app_logo" => "",
         "require_read_password" => false,
         "enable_code_projet" => true,
         "enable_code_itbm" => true,
-        "projets" => [
-            ["name" => "VIYA 4", "color" => "#0052cc"],
-            ["name" => "Plateforme", "color" => "#00875a"],
-            ["name" => "MCO", "color" => "#ff9f1a"]
-        ],
-        "acteurs" => ["Nicolas H.", "Kevin L.", "David M."],
-        "priorites" => ["1", "2", "3", "En attente"],
-        "reunions" => ["Point OPS", "Comité BI", "Coproj", "Point équipe"]
+        "projets" => [],
+        "acteurs" => [],
+        "priorites" => ["Basse", "Moyenne", "Haute", "Urgente"],
+        "reunions" => []
     ];
     file_put_contents($settings_file, json_encode($default_settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
