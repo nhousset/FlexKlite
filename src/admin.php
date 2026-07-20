@@ -11,43 +11,6 @@ if (!$is_logged_in) {
     <meta charset="UTF-8">
     <title>Administration Pro - Suivi de Chantiers</title>
     <link rel="stylesheet" href="style.css?<?= time() ?>">
-    <style>
-        .admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        .admin-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(9, 30, 66, 0.05); border: 1px solid #ebecf0;}
-        .admin-card h3 { margin-top: 0; color: #091e42; font-size: 16px; font-weight: 600; border-bottom: 2px solid #f4f5f7; padding-bottom: 12px; margin-bottom: 20px;}
-        .item-list { list-style: none; padding: 0; margin: 0 0 20px 0; }
-        .item-list li { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #f4f5f7; margin-bottom: 8px; border-radius: 4px; font-size: 14px; border: 1px solid #ebecf0;}
-        .item-list li button { background: #ffebee; border: none; color: #d32f2f; cursor: pointer; font-weight: bold; border-radius: 4px; padding: 4px 8px; transition: background 0.2s;}
-        .item-list li button:hover { background: #ffcdd2; }
-        .add-group { display: flex; flex-direction: column; gap: 10px; }
-        .add-group input { width: 100%; padding: 10px; border: 1px solid #dfe1e6; border-radius: 4px; font-size: 14px; box-sizing: border-box;}
-        .add-group input:focus { outline: none; border-color: var(--primary); }
-        
-        .form-group-admin label { font-size: 13px; font-weight: 600; color: #172b4d; display: block; margin-bottom: 6px; }
-        .form-group-admin input, .form-group-admin select { width: 100%; padding: 10px; border: 1px solid #dfe1e6; border-radius: 4px; font-size: 14px; box-sizing: border-box; background: #fafbfc;}
-        .form-group-admin input:focus, .form-group-admin select:focus { border-color: var(--primary); outline: none; background: white;}
-
-        .file-upload-wrapper {
-            position: relative;
-            width: 100%;
-            padding: 40px 20px;
-            border: 2px dashed #dfe1e6;
-            border-radius: 8px;
-            background: #fafbfc;
-            cursor: pointer;
-            box-sizing: border-box;
-            transition: background 0.2s, border-color 0.2s;
-            text-align: center;
-            margin-bottom: 15px;
-        }
-        .file-upload-wrapper:hover { background: #f4f5f7; border-color: var(--primary); }
-        .file-upload-wrapper input[type="file"] { width: 100%; height: 100%; position: absolute; top:0; left:0; opacity: 0; cursor: pointer; }
-
-        .color-swatch { width: 24px; height: 24px; border-radius: 4px; cursor: pointer; border: 2px solid transparent; transition: transform 0.1s;}
-        .color-swatch:hover { transform: scale(1.1); }
-        .color-swatch.selected { border-color: #172b4d; box-shadow: 0 0 0 2px white inset; }
-        .project-badge { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; }
-    </style>
 </head>
 <body>
 
@@ -97,141 +60,164 @@ if (!$is_logged_in) {
     </div>
 
     <div id="panel-lists" class="admin-tab-content active">
-        <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
-            <button onclick="saveSettings()" class="btn" style="background: #00875a;">Enregistrer la configuration</button>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; flex-wrap: wrap; gap: 15px;">
+            <div class="admin-sub-tabs-header" style="margin-bottom: 0; border-bottom: none; padding-bottom: 0;">
+                <button class="admin-sub-tab-btn active" onclick="switchAdminSubTab('sub-general', this)">Général</button>
+                <button class="admin-sub-tab-btn" onclick="switchAdminSubTab('sub-security', this)">Sécurité</button>
+                <button class="admin-sub-tab-btn" onclick="switchAdminSubTab('sub-fields', this)">Champs</button>
+                <button class="admin-sub-tab-btn" onclick="switchAdminSubTab('sub-projects', this)">Projets</button>
+                <button class="admin-sub-tab-btn" onclick="switchAdminSubTab('sub-actors', this)">Acteurs</button>
+                <button class="admin-sub-tab-btn" onclick="switchAdminSubTab('sub-priorities', this)">Priorités</button>
+                <button class="admin-sub-tab-btn" onclick="switchAdminSubTab('sub-meetings', this)">Réunions</button>
+            </div>
+            <button onclick="saveSettings()" class="btn" style="background: #00875a; white-space: nowrap;">Enregistrer la configuration</button>
         </div>
         
         <div class="admin-grid">
 
-            <div class="admin-card" style="grid-column: 1 / -1; border-left: 4px solid #ff8b00;">
-                <h3>Sécurité & Accès au tableau</h3>
-                <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-end;">
-                    <div class="form-group-admin" style="flex: 1; min-width: 250px;">
-                        <label>Protéger la lecture seule par mot de passe ?</label>
-                        <select id="input-require-read">
-                            <option value="0">Non, accès visiteur libre</option>
-                            <option value="1">Oui, exiger un mot de passe</option>
-                        </select>
-                    </div>
-                    <div class="form-group-admin" style="flex: 1; min-width: 250px;" id="read-password-container">
-                        <label>Nouveau mot de passe visiteur (laisser vide pour ne pas changer)</label>
-                        <input type="password" id="input-read-password" placeholder="Saisir un mot de passe...">
-                    </div>
-                    <div style="flex: 1; min-width: 150px;">
-                        <button onclick="saveSecurity()" class="btn" style="background: #ff8b00; width: 100%;">Mettre à jour la sécurité</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="admin-card" style="grid-column: 1 / -1;">
-                <h3>Paramètres Généraux de l'Application</h3>
-                <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start;">
-                    
-                    <div style="display: flex; flex-direction: column; gap: 20px; flex: 2; min-width: 250px;">
-                        <div class="form-group-admin">
-                            <label>Titre de l'application</label>
-                            <input type="text" id="input-app-title">
+            <div id="sub-security" class="admin-sub-content">
+                <div class="admin-card" style="border-left: 4px solid #ff8b00;">
+                    <h3>Sécurité & Accès au tableau</h3>
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-end;">
+                        <div class="form-group-admin" style="flex: 1; min-width: 250px;">
+                            <label>Protéger la lecture seule par mot de passe ?</label>
+                            <select id="input-require-read">
+                                <option value="0">Non, accès visiteur libre</option>
+                                <option value="1">Oui, exiger un mot de passe</option>
+                            </select>
                         </div>
-                        <div class="form-group-admin">
-                            <label>Nom de l'équipe</label>
-                            <input type="text" id="input-team-name">
+                        <div class="form-group-admin" style="flex: 1; min-width: 250px;" id="read-password-container">
+                            <label>Nouveau mot de passe visiteur (laisser vide pour ne pas changer)</label>
+                            <input type="password" id="input-read-password" placeholder="Saisir un mot de passe...">
+                        </div>
+                        <div style="flex: 1; min-width: 150px;">
+                            <button onclick="saveSecurity()" class="btn" style="background: #ff8b00; width: 100%;">Mettre à jour la sécurité</button>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <div class="form-group-admin" style="flex: 1; min-width: 250px; background: #fafbfc; padding: 15px; border-radius: 8px; border: 1px solid #dfe1e6;">
-                        <label style="margin-bottom: 10px;">Logo de l'application</label>
-                        <div style="text-align: center; margin-bottom: 15px; min-height: 40px;">
-                            <img id="current-logo-preview" src="" alt="Logo" style="max-height: 50px; max-width: 100%; border-radius: 4px; display: none;">
+            <div id="sub-general" class="admin-sub-content active">
+                <div class="admin-card">
+                    <h3>Paramètres Généraux de l'Application</h3>
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start;">
+                        
+                        <div style="display: flex; flex-direction: column; gap: 20px; flex: 2; min-width: 250px;">
+                            <div class="form-group-admin">
+                                <label>Titre de l'application</label>
+                                <input type="text" id="input-app-title">
+                            </div>
+                            <div class="form-group-admin">
+                                <label>Nom de l'équipe</label>
+                                <input type="text" id="input-team-name">
+                            </div>
                         </div>
-                        <div class="file-upload-wrapper" style="padding: 15px 10px; margin-bottom: 0;">
-                            <span id="logo-upload-label" style="font-weight:600; font-size:12px; color:#5e6c84;">🖼️ Modifier le logo (PNG, JPG)</span>
-                            <input type="file" id="input-app-logo" accept="image/png, image/jpeg, image/svg+xml, image/webp" onchange="uploadLogo(this)">
+
+                        <div class="form-group-admin" style="flex: 1; min-width: 250px; background: #fafbfc; padding: 15px; border-radius: 8px; border: 1px solid #dfe1e6;">
+                            <label style="margin-bottom: 10px;">Logo de l'application</label>
+                            <div style="text-align: center; margin-bottom: 15px; min-height: 40px;">
+                                <img id="current-logo-preview" src="" alt="Logo" style="max-height: 50px; max-width: 100%; border-radius: 4px; display: none;">
+                            </div>
+                            <div class="file-upload-wrapper" style="padding: 15px 10px; margin-bottom: 0;">
+                                <span id="logo-upload-label" style="font-weight:600; font-size:12px; color:#5e6c84;">🖼️ Modifier le logo (PNG, JPG)</span>
+                                <input type="file" id="input-app-logo" accept="image/png, image/jpeg, image/svg+xml, image/webp" onchange="uploadLogo(this)">
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <div id="sub-fields" class="admin-sub-content">
+                <div class="admin-card">
+                    <h3>Configuration des Champs</h3>
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start;">
+                        <div class="form-group-admin" style="flex: 1; min-width: 250px;">
+                            <label>Afficher le bloc "Code Projet" ?</label>
+                            <select id="input-enable-code-projet">
+                                <option value="1">Oui</option>
+                                <option value="0">Non</option>
+                            </select>
+                        </div>
+                        <div class="form-group-admin" style="flex: 1; min-width: 250px;">
+                            <label>Afficher le bloc "Code ITBM" ?</label>
+                            <select id="input-enable-code-itbm">
+                                <option value="1">Oui</option>
+                                <option value="0">Non</option>
+                            </select>
+                        </div>
+                        <div class="form-group-admin" style="flex: 1; min-width: 250px;">
+                            <label>Activer le module Charge (JH) ?</label>
+                            <select id="input-enable-charge-jh">
+                                <option value="1">Oui</option>
+                                <option value="0">Non</option>
+                            </select>
+                        </div>
+                        <div class="form-group-admin" style="flex: 1; min-width: 250px;">
+                            <label>Activer la vue Gantt ?</label>
+                            <select id="input-enable-gantt">
+                                <option value="1">Oui</option>
+                                <option value="0">Non</option>
+                            </select>
                         </div>
                     </div>
-
                 </div>
             </div>
 
-            <div class="admin-card" style="grid-column: 1 / -1;">
-                <h3>Configuration des Champs</h3>
-                <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start;">
-                    <div class="form-group-admin" style="flex: 1; min-width: 250px;">
-                        <label>Afficher le bloc "Code Projet" ?</label>
-                        <select id="input-enable-code-projet">
-                            <option value="1">Oui</option>
-                            <option value="0">Non</option>
-                        </select>
-                    </div>
-                    <div class="form-group-admin" style="flex: 1; min-width: 250px;">
-                        <label>Afficher le bloc "Code ITBM" ?</label>
-                        <select id="input-enable-code-itbm">
-                            <option value="1">Oui</option>
-                            <option value="0">Non</option>
-                        </select>
-                    </div>
-                    <div class="form-group-admin" style="flex: 1; min-width: 250px;">
-                        <label>Activer le module Charge (JH) ?</label>
-                        <select id="input-enable-charge-jh">
-                            <option value="1">Oui</option>
-                            <option value="0">Non</option>
-                        </select>
-                    </div>
-                    <div class="form-group-admin" style="flex: 1; min-width: 250px;">
-                        <label>Activer la vue Gantt ?</label>
-                        <select id="input-enable-gantt">
-                            <option value="1">Oui</option>
-                            <option value="0">Non</option>
-                        </select>
+            <div id="sub-projects" class="admin-sub-content">
+                <div class="admin-card">
+                    <h3>Projets</h3>
+                    <ul class="item-list" id="list-projets"></ul>
+                    <div class="add-group" id="project-form-container" style="background: #fafbfc; padding: 15px; border-radius: 8px; border: 1px dashed #dfe1e6;">
+                        <label style="font-size: 13px; font-weight: 600; color: #172b4d;">1. Choisir une couleur</label>
+                        <div id="palette-container" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom: 10px;"></div>
+                        <input type="hidden" id="selected-project-color" value="#0052cc">
+                        <input type="hidden" id="edit-project-index" value="-1">
+                        
+                        <label style="font-size: 13px; font-weight: 600; color: #172b4d;">2. Nom du projet</label>
+                        <input type="text" id="input-projets" placeholder="Nouveau projet..." style="margin-bottom: 10px; width: 100%;">
+                        
+                        <label style="font-size: 13px; font-weight: 600; color: #172b4d;">3. Description (Optionnelle)</label>
+                        <textarea id="input-projet-desc" placeholder="Description courte du projet..." rows="2" style="width:100%; padding:8px; border:1px solid #dfe1e6; border-radius:4px; margin-bottom:10px; font-family: inherit; font-size: 14px;"></textarea>
+                        
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn" id="btn-save-project" onclick="saveProject()">Ajouter le projet</button>
+                            <button class="btn" id="btn-cancel-project" style="display:none; background:#ebecf0; color:#42526e;" onclick="cancelEditProject()">Annuler</button>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="admin-card">
-                <h3>Projets</h3>
-                <ul class="item-list" id="list-projets"></ul>
-                <div class="add-group" id="project-form-container" style="background: #fafbfc; padding: 15px; border-radius: 8px; border: 1px dashed #dfe1e6;">
-                    <label style="font-size: 13px; font-weight: 600; color: #172b4d;">1. Choisir une couleur</label>
-                    <div id="palette-container" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom: 10px;"></div>
-                    <input type="hidden" id="selected-project-color" value="#0052cc">
-                    <input type="hidden" id="edit-project-index" value="-1">
-                    
-                    <label style="font-size: 13px; font-weight: 600; color: #172b4d;">2. Nom du projet</label>
-                    <input type="text" id="input-projets" placeholder="Nouveau projet..." style="margin-bottom: 10px; width: 100%;">
-                    
-                    <label style="font-size: 13px; font-weight: 600; color: #172b4d;">3. Description (Optionnelle)</label>
-                    <textarea id="input-projet-desc" placeholder="Description courte du projet..." rows="2" style="width:100%; padding:8px; border:1px solid #dfe1e6; border-radius:4px; margin-bottom:10px; font-family: inherit; font-size: 14px;"></textarea>
-                    
-                    <div style="display:flex; gap:10px;">
-                        <button class="btn" id="btn-save-project" onclick="saveProject()">Ajouter le projet</button>
-                        <button class="btn" id="btn-cancel-project" style="display:none; background:#ebecf0; color:#42526e;" onclick="cancelEditProject()">Annuler</button>
+            <div id="sub-actors" class="admin-sub-content">
+                <div class="admin-card">
+                    <h3>Acteurs / Porteurs</h3>
+                    <ul class="item-list" id="list-acteurs"></ul>
+                    <div class="add-group" style="flex-direction:row;">
+                        <input type="text" id="input-acteurs" placeholder="Nouvel acteur...">
+                        <button class="btn" onclick="addItem('acteurs')">Ajouter</button>
                     </div>
                 </div>
             </div>
 
-            <div class="admin-card">
-                <h3>Acteurs / Porteurs</h3>
-                <ul class="item-list" id="list-acteurs"></ul>
-                <div class="add-group" style="flex-direction:row;">
-                    <input type="text" id="input-acteurs" placeholder="Nouvel acteur...">
-                    <button class="btn" onclick="addItem('acteurs')">Ajouter</button>
+            <div id="sub-priorities" class="admin-sub-content">
+                <div class="admin-card">
+                    <h3>Priorités</h3>
+                    <ul class="item-list" id="list-priorites"></ul>
+                    <div class="add-group" style="flex-direction:row;">
+                        <input type="text" id="input-priorites" placeholder="Nouvelle priorité...">
+                        <button class="btn" onclick="addItem('priorites')">Ajouter</button>
+                    </div>
                 </div>
             </div>
 
-            <div class="admin-card">
-                <h3>Priorités</h3>
-                <ul class="item-list" id="list-priorites"></ul>
-                <div class="add-group" style="flex-direction:row;">
-                    <input type="text" id="input-priorites" placeholder="Nouvelle priorité...">
-                    <button class="btn" onclick="addItem('priorites')">Ajouter</button>
-                </div>
-            </div>
-
-            <div class="admin-card">
-                <h3>Types de Réunions</h3>
-                <ul class="item-list" id="list-reunions"></ul>
-                <div class="add-group" style="flex-direction:row;">
-                    <input type="text" id="input-reunions" placeholder="Point équipe, Coproj...">
-                    <button class="btn" onclick="addItem('reunions')">Ajouter</button>
+            <div id="sub-meetings" class="admin-sub-content">
+                <div class="admin-card">
+                    <h3>Types de Réunions</h3>
+                    <ul class="item-list" id="list-reunions"></ul>
+                    <div class="add-group" style="flex-direction:row;">
+                        <input type="text" id="input-reunions" placeholder="Point équipe, Coproj...">
+                        <button class="btn" onclick="addItem('reunions')">Ajouter</button>
+                    </div>
                 </div>
             </div>
         </div>
