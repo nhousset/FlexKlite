@@ -325,8 +325,11 @@
     <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 500px; text-align: center; padding: 30px;">
         <div class="close-panel" onclick="closeAboutModal(event)" style="position: absolute; top: 15px; right: 15px;">×</div>
         
+        <?php
+        $modal_logo = (!empty($settings['app_logo']) && file_exists(__DIR__ . '/' . $settings['app_logo'])) ? htmlspecialchars($settings['app_logo']) : 'img/logo.png';
+        ?>
         <div style="margin-bottom: 20px;">
-            <img src="img/logo.png?t=<?= time() ?>" alt="Logo FlexKlite" style="max-height: 130px; object-fit: contain;">
+            <img src="<?= $modal_logo ?>?t=<?= time() ?>" alt="Logo FlexKlite" style="max-height: 130px; object-fit: contain;">
         </div>
         <p style="color: #5e6c84; font-size: 14px; margin-bottom: 20px;">
             <?= nl2br(htmlspecialchars($about_data['description'] ?? '')) ?>
