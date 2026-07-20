@@ -33,11 +33,15 @@ $app_theme = $settings['app_theme'] ?? 'classic';
         <?php endif; ?>
     <?php endif; ?>
 
-    <div class="admin-tabs-header">
+    <div class="admin-tabs-header" style="align-items: center;">
         <button class="admin-tab-btn active" onclick="switchAdminTab('panel-lists', this)">⚙️ Configuration des Éléments</button>
         <button class="admin-tab-btn" onclick="switchAdminTab('panel-json', this)">📝 Éditeur Brut JSON</button>
         <button class="admin-tab-btn" onclick="switchAdminTab('panel-backup', this)">💾 Sauvegarde & Restauration (ZIP)</button>
         <button class="admin-tab-btn" onclick="switchAdminTab('panel-history', this)">📜 Journal des Actions</button>
+        
+        <div style="margin-left: auto; padding-right: 15px;">
+            <img src="img/logo.png" alt="Logo FlexKlite" style="height: 35px; object-fit: contain; vertical-align: middle;">
+        </div>
     </div>
 
     <!-- Modale de notification -->
