@@ -689,6 +689,19 @@ switch ($action) {
         header('Location: admin.php?status=import_error');
         exit;
 
+    case 'get_help':
+        $doc_path = __DIR__ . '/DOCUMENTATION.md';
+        if (!file_exists($doc_path)) {
+            $doc_path = __DIR__ . '/../DOCUMENTATION.md';
+        }
+        $content = file_exists($doc_path) ? file_get_contents($doc_path) : "# Erreur\nFichier DOCUMENTATION.md introuvable.";
+        // On modifie le chemin des images pour correspondre au contexte web (si DOCUMENTATION.md a été rédigé avec src/img/)
+        $content = str_replace('src/img/', 'img/', $content);
+        // Header texte brut puisque c'est du Markdown
+        header('Content-Type: text/plain; charset=utf-8');
+        echo $content;
+        exit;
+
     case 'get_history':
         echo file_get_contents($history_file);
         break;
