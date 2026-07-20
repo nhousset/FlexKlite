@@ -814,11 +814,16 @@ $compilation_date = $about_data['build_date'] ?? '20/07/2026 08:20';
             currentRestoreUrl = null;
         }
 
-        document.getElementById('btn-confirm-restore').addEventListener('click', function() {
-            if (currentRestoreForm) {
-                currentRestoreForm.submit();
-            } else if (currentRestoreUrl) {
-                window.location.href = currentRestoreUrl;
+        document.addEventListener('DOMContentLoaded', function() {
+            const confirmBtn = document.getElementById('btn-confirm-restore');
+            if (confirmBtn) {
+                confirmBtn.addEventListener('click', function() {
+                    if (currentRestoreForm) {
+                        currentRestoreForm.submit();
+                    } else if (currentRestoreUrl) {
+                        window.location.href = currentRestoreUrl;
+                    }
+                });
             }
         });
     </script>
