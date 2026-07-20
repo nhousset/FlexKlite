@@ -119,8 +119,9 @@ $app_theme = $settings['app_theme'] ?? 'classic';
                                 <label>Thème global de l'application</label>
                                 <select id="input-app-theme" onchange="document.body.setAttribute('data-theme', this.value); markDirty();">
                                     <option value="classic">Classique (Pro / Clair)</option>
-                                    <option value="dark">Sombre (Nuit)</option>
-                                    <option value="modern">Moderne (Épuré / Verre)</option>
+                                    <option value="dark">Sombre (Nuit / Cyber)</option>
+                                    <option value="modern">Moderne (Verre / Coloré)</option>
+                                    <option value="architect">Architect (Dashboard Clean)</option>
                                 </select>
                             </div>
                         </div>
