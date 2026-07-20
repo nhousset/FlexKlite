@@ -305,7 +305,7 @@ $compilation_date = $about_data['build_date'] ?? '20/07/2026 08:20';
         </div>
 
         <?php
-        $backup_dir_path = __DIR__ . '/../uploads/backup___';
+        $backup_dir_path = __DIR__ . '/uploads/backup___';
         $backups = [];
         if (is_dir($backup_dir_path)) {
             $files = scandir($backup_dir_path);
