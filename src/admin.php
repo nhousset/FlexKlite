@@ -4,6 +4,10 @@ if (!$is_logged_in) {
     header('Location: login.php');
     exit;
 }
+
+$settings_file = __DIR__ . '/db/settings.json';
+$settings = file_exists($settings_file) ? json_decode(file_get_contents($settings_file), true) : [];
+$app_theme = $settings['app_theme'] ?? 'classic';
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -12,7 +16,7 @@ if (!$is_logged_in) {
     <title>Administration Pro - Suivi de Chantiers</title>
     <link rel="stylesheet" href="style.css?<?= time() ?>">
 </head>
-<body>
+<body data-theme="<?= htmlspecialchars($app_theme) ?>">
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
         <h1 style="margin: 0;">Console d'Administration</h1>
@@ -110,6 +114,14 @@ if (!$is_logged_in) {
                             <div class="form-group-admin">
                                 <label>Nom de l'équipe</label>
                                 <input type="text" id="input-team-name">
+                            </div>
+                            <div class="form-group-admin">
+                                <label>Thème global de l'application</label>
+                                <select id="input-app-theme" onchange="document.body.setAttribute('data-theme', this.value); markDirty();">
+                                    <option value="classic">Classique (Pro / Clair)</option>
+                                    <option value="dark">Sombre (Nuit)</option>
+                                    <option value="modern">Moderne (Épuré / Verre)</option>
+                                </select>
                             </div>
                         </div>
 
@@ -334,7 +346,7 @@ if (!$is_logged_in) {
             document.getElementById('admin-modal').style.display = 'flex';
         }
 
-        let settingsData = { app_title: "", team_name: "", app_logo: "", require_read_password: false, enable_code_projet: true, enable_code_itbm: true, projets: [], acteurs: [], priorites: [], reunions: [] };
+        let settingsData = { app_title: "", team_name: "", app_theme: "classic", app_logo: "", require_read_password: false, enable_code_projet: true, enable_code_itbm: true, projets: [], acteurs: [], priorites: [], reunions: [] };
 
         const palette32 = [
             '#ff9f1a', '#ffb8d2', '#ff5630', '#ff7452', '#00875a', '#36b37e', '#00a3bf', '#00c7e6',
@@ -388,6 +400,7 @@ if (!$is_logged_in) {
                 settingsData = { ...settingsData, ...data };
                 document.getElementById('input-app-title').value = settingsData.app_title || '';
                 document.getElementById('input-team-name').value = settingsData.team_name || '';
+                document.getElementById('input-app-theme').value = settingsData.app_theme || 'classic';
                 
                 document.getElementById('input-require-read').value = settingsData.require_read_password ? "1" : "0";
                 toggleReadPasswordInput();
@@ -585,6 +598,7 @@ if (!$is_logged_in) {
         function saveSettings() {
             settingsData.app_title = document.getElementById('input-app-title').value.trim();
             settingsData.team_name = document.getElementById('input-team-name').value.trim();
+            settingsData.app_theme = document.getElementById('input-app-theme').value;
             settingsData.enable_code_projet = document.getElementById('input-enable-code-projet').value === "1";
             settingsData.enable_code_itbm = document.getElementById('input-enable-code-itbm').value === "1";
             settingsData.enable_charge_jh = document.getElementById('input-enable-charge-jh').value === "1";
