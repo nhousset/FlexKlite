@@ -663,6 +663,11 @@ switch ($action) {
                     @rmdir($tmp_extract);
 
                     if ($success_kanban || $success_settings) {
+                        // Mettre à jour le dernier backup restauré dans les paramètres
+                        $current_settings = file_exists($settings_file) ? json_decode(file_get_contents($settings_file), true) : [];
+                        $current_settings['last_restored_backup'] = $filename;
+                        file_put_contents($settings_file, json_encode($current_settings, JSON_PRETTY_PRINT));
+
                         log_action('Backup', "Restauration serveur du fichier: $filename");
                         header('Location: admin.php?status=import_ok');
                         exit;
@@ -683,6 +688,20 @@ switch ($action) {
                 header('Content-Disposition: attachment; filename="'.$filename.'"');
                 header('Content-Length: ' . filesize($backup_file));
                 readfile($backup_file);
+                exit;
+            }
+        }
+        header('Location: admin.php?status=import_error');
+        exit;
+
+    case 'delete_server_backup':
+        if (isset($_GET['filename'])) {
+            $filename = basename($_GET['filename']);
+            $backup_file = $uploads_dir . '/backup___/' . $filename;
+            if (file_exists($backup_file)) {
+                @unlink($backup_file);
+                log_action('Backup', "Suppression de la sauvegarde: $filename");
+                header('Location: admin.php?status=backup_deleted');
                 exit;
             }
         }
