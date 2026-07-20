@@ -112,14 +112,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </form>
             
         <?php else: ?>
-            <h2 style="margin-top:0; color:#091e42;">Déverrouillage</h2>
+            <h2 style="margin-top:0; color:#091e42;">Mode édition</h2>
             <p style="color: #5e6c84; font-size: 14px; margin-bottom:25px;">Saisissez votre mot de passe pour passer en mode édition.</p>
             
             <?php if($error): ?><div class="alert-error"><?= $error ?></div><?php endif; ?>
             
             <form method="POST">
                 <input type="password" name="password" placeholder="Mot de passe admin..." required autofocus>
-                <button type="submit">Déverrouiller l'accès</button>
+                <button type="submit">Accéder au Mode édition</button>
             </form>
         <?php endif; ?>
         
