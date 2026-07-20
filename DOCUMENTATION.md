@@ -1,4 +1,4 @@
-[DOCUMENTATION.md](https://github.com/user-attachments/files/30187845/DOCUMENTATION.md)
+[DOCUMENTATION.md](https://github.com/user-attachments/files/30187981/DOCUMENTATION.md)
 # 📘 Documentation Fonctionnelle - FlexKlite
 
 <div align="center">
@@ -45,7 +45,14 @@ Une vue structurée pensée pour ressembler à un **tableau Excel**.
 - Les 5 dernières notes de l'historique d'une tâche y sont directement intégrées et lisibles d'un coup d'œil.
 - **Export Excel :** Un bouton permet d'exporter la vue filtrée instantanément au format `.xlsx`.
 
-### 3. 📊 Tableau de Bord (KPI)
+### 3. 📅 Vue Gantt (Planning)
+Une représentation chronologique de vos chantiers et tâches.
+- **Visualisation dans le temps :** Les tâches ayant une date de début et une date de fin s'affichent sous forme de barres horizontales sur un calendrier.
+- **Interactivité :** (En mode administrateur) Glissez-déposez les barres pour modifier les dates ou cliquez dessus pour ouvrir la fiche de la tâche.
+- **Filtres globaux :** La timeline s'adapte instantanément à vos recherches et filtres (Projet, Acteur, Statut).
+- **Activation :** Cette vue peut être activée ou désactivée à volonté depuis la Console d'Administration.
+
+### 4. 📊 Tableau de Bord (KPI)
 Analyse en temps réel de votre activité.
 
 <div align="center">
@@ -54,7 +61,7 @@ Analyse en temps réel de votre activité.
 - Volume total de tâches.
 - Répartition par statut, par acteur et par priorité pour équilibrer la charge de travail.
 
-### 4. 🗄️ Archives
+### 5. 🗄️ Archives
 Le stockage à froid de l'application.
 
 <div align="center">
