@@ -38,13 +38,15 @@ $compilation_date = $about_data['build_date'] ?? '20/07/2026 08:20';
             <div class="alert-banner alert-danger">❌ Erreur lors de la restauration. Assurez-vous que l'archive ZIP contient des fichiers JSON valides.</div>
         <?php elseif($_GET['status'] === 'backup_ok'): ?>
             <div class="alert-banner alert-success">📦 Sauvegarde générée avec succès ! Elle a été ajoutée à la liste ci-dessous.</div>
+        <?php elseif($_GET['status'] === 'backup_deleted'): ?>
+            <div class="alert-banner alert-success">🗑️ Sauvegarde supprimée avec succès !</div>
         <?php endif; ?>
     <?php endif; ?>
 
     <div class="admin-tabs-header" style="align-items: center;">
         <button class="admin-tab-btn active" onclick="switchAdminTab('panel-lists', this)">⚙️ Configuration des Éléments</button>
         <button class="admin-tab-btn" onclick="switchAdminTab('panel-json', this)">📝 Éditeur Brut JSON</button>
-        <button class="admin-tab-btn" onclick="switchAdminTab('panel-backup', this)">💾 Sauvegarde & Restauration (ZIP)</button>
+        <button class="admin-tab-btn" onclick="switchAdminTab('panel-backup', this)">💾 Sauvegarde & Restauration</button>
         <button class="admin-tab-btn" onclick="switchAdminTab('panel-history', this)">📜 Journal des Actions</button>
         
         <div style="margin-left: auto; padding-right: 15px;">
@@ -339,12 +341,18 @@ $compilation_date = $about_data['build_date'] ?? '20/07/2026 08:20';
                     <tbody>
                         <?php foreach($backups as $b): ?>
                         <tr>
-                            <td style="padding:10px 8px; border-bottom:1px solid #f4f5f7; font-size:14px;"><code><?= htmlspecialchars($b['name']) ?></code></td>
+                            <td style="padding:10px 8px; border-bottom:1px solid #f4f5f7; font-size:14px;">
+                                <code><?= htmlspecialchars($b['name']) ?></code>
+                                <?php if(isset($settings['last_restored_backup']) && $settings['last_restored_backup'] === $b['name']): ?>
+                                    <span style="background: #e3f2fd; color: #0052cc; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 8px;">Actuellement restauré</span>
+                                <?php endif; ?>
+                            </td>
                             <td style="padding:10px 8px; border-bottom:1px solid #f4f5f7; font-size:14px;"><?= date('d/m/Y H:i', $b['date']) ?></td>
                             <td style="padding:10px 8px; border-bottom:1px solid #f4f5f7; font-size:14px;"><?= round($b['size'] / 1024, 1) ?> Ko</td>
                             <td style="padding:10px 8px; border-bottom:1px solid #f4f5f7; text-align:right;">
                                 <a href="api.php?action=download_server_backup&filename=<?= urlencode($b['name']) ?>" class="btn" style="background:#0052cc; padding:6px 12px; font-size:13px; text-decoration:none; display:inline-block; margin-right:5px;">Télécharger</a>
-                                <a href="api.php?action=restore_server_backup&filename=<?= urlencode($b['name']) ?>" class="btn" style="background:#00875a; padding:6px 12px; font-size:13px; text-decoration:none; display:inline-block;" onclick="showConfirmRestoreModal(event, this);">Restaurer</a>
+                                <a href="api.php?action=restore_server_backup&filename=<?= urlencode($b['name']) ?>" class="btn" style="background:#00875a; padding:6px 12px; font-size:13px; text-decoration:none; display:inline-block; margin-right:5px;" onclick="showConfirmRestoreModal(event, this);">Restaurer</a>
+                                <a href="api.php?action=delete_server_backup&filename=<?= urlencode($b['name']) ?>" class="btn" style="background:#de350b; padding:6px 12px; font-size:13px; text-decoration:none; display:inline-block;" onclick="return confirm('Supprimer définitivement cette sauvegarde ?');">Effacer</a>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -391,7 +399,7 @@ $compilation_date = $about_data['build_date'] ?? '20/07/2026 08:20';
         // Ajout d'écouteurs sur les champs généraux
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
-            if (['import_ok', 'import_error', 'backup_ok'].includes(urlParams.get('status'))) {
+            if (['import_ok', 'import_error', 'backup_ok', 'backup_deleted'].includes(urlParams.get('status'))) {
                 const btnBackup = document.querySelector(`button[onclick*="panel-backup"]`);
                 if (btnBackup) switchAdminTab('panel-backup', btnBackup);
             }
