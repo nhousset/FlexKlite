@@ -74,10 +74,12 @@
                     <label>Échéance</label>
                     <input type="date" name="date_fin">
                 </div>
+                <?php if(!isset($settings['enable_charge_jh']) || $settings['enable_charge_jh']): ?>
                 <div class="form-group">
                     <label>Charge (JH)</label>
                     <input type="number" name="charge_jh" id="add_charge_jh" step="0.5" min="0" placeholder="Ex: 1.5">
                 </div>
+                <?php endif; ?>
                 <div class="form-group">
                     <label>Tâche Prérequis</label>
                     <select name="prerequis" id="add_prerequis">
@@ -176,10 +178,12 @@
                     <label>Échéance</label>
                     <input type="date" name="date_fin" id="edit_date_fin">
                 </div>
+                <?php if(!isset($settings['enable_charge_jh']) || $settings['enable_charge_jh']): ?>
                 <div class="form-group">
                     <label>Charge (JH)</label>
                     <input type="number" name="charge_jh" id="edit_charge_jh" step="0.5" min="0" placeholder="Ex: 1.5">
                 </div>
+                <?php endif; ?>
                 <div class="form-group">
                     <label>Tâche Prérequis</label>
                     <select name="prerequis" id="edit_prerequis">
