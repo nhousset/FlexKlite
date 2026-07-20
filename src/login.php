@@ -68,18 +68,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Configuration & Connexion</title>
+    <link rel="stylesheet" href="style.css?<?= time() ?>">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f4f5f7; margin:0; }
-        .login-card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); width: 100%; max-width: 400px; text-align: center; border: 1px solid #ebecf0; }
-        .login-card input { width: 100%; padding: 12px; margin: 10px 0 20px 0; border: 1px solid #dfe1e6; border-radius: 6px; box-sizing: border-box; font-size:15px; background: #fafbfc; }
-        .login-card input:focus { outline: none; border-color: #0052cc; background: white; }
-        .login-card button { width: 100%; padding: 12px; background: #00875a; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size:15px; transition: 0.2s; }
-        .login-card button:hover { background: #006644; }
-        .login-card label { display: block; text-align: left; font-size: 13px; font-weight: 600; color: #172b4d; margin-bottom: -5px; }
+        body { font-family: var(--font-main); display: flex; justify-content: center; align-items: center; height: 100vh; background: var(--bg-color); margin:0; }
+        .login-card { background: var(--card-bg); padding: 40px; border-radius: var(--card-radius); box-shadow: var(--shadow-main); width: 100%; max-width: 400px; text-align: center; border: 1px solid var(--border-color); color: var(--text-main); }
+        .login-card input { width: 100%; padding: 12px; margin: 10px 0 20px 0; border: 1px solid var(--border-color); border-radius: var(--border-radius); box-sizing: border-box; font-size:15px; background: var(--column-bg); color: var(--text-main); }
+        .login-card input:focus { outline: none; border-color: var(--primary); background: var(--card-bg); }
+        .login-card button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: var(--border-radius); font-weight: bold; cursor: pointer; font-size:15px; transition: 0.2s; }
+        .login-card button:hover { opacity: 0.9; }
+        .login-card label { display: block; text-align: left; font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: -5px; }
         .alert-error { color: #de350b; background: #ffebee; padding: 10px; border-radius: 4px; margin-bottom: 20px; font-size:14px; font-weight:bold; }
     </style>
 </head>
-<body>
+<body data-theme="<?= htmlspecialchars($settings['app_theme'] ?? 'classic') ?>">
     <div class="login-card">
 
         <?php if (!empty($app_logo)): ?>
