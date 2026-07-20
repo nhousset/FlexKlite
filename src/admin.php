@@ -83,6 +83,19 @@ if (!$is_logged_in) {
         </div>
     </div>
 
+    <!-- Modale de confirmation -->
+    <div id="confirm-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(9,30,66,0.54); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:white; padding:30px; border-radius:8px; max-width:400px; width:90%; text-align:center; box-shadow:0 8px 16px rgba(0,0,0,0.2);">
+            <div style="font-size:40px; margin-bottom:15px;">⚠️</div>
+            <h3 style="margin-top:0; color:#091e42; font-size:20px;">Confirmation</h3>
+            <p id="confirm-modal-msg" style="color:#5e6c84; font-size:14px; margin-bottom:25px; line-height: 1.5;"></p>
+            <div style="display:flex; justify-content:center; gap: 15px;">
+                <button onclick="closeConfirmModal()" class="btn" style="background:#ebecf0; color:#42526e; padding:10px 20px;">Annuler</button>
+                <button id="confirm-modal-btn" class="btn" style="background:#de350b; color:white; padding:10px 20px;">Confirmer</button>
+            </div>
+        </div>
+    </div>
+
     <div id="panel-lists" class="admin-tab-content active">
         <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
             <button onclick="saveSettings()" class="btn" style="background: #00875a;">Enregistrer la configuration</button>
@@ -289,6 +302,34 @@ if (!$is_logged_in) {
     </div>
 
     <script>
+        window.hasUnsavedChanges = false;
+        
+        window.addEventListener('beforeunload', function (e) {
+            if (window.hasUnsavedChanges) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+
+        function markDirty() {
+            window.hasUnsavedChanges = true;
+        }
+
+        // Ajout d'écouteurs sur les champs généraux
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputsToWatch = [
+                'input-app-title', 'input-team-name', 'input-require-read', 'input-read-password',
+                'input-enable-code-projet', 'input-enable-code-itbm', 'input-enable-charge-jh', 'input-enable-gantt'
+            ];
+            inputsToWatch.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) {
+                    el.addEventListener('input', markDirty);
+                    el.addEventListener('change', markDirty);
+                }
+            });
+        });
+
         function showAdminModal(msg, isError = false) {
             document.getElementById('admin-modal-icon').innerText = isError ? '❌' : '✅';
             document.getElementById('admin-modal-title').innerText = isError ? 'Erreur' : 'Succès';
@@ -391,6 +432,7 @@ if (!$is_logged_in) {
             .then(res => res.json())
             .then(resData => {
                 if(resData.success) {
+                    window.hasUnsavedChanges = false;
                     showAdminModal('Sécurité enregistrée avec succès !');
                     settingsData.require_read_password = req;
                     document.getElementById('input-read-password').value = '';
@@ -438,6 +480,7 @@ if (!$is_logged_in) {
             if (!settingsData[category].includes(val)) {
                 settingsData[category].push(val);
                 input.value = '';
+                markDirty();
                 renderLists();
             }
         }
@@ -506,13 +549,32 @@ if (!$is_logged_in) {
                 settingsData.projets.push({ name: name, color: color, description: desc });
             }
 
+            markDirty();
             cancelEditProject();
             renderLists();
         }
 
+        let confirmCallback = null;
+        function showConfirmModal(msg, callback) {
+            document.getElementById('confirm-modal-msg').innerText = msg;
+            confirmCallback = callback;
+            document.getElementById('confirm-modal').style.display = 'flex';
+        }
+        function closeConfirmModal() {
+            document.getElementById('confirm-modal').style.display = 'none';
+            confirmCallback = null;
+        }
+        document.getElementById('confirm-modal-btn').addEventListener('click', function() {
+            if (confirmCallback) confirmCallback();
+            closeConfirmModal();
+        });
+
         function removeItem(category, index) {
-            settingsData[category].splice(index, 1);
-            renderLists();
+            showConfirmModal("Êtes-vous sûr de vouloir supprimer cet élément ? Cette action nécessitera d'enregistrer la configuration pour être définitive.", () => {
+                settingsData[category].splice(index, 1);
+                markDirty();
+                renderLists();
+            });
         }
 
         function saveSettings() {
@@ -530,7 +592,10 @@ if (!$is_logged_in) {
             })
             .then(res => res.json())
             .then(resData => {
-                if(resData.success) showAdminModal('Configuration enregistrée avec succès !');
+                if(resData.success) {
+                    window.hasUnsavedChanges = false;
+                    showAdminModal('Configuration enregistrée avec succès !');
+                }
             });
         }
 
