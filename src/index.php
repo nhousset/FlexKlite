@@ -38,14 +38,18 @@ $compilation_date = date("d/m/Y H:i", filemtime(__FILE__));
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <!-- Frappe Gantt -->
+    <?php if(!isset($settings['enable_gantt']) || $settings['enable_gantt']): ?>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.js"></script>
+    <?php endif; ?>
     
     <!-- Injection du statut de connexion et des couleurs de projets pour le JavaScript -->
     <script>
         window.IS_LOGGED_IN = <?= $is_logged_in ? 'true' : 'false' ?>;
         window.ENABLE_CODE_PROJET = <?= !isset($settings['enable_code_projet']) || $settings['enable_code_projet'] ? 'true' : 'false' ?>;
         window.ENABLE_CODE_ITBM = <?= !isset($settings['enable_code_itbm']) || $settings['enable_code_itbm'] ? 'true' : 'false' ?>;
+        window.ENABLE_CHARGE_JH = <?= !isset($settings['enable_charge_jh']) || $settings['enable_charge_jh'] ? 'true' : 'false' ?>;
+        window.ENABLE_GANTT = <?= !isset($settings['enable_gantt']) || $settings['enable_gantt'] ? 'true' : 'false' ?>;
         window.PROJECT_COLORS = {};
         <?php foreach($settings['projets'] as $p): 
             if(is_array($p)): ?>
@@ -84,7 +88,9 @@ $compilation_date = date("d/m/Y H:i", filemtime(__FILE__));
                 <div style="display: flex; gap: 15px;">
                     <button class="tab-btn active" onclick="switchTab('tab-kanban', this)">🗂️ Kanban</button>
                     <button class="tab-btn" onclick="switchTab('tab-list', this)">📋 Liste</button>
+                    <?php if(!isset($settings['enable_gantt']) || $settings['enable_gantt']): ?>
                     <button class="tab-btn" onclick="switchTab('tab-gantt', this)">📅 Gantt</button>
+                    <?php endif; ?>
                     <button class="tab-btn" onclick="switchTab('tab-kpi', this)">📊 Tableau de Bord</button>
                     <button class="tab-btn" onclick="switchTab('tab-archives', this)">🗄️ Archives</button>
                 </div>
@@ -140,7 +146,7 @@ $compilation_date = date("d/m/Y H:i", filemtime(__FILE__));
             <?php 
             include 'kanban.php';
             include 'liste.php';
-            include 'gantt.php';
+            if(!isset($settings['enable_gantt']) || $settings['enable_gantt']) include 'gantt.php';
             include 'kpi.php';
             include 'archives.php';
             ?>
