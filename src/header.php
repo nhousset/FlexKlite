@@ -35,7 +35,7 @@ if (!empty($settings['app_logo']) && file_exists(__DIR__ . '/' . $settings['app_
                 </button>
                 <div class="dropdown-menu" id="header-dropdown">
                     <a href="admin.php" class="dropdown-item">⚙️ Administration</a>
-                    <a href="help.php" class="dropdown-item" target="_blank">❓ Aide</a>
+                    <a href="#" class="dropdown-item" onclick="event.preventDefault(); openHelpPanel();">❓ Aide</a>
                     <a href="#" class="dropdown-item" onclick="openAboutModal(event)">ℹ️ À propos</a>
                     <div class="dropdown-divider"></div>
                     <a href="logout.php" class="dropdown-item text-danger">🚪 Se déconnecter</a>
@@ -49,7 +49,7 @@ if (!empty($settings['app_logo']) && file_exists(__DIR__ . '/' . $settings['app_
                 <div class="dropdown-menu" id="guest-dropdown">
                     <a href="login.php" class="dropdown-item">🔑 Se connecter</a>
                     <div class="dropdown-divider"></div>
-                    <a href="help.php" class="dropdown-item" target="_blank">❓ Aide</a>
+                    <a href="#" class="dropdown-item" onclick="event.preventDefault(); openHelpPanel();">❓ Aide</a>
                     <a href="#" class="dropdown-item" onclick="openAboutModal(event)">ℹ️ À propos</a>
                 </div>
             </div>
