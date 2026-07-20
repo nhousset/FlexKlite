@@ -530,18 +530,27 @@ switch ($action) {
             if (is_dir($uploads_dir)) {
                 $files = scandir($uploads_dir);
                 foreach ($files as $f) {
-                    if ($f !== '.' && $f !== '..') {
-                        $zip->addFile($uploads_dir . '/' . $f, 'uploads/' . $f);
+                    if ($f !== '.' && $f !== '..' && $f !== 'backup___') {
+                        if (is_file($uploads_dir . '/' . $f)) {
+                            $zip->addFile($uploads_dir . '/' . $f, 'uploads/' . $f);
+                        }
                     }
                 }
             }
             
             $zip->close();
             
+            $backup_name = 'Backup_Chantiers_'.date('Ymd_His').'.zip';
+            $backup_dir = $uploads_dir . '/backup___';
+            if (!is_dir($backup_dir)) {
+                mkdir($backup_dir, 0755, true);
+            }
+            copy($tmp_file, $backup_dir . '/' . $backup_name);
+            
             if (ob_get_level()) { ob_end_clean(); }
             
             header('Content-Type: application/zip');
-            header('Content-Disposition: attachment; filename="Backup_Chantiers_'.date('Ymd_His').'.zip"');
+            header('Content-Disposition: attachment; filename="'.$backup_name.'"');
             header('Content-Length: ' . filesize($tmp_file));
             readfile($tmp_file);
             unlink($tmp_file);
@@ -601,6 +610,68 @@ switch ($action) {
                     log_action('Backup', "Restauration complète du système (incluant les PJ) opérée via l'importation d'une archive ZIP.");
                     header('Location: admin.php?status=import_ok');
                     exit;
+                }
+            }
+        }
+        header('Location: admin.php?status=import_error');
+        exit;
+
+    case 'restore_server_backup':
+        if (isset($_GET['filename'])) {
+            $filename = basename($_GET['filename']);
+            $backup_file = $uploads_dir . '/backup___/' . $filename;
+            
+            if (file_exists($backup_file)) {
+                $zip = new ZipArchive();
+                if ($zip->open($backup_file) === TRUE) {
+                    $tmp_extract = sys_get_temp_dir() . '/kanban_restore_' . uniqid();
+                    mkdir($tmp_extract, 0755, true);
+                    $zip->extractTo($tmp_extract);
+                    $zip->close();
+                    
+                    $success_kanban = false;
+                    $success_settings = false;
+
+                    if (file_exists($tmp_extract . '/kanban.json')) {
+                        $json = json_decode(file_get_contents($tmp_extract . '/kanban.json'), true);
+                        if ($json !== null) { copy($tmp_extract . '/kanban.json', $db_file); $success_kanban = true; }
+                    }
+                    if (file_exists($tmp_extract . '/settings.json')) {
+                        $json = json_decode(file_get_contents($tmp_extract . '/settings.json'), true);
+                        if ($json !== null) { copy($tmp_extract . '/settings.json', $settings_file); $success_settings = true; }
+                    }
+                    if (file_exists($tmp_extract . '/history.json')) {
+                        copy($tmp_extract . '/history.json', $history_file);
+                    }
+                    if (file_exists($tmp_extract . '/admin.json')) {
+                        copy($tmp_extract . '/admin.json', $admin_file);
+                    }
+                    
+                    if (is_dir($tmp_extract . '/uploads')) {
+                        if (!is_dir($uploads_dir)) mkdir($uploads_dir, 0755, true);
+                        $files = scandir($tmp_extract . '/uploads');
+                        foreach ($files as $f) {
+                            if ($f !== '.' && $f !== '..') {
+                                copy($tmp_extract . '/uploads/' . $f, $uploads_dir . '/' . $f);
+                            }
+                        }
+                    }
+
+                    @unlink($tmp_extract . '/kanban.json');
+                    @unlink($tmp_extract . '/settings.json');
+                    @unlink($tmp_extract . '/history.json');
+                    @unlink($tmp_extract . '/admin.json');
+                    if (is_dir($tmp_extract . '/uploads')) {
+                        foreach (scandir($tmp_extract . '/uploads') as $f) { if ($f !== '.' && $f !== '..') @unlink($tmp_extract . '/uploads/' . $f); }
+                        @rmdir($tmp_extract . '/uploads');
+                    }
+                    @rmdir($tmp_extract);
+
+                    if ($success_kanban || $success_settings) {
+                        log_action('Backup', "Restauration serveur du fichier: $filename");
+                        header('Location: admin.php?status=import_ok');
+                        exit;
+                    }
                 }
             }
         }
