@@ -1,3 +1,4 @@
+[DOCUMENTATION.md](https://github.com/user-attachments/files/30180863/DOCUMENTATION.md)
 # 📘 Documentation Fonctionnelle - FlexKlite
 
 **FlexKlite** est une application web légère, intuitive et réactive conçue pour la gestion de tâches et le suivi de chantiers. Elle permet de suivre l'avancement des projets via de multiples vues synchronisées et offre un système avancé de traçabilité et d'historisation.
@@ -69,6 +70,7 @@ Un panneau latéral droit retrace le flux des "Derniers Échanges". Il affiche e
 
 ### 🛠️ Configuration & Paramétrages
 Accessible depuis le menu supérieur (icône engrenage) :
+- **Personnalisation & Thèmes :** Sélectionnez l'apparence globale de l'application parmi 4 thèmes complets (Classique, Sombre, Moderne, Architect).
 - **Listes déroulantes personnalisables :** Ajoutez ou modifiez vos Acteurs, Projets, Niveaux de priorité et Types de réunion. Les couleurs des projets sont également personnalisables.
 - **Sécurité :** Définition du mot de passe Admin, et possibilité de forcer un mot de passe même pour la simple lecture de l'application (mode privé).
 - **Maintenance :** Outils pour exporter la base de données brute (`kanban.json`) en sauvegarde, et importer un fichier ZIP pour restaurer un environnement.
