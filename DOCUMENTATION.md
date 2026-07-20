@@ -1,4 +1,4 @@
-[DOCUMENTATION.md](https://github.com/user-attachments/files/30187981/DOCUMENTATION.md)
+[DOCUMENTATION.md](https://github.com/user-attachments/files/30188202/DOCUMENTATION.md)
 # 📘 Documentation Fonctionnelle - FlexKlite
 
 <div align="center">
@@ -97,6 +97,10 @@ Un panneau latéral droit retrace le flux des "Derniers Échanges". Il affiche e
 
 ### 🛠️ Configuration & Paramétrages
 Accessible depuis le menu supérieur (icône engrenage) :
+
+<div align="center">
+  <img src="src/img/help_admi_home.png" alt="Configuration et Paramétrages" style="max-width: 100%; border-radius: 8px; margin: 15px 0; border: 1px solid #dfe1e6;">
+</div>
 - **Personnalisation & Thèmes :** Sélectionnez l'apparence globale de l'application parmi 4 thèmes complets (Classique, Sombre, Moderne, Architect).
 - **Listes déroulantes personnalisables :** Ajoutez ou modifiez vos Acteurs, Projets, Niveaux de priorité et Types de réunion. Les couleurs des projets sont également personnalisables.
 - **Sécurité :** Définition du mot de passe Admin, et possibilité de forcer un mot de passe même pour la simple lecture de l'application (mode privé).
