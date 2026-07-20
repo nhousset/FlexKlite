@@ -374,6 +374,14 @@ if (!$is_logged_in) {
             }
         }
 
+        function switchAdminSubTab(panelId, btn) {
+            document.querySelectorAll('.admin-sub-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.admin-sub-tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(panelId).classList.add('active');
+            btn.classList.add('active');
+        }
+
         fetch('api.php?action=get_settings')
             .then(res => res.json())
             .then(data => {
