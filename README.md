@@ -1,10 +1,12 @@
-[README.md](https://github.com/user-attachments/files/30186227/README.md)
+[README.md](https://github.com/user-attachments/files/30187706/README.md)
 # Présentation du projet FlexKlite
 
 <div align="center">
   <img src="src/img/logo.png" alt="Logo FlexKlite" height="220">
 </div>
 FlexKlite est une application web légère de gestion de tâches et de projets, développée en PHP et conteneurisée via Docker. Le projet s'appuie sur une architecture simple et portable sans base de données relationnelle complexe, privilégiant l'utilisation de fichiers JSON pour le stockage des données.
+
+> 📖 **Pour plus de détails sur le fonctionnement, les rôles et l'administration, veuillez consulter la [Documentation Utilisateur & Administrateur](DOCUMENTATION.md).**
 
 ## Architecture et Technologies
 
