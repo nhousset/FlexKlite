@@ -276,11 +276,11 @@
     
     <?php if($is_logged_in): ?>
         <div style="background: #fafbfc; border: 1px dashed #dfe1e6; padding: 15px; border-radius: 8px; margin-bottom: 25px;">
-            <h5 style="margin: 0 0 10px 0; color: #5e6c84; font-size: 13px;">+ Déclarer un nouveau Lot</h5>
+            <h5 style="margin: 0 0 10px 0; color: #5e6c84; font-size:15px;">+ Déclarer un nouveau Lot</h5>
             <div style="display: flex; gap: 10px;">
-                <input type="text" id="new-lot-titre" placeholder="Intitulé du lot (ex: Front-end)" style="flex:2; padding: 8px; border: 1px solid #dfe1e6; border-radius: 4px; font-size:13px;">
-                <input type="text" id="new-lot-code" placeholder="Code (ex: TSK123)" style="flex:1; padding: 8px; border: 1px solid #dfe1e6; border-radius: 4px; font-size:13px;">
-                <button class="btn" style="padding: 8px 15px; font-size: 13px;" onclick="submitLot()">Ajouter</button>
+                <input type="text" id="new-lot-titre" placeholder="Intitulé du lot (ex: Front-end)" style="flex:2; padding: 8px; border: 1px solid #dfe1e6; border-radius: 4px; font-size:15px;">
+                <input type="text" id="new-lot-code" placeholder="Code (ex: TSK123)" style="flex:1; padding: 8px; border: 1px solid #dfe1e6; border-radius: 4px; font-size:15px;">
+                <button class="btn" style="padding: 8px 15px; font-size:15px;" onclick="submitLot()">Ajouter</button>
             </div>
         </div>
     <?php endif; ?>
@@ -290,9 +290,9 @@
     
     <?php if($is_logged_in): ?>
         <div style="background: #fafbfc; border: 1px dashed #dfe1e6; padding: 10px; border-radius: 8px; margin-bottom: 25px; display:flex; gap:10px; align-items:center;">
-            <input type="text" id="new-attachment-title" placeholder="Titre (optionnel)" style="flex:1; max-width: 200px; font-size:13px; padding: 6px; border: 1px solid #dfe1e6; border-radius: 4px;">
-            <input type="file" id="new-attachment-file" style="flex:1; font-size:13px;">
-            <button class="btn" style="padding: 6px 15px; font-size: 13px;" onclick="uploadAttachment()">Ajouter le fichier</button>
+            <input type="text" id="new-attachment-title" placeholder="Titre (optionnel)" style="flex:1; max-width: 200px; font-size:15px; padding: 6px; border: 1px solid #dfe1e6; border-radius: 4px;">
+            <input type="file" id="new-attachment-file" style="flex:1; font-size:15px;">
+            <button class="btn" style="padding: 6px 15px; font-size:15px;" onclick="uploadAttachment()">Ajouter le fichier</button>
         </div>
         
         <h4 id="note-form-title" style="margin-bottom: 10px; border-top: 2px solid #ebecf0; padding-top:20px; font-size:15px; color: #172b4d;">Saisir un point de suivi :</h4>
@@ -317,7 +317,12 @@
         </div>
     <?php endif; ?>
 
-    <h4 style="margin-top: 40px; font-size:15px; color: #172b4d; border-bottom: 2px solid #ebecf0; padding-bottom: 10px;">Historique global (Tâche + Lots)</h4>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 40px; border-bottom: 2px solid #ebecf0; padding-bottom: 10px;">
+        <h4 style="margin: 0; font-size:15px; color: #172b4d;">Historique global (Tâche + Lots)</h4>
+        <select id="history-lot-filter" style="padding: 4px 8px; border: 1px solid #dfe1e6; border-radius: 4px; font-size:15px; color: #5e6c84; background: #fafbfc; max-width: 200px;" onchange="renderHistoryNotes()">
+            <option value="">Toutes les notes</option>
+        </select>
+    </div>
     <div id="panel-notes-list"></div>
 </div>
 
@@ -329,11 +334,11 @@
         <div style="margin-bottom: 20px;">
             <img src="img/logo.png?t=<?= time() ?>" alt="Logo FlexKlite" style="max-height: 130px; object-fit: contain;">
         </div>
-        <p style="color: #5e6c84; font-size: 14px; margin-bottom: 20px;">
+        <p style="color: #5e6c84; font-size:15px; margin-bottom: 20px;">
             <?= nl2br(htmlspecialchars($about_data['description'] ?? '')) ?>
         </p>
         
-        <div style="background: #f4f5f7; padding: 15px; border-radius: 8px; text-align: left; font-size: 13px; color: #172b4d;">
+        <div style="background: #f4f5f7; padding: 15px; border-radius: 8px; text-align: left; font-size:15px; color: #172b4d;">
             <div style="margin-bottom: 8px;"><strong>👤 Auteur :</strong> <?= htmlspecialchars($about_data['author'] ?? '') ?></div>
             <div style="margin-bottom: 8px;"><strong>✉️ Contact :</strong> <a href="mailto:<?= htmlspecialchars($about_data['contact'] ?? '') ?>" style="color: var(--primary);"><?= htmlspecialchars($about_data['contact'] ?? '') ?></a></div>
             <?php if (!empty($about_data['github'])): ?>
@@ -357,7 +362,7 @@
         <h2 style="color: #091e42; margin-top: 0; margin-bottom: 15px; font-size: 20px;">
             Mode lecture seule
         </h2>
-        <p style="color: #5e6c84; font-size: 14px; margin-bottom: 25px; line-height: 1.5;">
+        <p style="color: #5e6c84; font-size:15px; margin-bottom: 25px; line-height: 1.5;">
             Vous devez être connecté en tant qu'administrateur pour modifier ou déplacer des tâches.
         </p>
         
@@ -377,7 +382,7 @@
         <h2 style="color: var(--text-main); margin-top: 0; margin-bottom: 15px; font-size: 20px;">
             Archiver la tâche
         </h2>
-        <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 25px; line-height: 1.5;">
+        <p style="color: var(--text-muted); font-size:15px; margin-bottom: 25px; line-height: 1.5;">
             Voulez-vous vraiment archiver cette tâche ? Elle sera déplacée vers l'onglet Archives.
         </p>
         
@@ -397,7 +402,7 @@
         <h2 style="color: var(--text-main); margin-top: 0; margin-bottom: 15px; font-size: 20px;">
             Supprimer la pièce jointe
         </h2>
-        <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 25px; line-height: 1.5;">
+        <p style="color: var(--text-muted); font-size:15px; margin-bottom: 25px; line-height: 1.5;">
             Voulez-vous vraiment supprimer ce fichier définitivement ? Cette action est irréversible.
         </p>
         
@@ -415,12 +420,12 @@
             <h3 id="msg-subject" style="margin: 0; color: #172b4d; font-size: 18px; word-break: break-word;">Sujet</h3>
             <div class="close-panel" onclick="closeMsgModal(event)">×</div>
         </div>
-        <div style="padding: 15px; background: #f4f5f7; border-bottom: 1px solid #dfe1e6; font-size: 14px; color: #5e6c84;">
+        <div style="padding: 15px; background: #f4f5f7; border-bottom: 1px solid #dfe1e6; font-size:15px; color: #5e6c84;">
             <div style="margin-bottom: 5px;"><strong>De :</strong> <span id="msg-sender"></span></div>
             <div style="margin-bottom: 5px;"><strong>À :</strong> <span id="msg-recipients"></span></div>
             <div><strong>Date :</strong> <span id="msg-date"></span></div>
         </div>
-        <div id="msg-body" style="padding: 20px; overflow-y: auto; flex: 1; font-family: monospace; white-space: pre-wrap; font-size: 13px; color: #172b4d; background: #fff;">
+        <div id="msg-body" style="padding: 20px; overflow-y: auto; flex: 1; font-family: monospace; white-space: pre-wrap; font-size:15px; color: #172b4d; background: #fff;">
             Chargement...
         </div>
     </div>
