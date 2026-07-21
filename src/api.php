@@ -61,6 +61,15 @@ if ($needs_update) {
     @file_put_contents($settings_file, json_encode($current_settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
 
+// --- Global Lock for Concurrency ---
+$global_lock_file = $db_dir . '/api.lock';
+$global_lock_fp = fopen($global_lock_file, 'c');
+if (!flock($global_lock_fp, LOCK_EX)) {
+    echo json_encode(['success' => false, 'error' => 'Serveur occupé, veuillez réessayer.']);
+    exit;
+}
+// -----------------------------------
+
 function read_db($file) { return json_decode(file_get_contents($file), true); }
 function write_db($file, $data) { file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)); }
 
