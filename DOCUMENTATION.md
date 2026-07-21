@@ -1,3 +1,5 @@
+# 📘 Documentation Fonctionnelle - FlexKlite
+
 <div align="center">
   <img src="src/img/logo.png" alt="Logo FlexKlite" height="150">
 </div>
@@ -100,7 +102,7 @@ Un simple **clic-droit** sur n'importe quelle carte ou ligne de tableau ouvre un
 ### 📝 Le Panneau de Détails & Suivi (Historique)
 Un **clic gauche** sur une tâche ouvre son panneau d'historique latéral :
 - **Chronologie complète :** Suivez toutes les notes ajoutées, leurs dates, et le contexte (ex: Réunion Client, Comité de Direction).
-- **Pièces jointes :** Visualisez les images via de petites miniatures, et accédez aux documents (PDF, Docx) en un clic.
+- **Pièces jointes & E-mails :** Attachez des documents à vos tâches. Vous pouvez **donner un titre personnalisé** à vos pièces jointes pour plus de clarté. FlexKlite intègre également une visionneuse native pour les e-mails Microsoft Outlook (`.msg`). Un simple clic sur un fichier MSG (depuis la tâche ou l'historique) ouvre une fenêtre permettant de lire le corps de l'e-mail, l'expéditeur, et la date, sans avoir à le télécharger.
 - **Lots / Sous-tâches :** Pour les gros chantiers, possibilité de déclarer des lots pour structurer les notes par périmètre.
 
 ### ⚡ La Sidebar d'Activité
@@ -129,4 +131,5 @@ Accessible depuis le menu supérieur (icône engrenage) :
 ## 💾 Architecture Technique
 - Application full web "Server-Side & Client-Side" légère.
 - Les données (Tâches, Historiques, Configuration) sont stockées dans des fichiers JSON plats locaux, garantissant une forte portabilité et évitant le besoin d'une base de données SQL lourde.
+- **Concurrence & Sécurité (Multi-utilisateurs) :** L'application est protégée contre les conflits de données (*Race Conditions*) via un système de verrouillage global (`flock()`). Si plusieurs collaborateurs modifient le tableau exactement au même moment, le serveur gère automatiquement une file d'attente en arrière-plan, évitant ainsi tout écrasement accidentel.
 - Les fichiers chargés (pièces jointes, logos) sont stockés dans un répertoire `/uploads` isolé.
