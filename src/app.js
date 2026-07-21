@@ -950,8 +950,10 @@ function openAddNotePanel() {
     
     const lotsContainer = document.getElementById('panel-lots-container');
     const targetSelect = document.getElementById('new-note-target');
+    const filterSelect = document.getElementById('history-lot-filter');
     lotsContainer.innerHTML = '';
     if(targetSelect) targetSelect.innerHTML = '<option value="">🎯 Tâche principale</option>';
+    if(filterSelect) filterSelect.innerHTML = '<option value="">Toutes les notes</option><option value="main">Tâche principale</option>';
 
     if (task.lots && task.lots.length > 0) {
         task.lots.forEach(lot => {
@@ -960,40 +962,24 @@ function openAddNotePanel() {
                 opt.value = lot.id; opt.innerText = `📦 ${lot.titre}`;
                 targetSelect.appendChild(opt);
             }
+            if(filterSelect) {
+                const optFilter = document.createElement('option');
+                optFilter.value = lot.id; optFilter.innerText = `📦 ${lot.titre}`;
+                filterSelect.appendChild(optFilter);
+            }
 
             const codeBadge = lot.code_itbm ? `<span class="lot-code">🎫 ${lot.code_itbm}</span>` : '';
-            lotsContainer.innerHTML += `<div class="lot-card"><div class="lot-header"><span class="lot-title">${lot.titre}</span>${codeBadge}</div></div>`;
+            const editBtn = window.IS_LOGGED_IN ? `<button class="btn-edit-note" style="margin-left:auto;" onclick="editLot('${lot.id}')" title="Modifier ce lot">✏️</button>` : '';
+            lotsContainer.innerHTML += `<div class="lot-card" id="lot-card-${lot.id}"><div class="lot-header" style="display:flex; align-items:center;"><span class="lot-title" style="margin-right:10px;">${lot.titre}</span>${codeBadge}${editBtn}</div></div>`;
         });
     } else {
         lotsContainer.innerHTML = '<span style="font-size:13px; color:#888; font-style:italic;">Aucun lot créé pour le moment.</span>';
     }
 
     renderAttachmentsList(task);
-
-    const listContainer = document.getElementById('panel-notes-list');
-    listContainer.innerHTML = '';
     
-    if (currentTaskRef.allNotes.length > 0) {
-        currentTaskRef.allNotes.forEach(note => {
-            const item = document.createElement('div');
-            item.className = 'note-item';
-            const badge = note.reunion ? `<span class="badge-reunion">${note.reunion}</span>` : '';
-            const srcBadge = note.sourceName ? `<span class="note-target-badge">${note.sourceName}</span> ` : '';
-            
-            const editBtn = window.IS_LOGGED_IN ? `<button class="btn-edit-note" onclick="startEditNote(${note.timestamp})" title="Modifier cette note">✏️</button>` : '';
-
-            item.innerHTML = `
-                <div class="note-date" style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>🗓️ ${note.date} ${badge}</div>
-                    ${editBtn}
-                </div>
-                <div style="white-space: pre-wrap;">${srcBadge}${note.texte}</div>
-            `;
-            listContainer.appendChild(item);
-        });
-    } else {
-        listContainer.innerHTML = '<p style="font-size:14px; color:#888; font-style: italic;">Aucun historique de suivi.</p>';
-    }
+    if(filterSelect) filterSelect.value = '';
+    renderHistoryNotes();
     document.getElementById('details-panel').classList.add('open');
 }
 
@@ -1479,11 +1465,105 @@ function changeGanttView(mode) {
             btn.style.color = '#42526e';
         });
         
-        const btnId = 'btn-gantt-' + mode.toLowerCase();
         const activeBtn = document.getElementById(btnId);
         if (activeBtn) {
             activeBtn.style.background = 'var(--primary)';
             activeBtn.style.color = 'white';
         }
     }
+}
+
+function renderHistoryNotes() {
+    const listContainer = document.getElementById('panel-notes-list');
+    const filterSelect = document.getElementById('history-lot-filter');
+    const filterVal = filterSelect ? filterSelect.value : '';
+
+    if (!listContainer) return;
+    listContainer.innerHTML = '';
+    
+    let notesToShow = currentTaskRef.allNotes || [];
+    if (filterVal) {
+        notesToShow = notesToShow.filter(n => n.lotId === filterVal || (filterVal === 'main' && !n.lotId));
+    }
+
+    if (notesToShow.length > 0) {
+        notesToShow.forEach(note => {
+            const item = document.createElement('div');
+            item.className = 'note-item';
+            const badge = note.reunion ? `<span class="badge-reunion">${note.reunion}</span>` : '';
+            const srcBadge = note.sourceName ? `<span class="note-target-badge">${note.sourceName}</span> ` : '';
+            
+            const editBtn = window.IS_LOGGED_IN ? `<button class="btn-edit-note" onclick="startEditNote(${note.timestamp})" title="Modifier cette note">✏️</button>` : '';
+
+            item.innerHTML = `
+                <div class="note-date" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>🗓️ ${note.date} ${badge}</div>
+                    ${editBtn}
+                </div>
+                <div style="white-space: pre-wrap;">${srcBadge}${note.texte}</div>
+            `;
+            listContainer.appendChild(item);
+        });
+    } else {
+        listContainer.innerHTML = '<p style="font-size:15px; color:#888; font-style: italic;">Aucun historique de suivi pour cette sélection.</p>';
+    }
+}
+
+function editLot(lotId) {
+    if (!window.IS_LOGGED_IN) return;
+    const task = currentTaskRef.task;
+    const lot = task.lots.find(l => l.id === lotId);
+    if(!lot) return;
+
+    const lotCard = document.getElementById(`lot-card-${lotId}`);
+    if(lotCard) {
+        lotCard.innerHTML = `
+            <div style="background: #fafbfc; border: 1px dashed #dfe1e6; padding: 10px; border-radius: 8px;">
+                <div style="display: flex; gap: 10px; margin-bottom: 5px;">
+                    <input type="text" id="edit-lot-titre-${lotId}" value="${lot.titre.replace(/"/g, '&quot;')}" placeholder="Titre du lot" style="flex:2; padding: 6px; border: 1px solid #dfe1e6; border-radius: 4px; font-size:14px;">
+                    <input type="text" id="edit-lot-code-${lotId}" value="${lot.code_itbm ? lot.code_itbm.replace(/"/g, '&quot;') : ''}" placeholder="Code ITBM" style="flex:1; padding: 6px; border: 1px solid #dfe1e6; border-radius: 4px; font-size:14px;">
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button class="btn" style="background: #ebecf0; color: #42526e; padding: 6px 12px; font-size:13px;" onclick="cancelEditLot()">Annuler</button>
+                    <button class="btn" style="padding: 6px 12px; font-size:13px;" onclick="saveLot('${lotId}')">Enregistrer</button>
+                </div>
+            </div>
+        `;
+    }
+}
+
+function cancelEditLot() {
+    openAddNotePanel();
+}
+
+function saveLot(lotId) {
+    if (!window.IS_LOGGED_IN) return;
+    const titre = document.getElementById(`edit-lot-titre-${lotId}`).value.trim();
+    const code = document.getElementById(`edit-lot-code-${lotId}`).value.trim();
+
+    if(!titre) {
+        alert("Le titre du lot est obligatoire.");
+        return;
+    }
+
+    fetch('api.php?action=edit_lot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            column: currentTaskRef.column,
+            index: currentTaskRef.index,
+            lot_id: lotId,
+            titre: titre,
+            code: code
+        })
+    }).then(res => res.json()).then(resData => {
+        if(resData.success) {
+            currentTaskRef.task = resData.task;
+            boardData[currentTaskRef.column][currentTaskRef.index] = resData.task;
+            loadBoard();
+            openAddNotePanel();
+        } else {
+            alert(resData.error || 'Erreur lors de la modification du lot.');
+        }
+    });
 }
