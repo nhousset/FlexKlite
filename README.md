@@ -24,7 +24,9 @@ D'après l'analyse de l'arborescence des fichiers sources, l'application intègr
 - **Thèmes Visuels Globaux** : Personnalisation de l'interface avec 4 thèmes distincts (Classique, Sombre avec effets glassmorphism, Moderne coloré, et Architect très épuré).
 - **Authentification et Sécurité** : Système de connexion et de gestion de session (`login.php`, `read_login.php`, `auth.php`).
 - **Communication Asynchrone (API)** : Un contrôleur central (`api.php`) qui traite les requêtes AJAX provenant du frontend.
-- **Gestion des Modales** : Fenêtres contextuelles gérées par `modals.php` pour l'interaction utilisateur.
+- **Gestion des Modales** : Fenêtres contextuelles élégantes et sécurisées pour toutes les actions (édition, confirmation de suppression, etc.).
+- **Pièces Jointes & E-mails** : Possibilité de nommer les pièces jointes, et visionneuse native intégrée pour lire directement les e-mails Outlook (`.msg`) sans les télécharger.
+- **Accès Multi-Utilisateurs Sécurisé** : Gestion de la concurrence par système de verrous (`flock()`), empêchant les conflits et pertes de données si plusieurs utilisateurs modifient le Kanban en même temps.
 - **Sauvegarde/Export** : L'image Docker installe l'extension PHP `zip` pour permettre la sauvegarde du dossier des JSON sous forme d'archive depuis l'administration.
 
 ## Instructions de déploiement (Docker)
