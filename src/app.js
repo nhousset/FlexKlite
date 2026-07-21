@@ -770,13 +770,25 @@ function openHistoryModal(task, column, index) {
         task.attachments.forEach(att => {
             const ext = att.filename.split('.').pop().toLowerCase();
             const isImage = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(ext);
+            const isMsg = ext === 'msg';
             const sizeKB = Math.round(att.size / 1024);
+            const displayName = att.title ? `${att.title} (${att.original_name})` : att.original_name;
             
             if (isImage) {
                 attHtml += `
                     <a href="${att.path}" target="_blank" style="display:block; text-decoration:none; border:1px solid #dfe1e6; border-radius:6px; padding:4px; background:#fff; width: 80px; text-align:center; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                         <img src="${att.path}" style="width:100%; height:50px; object-fit:cover; border-radius:4px; margin-bottom:4px;" alt="${att.original_name}">
-                        <div style="font-size:9px; color:#5e6c84; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${att.original_name}">${att.original_name}</div>
+                        <div style="font-size:9px; color:#5e6c84; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${displayName}">${displayName}</div>
+                    </a>
+                `;
+            } else if (isMsg) {
+                attHtml += `
+                    <a href="javascript:void(0)" onclick="openMsgViewer('${att.path}')" style="display:flex; align-items:center; gap:8px; text-decoration:none; border:1px solid #dfe1e6; border-radius:6px; padding:8px 12px; background:#fff; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        <span style="font-size:20px;">📧</span>
+                        <div style="display:flex; flex-direction:column;">
+                            <span style="color:var(--primary); font-weight:600; font-size:12px; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${displayName}">${displayName}</span>
+                            <span style="font-size:10px; color:#5e6c84;">${sizeKB} Ko</span>
+                        </div>
                     </a>
                 `;
             } else {
@@ -784,7 +796,7 @@ function openHistoryModal(task, column, index) {
                     <a href="${att.path}" target="_blank" style="display:flex; align-items:center; gap:8px; text-decoration:none; border:1px solid #dfe1e6; border-radius:6px; padding:8px 12px; background:#fff; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                         <span style="font-size:20px;">📄</span>
                         <div style="display:flex; flex-direction:column;">
-                            <span style="color:var(--primary); font-weight:600; font-size:12px; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${att.original_name}">${att.original_name}</span>
+                            <span style="color:var(--primary); font-weight:600; font-size:12px; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${displayName}">${displayName}</span>
                             <span style="font-size:10px; color:#5e6c84;">${sizeKB} Ko</span>
                         </div>
                     </a>
