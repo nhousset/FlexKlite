@@ -388,6 +388,26 @@
     </div>
 </div>
 
+<!-- Modale de Confirmation de Suppression de Pièce Jointe -->
+<div id="delete-attachment-confirm-modal" class="modal-overlay" onclick="closeDeleteAttachmentModal(event)" style="display: none; z-index: 10002;">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 450px; text-align: center; padding: 30px;">
+        <div class="close-panel" onclick="closeDeleteAttachmentModal(event)" style="position: absolute; top: 15px; right: 15px;">×</div>
+        
+        <div style="font-size: 40px; margin-bottom: 15px;">🗑️</div>
+        <h2 style="color: var(--text-main); margin-top: 0; margin-bottom: 15px; font-size: 20px;">
+            Supprimer la pièce jointe
+        </h2>
+        <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 25px; line-height: 1.5;">
+            Voulez-vous vraiment supprimer ce fichier définitivement ? Cette action est irréversible.
+        </p>
+        
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <button class="btn" style="background: #ebecf0; color: #42526e; padding: 10px 20px;" onclick="closeDeleteAttachmentModal(event)">Annuler</button>
+            <button class="btn" style="background: #de350b; padding: 10px 20px; color: white;" onclick="confirmDeleteAttachment()">Supprimer</button>
+        </div>
+    </div>
+</div>
+
 <!-- Modale Lecteur MSG -->
 <div id="msg-viewer-modal" class="modal-overlay" onclick="closeMsgModal(event)" style="display:none; z-index: 10001;">
     <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 800px; width: 95%; max-height: 90vh; display: flex; flex-direction: column;">
