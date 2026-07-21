@@ -1205,10 +1205,17 @@ function openMsgViewer(url) {
                     
                     let contentText = fileData.body;
                     let contentHtml = '';
-                    
                     // msgreader sometimes exposes body in other properties or only has HTML
                     if (fileData.bodyHTML || fileData.htmlBody || fileData.html) {
                         contentHtml = fileData.bodyHTML || fileData.htmlBody || fileData.html;
+                        // If it's a byte array (like Uint8Array or Array), decode it to a string
+                        if (typeof contentHtml !== 'string' && (contentHtml instanceof Uint8Array || Array.isArray(contentHtml) || contentHtml.buffer)) {
+                            try {
+                                contentHtml = new TextDecoder().decode(new Uint8Array(contentHtml));
+                            } catch (err) {
+                                console.error("Erreur de décodage", err);
+                            }
+                        }
                     }
 
                     if (contentHtml) {
