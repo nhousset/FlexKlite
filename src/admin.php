@@ -352,7 +352,7 @@ $compilation_date = $about_data['build_date'] ?? '20/07/2026 08:20';
                             <td style="padding:10px 8px; border-bottom:1px solid #f4f5f7; text-align:right;">
                                 <a href="api.php?action=download_server_backup&filename=<?= urlencode($b['name']) ?>" class="btn" style="background:#0052cc; padding:6px 12px; font-size:13px; text-decoration:none; display:inline-block; margin-right:5px;">Télécharger</a>
                                 <a href="api.php?action=restore_server_backup&filename=<?= urlencode($b['name']) ?>" class="btn" style="background:#00875a; padding:6px 12px; font-size:13px; text-decoration:none; display:inline-block; margin-right:5px;" onclick="showConfirmRestoreModal(event, this);">Restaurer</a>
-                                <a href="api.php?action=delete_server_backup&filename=<?= urlencode($b['name']) ?>" class="btn" style="background:#de350b; padding:6px 12px; font-size:13px; text-decoration:none; display:inline-block;" onclick="return confirm('Supprimer définitivement cette sauvegarde ?');">Effacer</a>
+                                <button class="btn" style="background:#de350b; padding:6px 12px; font-size:13px; border:none; display:inline-block; color:white; cursor:pointer;" onclick="openDeleteBackupModal('<?= urlencode($b['name']) ?>')">Effacer</button>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -852,10 +852,43 @@ $compilation_date = $about_data['build_date'] ?? '20/07/2026 08:20';
             <p style="color: #5e6c84; font-size: 14px; margin-bottom: 25px;">Êtes-vous sûr de vouloir restaurer cette sauvegarde ? Cela écrasera <b>toutes</b> les données actuelles.</p>
             <div style="display: flex; gap: 10px; justify-content: center;">
                 <button onclick="closeConfirmModal()" class="btn" style="background:#ebecf0; color:#42526e; border:none; padding:10px 20px;">Annuler</button>
-                <button id="btn-confirm-restore" class="btn" style="background:#00875a; border:none; padding:10px 20px;">Oui, restaurer</button>
+                <button id="btn-confirm-restore" class="btn" style="background:#00875a; border:none; padding:10px 20px; color:white;">Oui, restaurer</button>
             </div>
         </div>
     </div>
+
+    <!-- Modale Confirm Delete Backup -->
+    <div class="modal-overlay" id="confirm-delete-backup-modal" style="display:none; z-index:9999;">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div style="font-size: 40px; margin-bottom: 15px;">🗑️</div>
+            <h2 style="margin-top: 0; color: #091e42;">Supprimer la sauvegarde</h2>
+            <p style="color: #5e6c84; font-size: 14px; margin-bottom: 25px;">Voulez-vous vraiment supprimer définitivement cette sauvegarde ?</p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button onclick="closeDeleteBackupModal()" class="btn" style="background:#ebecf0; color:#42526e; border:none; padding:10px 20px;">Annuler</button>
+                <button id="btn-confirm-delete-backup" class="btn" style="background:#de350b; border:none; padding:10px 20px; color:white;">Oui, supprimer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentBackupToDelete = '';
+
+        function openDeleteBackupModal(filename) {
+            currentBackupToDelete = filename;
+            document.getElementById('confirm-delete-backup-modal').style.display = 'flex';
+        }
+
+        function closeDeleteBackupModal() {
+            document.getElementById('confirm-delete-backup-modal').style.display = 'none';
+            currentBackupToDelete = '';
+        }
+
+        document.getElementById('btn-confirm-delete-backup').addEventListener('click', function() {
+            if (currentBackupToDelete) {
+                window.location.href = 'api.php?action=delete_server_backup&filename=' + currentBackupToDelete;
+            }
+        });
+    </script>
     
     <div style="text-align: center; margin-top: 40px; padding-bottom: 20px; font-size: 13px; color: #888;">
         &copy; <?= htmlspecialchars($about_data['author'] ?? 'Nicolas Housset') ?> | 
