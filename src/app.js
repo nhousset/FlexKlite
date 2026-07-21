@@ -1203,7 +1203,29 @@ function openMsgViewer(url) {
                     document.getElementById('msg-recipients').innerText = fileData.recipients ? fileData.recipients.map(r => r.name || r.email).join(', ') : '';
                     document.getElementById('msg-date').innerText = fileData.creationTime ? new Date(fileData.creationTime).toLocaleString() : '';
                     
-                    document.getElementById('msg-body').innerText = fileData.body || '(Aucun contenu texte trouvé)';
+                    let contentText = fileData.body;
+                    let contentHtml = '';
+                    
+                    // msgreader sometimes exposes body in other properties or only has HTML
+                    if (fileData.bodyHTML || fileData.htmlBody || fileData.html) {
+                        contentHtml = fileData.bodyHTML || fileData.htmlBody || fileData.html;
+                    }
+
+                    if (contentHtml) {
+                        // Create a Shadow DOM or iframe to safely inject HTML without breaking the modal
+                        const container = document.getElementById('msg-body');
+                        container.innerHTML = '';
+                        let shadow = container.shadowRoot;
+                        if (!shadow) {
+                            shadow = container.attachShadow({mode: 'open'});
+                        }
+                        shadow.innerHTML = contentHtml;
+                    } else if (contentText) {
+                        document.getElementById('msg-body').innerText = contentText;
+                    } else {
+                        const keys = Object.keys(fileData).join(', ');
+                        document.getElementById('msg-body').innerText = "(Aucun contenu texte trouvé). Propriétés disponibles : " + keys;
+                    }
                 } catch (e) {
                     document.getElementById('msg-body').innerHTML = `<span style="color:red;">Erreur lors de la lecture du fichier MSG : ${e.message}</span>`;
                 }
