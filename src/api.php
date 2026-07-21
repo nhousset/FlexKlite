@@ -434,8 +434,10 @@ switch ($action) {
             $path = $uploads_dir . '/' . $filename;
             
             if (move_uploaded_file($file['tmp_name'], $path)) {
+                $title = isset($_POST['title']) ? trim($_POST['title']) : '';
                 $attachment = [
                     'id' => uniqid('att_'),
+                    'title' => htmlspecialchars($title),
                     'original_name' => htmlspecialchars($file['name']),
                     'filename' => $filename,
                     'path' => 'uploads/' . $filename,
