@@ -290,6 +290,7 @@
     
     <?php if($is_logged_in): ?>
         <div style="background: #fafbfc; border: 1px dashed #dfe1e6; padding: 10px; border-radius: 8px; margin-bottom: 25px; display:flex; gap:10px; align-items:center;">
+            <input type="text" id="new-attachment-title" placeholder="Titre (optionnel)" style="flex:1; max-width: 200px; font-size:13px; padding: 6px; border: 1px solid #dfe1e6; border-radius: 4px;">
             <input type="file" id="new-attachment-file" style="flex:1; font-size:13px;">
             <button class="btn" style="padding: 6px 15px; font-size: 13px;" onclick="uploadAttachment()">Ajouter le fichier</button>
         </div>
@@ -383,6 +384,24 @@
         <div style="display: flex; gap: 10px; justify-content: center;">
             <button class="btn" style="background: #ebecf0; color: #42526e; padding: 10px 20px;" onclick="closeArchiveConfirmModal(event)">Annuler</button>
             <button class="btn" style="background: var(--primary); padding: 10px 20px; color: white;" onclick="confirmArchiveTask()">Archiver</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modale Lecteur MSG -->
+<div id="msg-viewer-modal" class="modal-overlay" onclick="closeMsgModal(event)" style="display:none; z-index: 10001;">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 800px; width: 95%; max-height: 90vh; display: flex; flex-direction: column;">
+        <div class="modal-header">
+            <h3 id="msg-subject" style="margin: 0; color: #172b4d; font-size: 18px; word-break: break-word;">Sujet</h3>
+            <div class="close-panel" onclick="closeMsgModal(event)">×</div>
+        </div>
+        <div style="padding: 15px; background: #f4f5f7; border-bottom: 1px solid #dfe1e6; font-size: 14px; color: #5e6c84;">
+            <div style="margin-bottom: 5px;"><strong>De :</strong> <span id="msg-sender"></span></div>
+            <div style="margin-bottom: 5px;"><strong>À :</strong> <span id="msg-recipients"></span></div>
+            <div><strong>Date :</strong> <span id="msg-date"></span></div>
+        </div>
+        <div id="msg-body" style="padding: 20px; overflow-y: auto; flex: 1; font-family: monospace; white-space: pre-wrap; font-size: 13px; color: #172b4d; background: #fff;">
+            Chargement...
         </div>
     </div>
 </div>
