@@ -1089,13 +1089,23 @@ function renderAttachmentsList(task) {
     if (task.attachments && task.attachments.length > 0) {
         task.attachments.forEach(att => {
             const sizeKB = Math.round(att.size / 1024);
-            const deleteBtn = window.IS_LOGGED_IN ? `<button onclick="deleteAttachment('${att.id}')" class="btn-edit-note" style="color:#de350b;" title="Supprimer">✖</button>` : '';
+            const deleteBtn = window.IS_LOGGED_IN ? `<button onclick="deleteAttachment('${att.id}')" class="btn-edit-note" style="color:#de350b;" title="Supprimer">🗑️</button>` : '';
+
+            const displayName = att.title ? `${att.title} (${att.original_name})` : att.original_name;
+            const isMsg = att.original_name.toLowerCase().endsWith('.msg');
+            
+            let linkHtml = '';
+            if (isMsg) {
+                linkHtml = `<a href="javascript:void(0)" onclick="openMsgViewer('${att.path}')" title="${att.original_name}" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${displayName}</a>`;
+            } else {
+                linkHtml = `<a href="${att.path}" target="_blank" title="${att.original_name}" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${displayName}</a>`;
+            }
 
             container.innerHTML += `
                 <div class="attachment-item">
                     <div style="display:flex; align-items:center; gap:10px; overflow:hidden;">
                         <span>📎</span>
-                        <a href="${att.path}" target="_blank" title="${att.original_name}" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${att.original_name}</a>
+                        ${linkHtml}
                         <span style="color:#5e6c84; font-size:11px;">(${sizeKB} Ko)</span>
                     </div>
                     ${deleteBtn}
@@ -1116,12 +1126,18 @@ function uploadAttachment() {
     formData.append('column', currentTaskRef.column);
     formData.append('index', currentTaskRef.index);
     
+    const titleInput = document.getElementById('new-attachment-title');
+    if (titleInput && titleInput.value.trim() !== '') {
+        formData.append('title', titleInput.value.trim());
+    }
+    
     fetch('api.php?action=upload_attachment', { method: 'POST', body: formData })
     .then(res => res.json())
     .then(resData => {
         if (resData.success) {
             currentTaskRef.task = resData.task;
             input.value = ''; 
+            if (titleInput) titleInput.value = '';
             openAddNotePanel(); 
             loadBoard();
         } else {
@@ -1135,18 +1151,64 @@ function deleteAttachment(attId) {
     fetch('api.php?action=delete_attachment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ column: currentTaskRef.column, index: currentTaskRef.index, attachment_id: attId })
-    })
-    .then(res => res.json())
-    .then(resData => {
-        if (resData.success) {
-            currentTaskRef.task = resData.task;
+        body: JSON.stringify({
+            column: currentTaskRef.column,
+            index: currentTaskRef.index,
+            att_id: attId
+        })
+    }).then(res => res.json()).then(data => {
+        if (data.success) {
+            currentTaskRef.task = data.task;
             openAddNotePanel();
             loadBoard();
         } else {
-            alert(resData.error || "Erreur lors de la suppression.");
+            alert(data.error || "Erreur lors de la suppression.");
         }
     });
+}
+
+function closeMsgModal(event) {
+    if (event && event.target.id === 'msg-viewer-modal') {
+        document.getElementById('msg-viewer-modal').style.display = 'none';
+    } else if (!event || event.target.className === 'close-panel') {
+        document.getElementById('msg-viewer-modal').style.display = 'none';
+    }
+}
+
+function openMsgViewer(url) {
+    const modal = document.getElementById('msg-viewer-modal');
+    modal.style.display = 'flex';
+    document.getElementById('msg-body').innerHTML = 'Chargement de l\'email et de la librairie MSG...';
+    document.getElementById('msg-subject').innerText = 'Chargement...';
+    document.getElementById('msg-sender').innerText = '';
+    document.getElementById('msg-recipients').innerText = '';
+    document.getElementById('msg-date').innerText = '';
+
+    fetch(url)
+        .then(response => response.arrayBuffer())
+        .then(buffer => {
+            import('https://cdn.jsdelivr.net/npm/@kenjiuno/msgreader/+esm').then(module => {
+                try {
+                    const MsgReader = module.default || module;
+                    const msgReader = new MsgReader(buffer);
+                    const fileData = msgReader.getFileData();
+
+                    document.getElementById('msg-subject').innerText = fileData.subject || '(Sans objet)';
+                    document.getElementById('msg-sender').innerText = fileData.senderName ? `${fileData.senderName} (${fileData.senderEmail || ''})` : (fileData.senderEmail || 'Inconnu');
+                    document.getElementById('msg-recipients').innerText = fileData.recipients ? fileData.recipients.map(r => r.name || r.email).join(', ') : '';
+                    document.getElementById('msg-date').innerText = fileData.creationTime ? new Date(fileData.creationTime).toLocaleString() : '';
+                    
+                    document.getElementById('msg-body').innerText = fileData.body || '(Aucun contenu texte trouvé)';
+                } catch (e) {
+                    document.getElementById('msg-body').innerHTML = `<span style="color:red;">Erreur lors de la lecture du fichier MSG : ${e.message}</span>`;
+                }
+            }).catch(err => {
+                document.getElementById('msg-body').innerHTML = `<span style="color:red;">Erreur lors du chargement de la librairie de lecture MSG : ${err.message}</span>`;
+            });
+        })
+        .catch(err => {
+            document.getElementById('msg-body').innerHTML = `<span style="color:red;">Impossible de télécharger le fichier MSG : ${err.message}</span>`;
+        });
 }
 
 // Initialisation sécurisée de l'application
