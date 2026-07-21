@@ -1189,8 +1189,13 @@ function openMsgViewer(url) {
         .then(buffer => {
             import('https://cdn.jsdelivr.net/npm/@kenjiuno/msgreader/+esm').then(module => {
                 try {
-                    const MsgReader = module.default || module;
-                    const msgReader = new MsgReader(buffer);
+                    let MsgReaderClass = module.default || module;
+                    if (typeof MsgReaderClass !== 'function' && MsgReaderClass.MsgReader) {
+                        MsgReaderClass = MsgReaderClass.MsgReader;
+                    } else if (typeof MsgReaderClass !== 'function' && MsgReaderClass.default) {
+                        MsgReaderClass = MsgReaderClass.default;
+                    }
+                    const msgReader = new MsgReaderClass(buffer);
                     const fileData = msgReader.getFileData();
 
                     document.getElementById('msg-subject').innerText = fileData.subject || '(Sans objet)';
