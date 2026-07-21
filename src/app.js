@@ -1146,23 +1146,41 @@ function uploadAttachment() {
     });
 }
 
+let currentAttachmentToDelete = null;
+
 function deleteAttachment(attId) {
-    if (!confirm('Voulez-vous vraiment supprimer ce fichier définitivement ?')) return;
+    currentAttachmentToDelete = attId;
+    document.getElementById('delete-attachment-confirm-modal').style.display = 'flex';
+}
+
+function closeDeleteAttachmentModal(event) {
+    if (event && event.target.id === 'delete-attachment-confirm-modal') {
+        document.getElementById('delete-attachment-confirm-modal').style.display = 'none';
+    } else if (!event || event.target.className === 'close-panel' || event.target.innerText === 'Annuler') {
+        document.getElementById('delete-attachment-confirm-modal').style.display = 'none';
+    }
+}
+
+function confirmDeleteAttachment() {
+    if (!currentAttachmentToDelete) return;
+    
     fetch('api.php?action=delete_attachment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             column: currentTaskRef.column,
             index: currentTaskRef.index,
-            att_id: attId
+            attachment_id: currentAttachmentToDelete
         })
     }).then(res => res.json()).then(data => {
         if (data.success) {
             currentTaskRef.task = data.task;
+            closeDeleteAttachmentModal();
             openAddNotePanel();
             loadBoard();
         } else {
             alert(data.error || "Erreur lors de la suppression.");
+            closeDeleteAttachmentModal();
         }
     });
 }
