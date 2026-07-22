@@ -896,6 +896,9 @@ function confirmArchiveTask() {
 function openAddNotePanel() {
     const task = currentTaskRef.task;
     
+    // Reset tabs
+    if(typeof switchDetailsTab === 'function') switchDetailsTab('suivi');
+
     currentTaskRef.allNotes = getAllNotesAggregated(task);
     
     document.getElementById('panel-title').innerText = task.titre;
@@ -1566,4 +1569,21 @@ function saveLot(lotId) {
             alert(resData.error || 'Erreur lors de la modification du lot.');
         }
     });
+}
+
+function switchDetailsTab(tabId) {
+    // Hide all contents
+    const contents = document.querySelectorAll('.details-tab-content');
+    contents.forEach(c => c.classList.remove('active'));
+    
+    // Deactivate all buttons
+    const btns = document.querySelectorAll('.details-tab-btn');
+    btns.forEach(b => b.classList.remove('active'));
+    
+    // Activate selected
+    const selectedContent = document.getElementById('tab-' + tabId);
+    if(selectedContent) selectedContent.classList.add('active');
+    
+    const selectedBtn = document.getElementById('btn-tab-' + tabId);
+    if(selectedBtn) selectedBtn.classList.add('active');
 }
