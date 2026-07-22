@@ -94,9 +94,9 @@ function create_system_backup($db_file, $settings_file, $history_file, $admin_fi
         $prefix = 'Backup_Chantiers_';
         if (file_exists($settings_file)) {
             $settings_content = json_decode(file_get_contents($settings_file), true);
-            if (!empty($settings_content['app_title'])) {
+            if (!empty($settings_content['team_name'])) {
                 // Remove spaces and special characters
-                $clean_title = preg_replace('/[^A-Za-z0-9]/', '', $settings_content['app_title']);
+                $clean_title = preg_replace('/[^A-Za-z0-9]/', '', $settings_content['team_name']);
                 if (!empty($clean_title)) {
                     $prefix = 'Backup_' . $clean_title . '_';
                 }
