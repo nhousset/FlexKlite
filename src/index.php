@@ -136,6 +136,9 @@ $compilation_date = date("d/m/Y H:i", filemtime(__FILE__));
                         <?php endforeach; ?>
                     </select>
                 </div>
+                <button onclick="resetFilters()" style="background: #f4f5f7; border: 1px solid #dfe1e6; border-radius: 4px; padding: 4px 10px; font-size: 13px; font-weight: 600; color: #5e6c84; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Réinitialiser tous les filtres">
+                    🧹 Réinitialiser
+                </button>
                 <div style="margin-left: auto; display: flex; align-items: center; gap: 5px; background: #e3f2fd; padding: 5px 10px; border-radius: 4px; border: 1px solid #bbdefb;">
                     <input type="checkbox" id="compact-mode" onchange="handleFiltersChange()" style="cursor: pointer;">
                     <label for="compact-mode" style="font-size: 13px; font-weight: bold; color: #0052cc; cursor: pointer; margin:0;">Mode Compact</label>
