@@ -163,6 +163,9 @@ $compilation_date = date("d/m/Y H:i", filemtime(__FILE__));
     <?php include 'modals.php'; ?>
     <?php include 'help_modal.php'; ?>
 
+    <!-- Inclusion de la bibliothèque Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <!-- Inclusion de la logique JavaScript -->
     <script src="app.js?v=<?= time() ?>"></script>
 
