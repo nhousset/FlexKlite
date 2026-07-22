@@ -363,7 +363,7 @@ body {
 .badge-reunion { background: #e3f2fd; color: #0d47a1; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 700; white-space: nowrap; }
 
 /* Panneau latéral des détails/ajout note */
-#details-panel { position: fixed; right: -50vw; top: 0; width: 50vw; height: 100%; background: var(--card-bg); box-shadow: var(--shadow-hover); padding: 40px; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; z-index: 5000; box-sizing: border-box; backdrop-filter: var(--glass-filter); }
+#details-panel { position: fixed; right: -65vw; top: 0; width: 65vw; height: 100%; background: var(--card-bg); box-shadow: var(--shadow-hover); padding: 40px; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; z-index: 5000; box-sizing: border-box; backdrop-filter: var(--glass-filter); }
 #details-panel.open { right: 0; }
 .task-meta-info { display: flex; gap: 15px; flex-wrap: wrap; font-size: 15px; color: var(--text-muted); margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); }
 .task-meta-info div { background: var(--column-bg); padding: 8px 14px; border-radius: 6px; border: 1px solid var(--border-color);}
@@ -591,3 +591,16 @@ body {
 .markdown-body blockquote { margin: 1.5em 0; padding: 10px 20px; color: #5e6c84; border-left: 4px solid var(--primary); background: var(--column-bg); border-radius: 4px; }
 .markdown-body code { background: var(--column-bg); padding: 2px 5px; border-radius: 4px; font-family: monospace; font-size: 0.9em; border: 1px solid var(--border-color); }
 .markdown-body hr { height: 2px; border: none; background-color: var(--border-color); margin: 30px 0; }
+
+/* Tabs de la Modale Détails & Suivi */
+.details-tabs { display: flex; gap: 4px; margin-bottom: 25px; border-bottom: 2px solid #ebecf0; }
+.details-tab-btn { background: none; border: none; padding: 12px 20px; font-size: 15px; font-weight: 600; color: #5e6c84; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
+.details-tab-btn:hover { color: #172b4d; }
+.details-tab-btn.active { color: var(--primary); border-bottom: 2px solid var(--primary); }
+.details-tab-content { display: none; animation: fadeIn 0.3s; }
+.details-tab-content.active { display: block; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
