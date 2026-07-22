@@ -250,16 +250,14 @@
 <!-- Panneau latéral ajout de note ET GESTION DES LOTS / PIÈCES JOINTES -->
 <div id="details-panel">
     <div class="panel-header-container">
-        <h2 class="panel-header-title">
+        <h2 class="panel-header-title" style="margin: 0; line-height: 1.3;">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
             </svg>
-            Détails & Suivi
+            <span id="panel-title"></span>
         </h2>
         <div class="close-panel" onclick="closePanel()">×</div>
     </div>
-
-    <h3 id="panel-title" style="font-size: 20px; margin-top: 0; color: #091e42; line-height: 1.3; margin-bottom: 20px;"></h3>
     
     <div class="task-meta-info">
         <div>Projet : <strong id="panel-project"></strong></div>
@@ -271,59 +269,76 @@
         <div id="panel-prerequis-container" style="display:none;">Prérequis : <strong id="panel-prerequis"></strong></div>
     </div>
     
-    <h4 style="margin-bottom: 10px; font-size:15px; color: #172b4d;">Lots / Sous-tâches :</h4>
-    <div id="panel-lots-container" style="margin-bottom: 15px;"></div>
-    
-    <?php if($is_logged_in): ?>
-        <div style="background: #fafbfc; border: 1px dashed #dfe1e6; padding: 15px; border-radius: 8px; margin-bottom: 25px;">
-            <h5 style="margin: 0 0 10px 0; color: #5e6c84; font-size:15px;">+ Déclarer un nouveau Lot</h5>
-            <div style="display: flex; gap: 10px;">
-                <input type="text" id="new-lot-titre" placeholder="Intitulé du lot (ex: Front-end)" style="flex:2; padding: 8px; border: 1px solid #dfe1e6; border-radius: 4px; font-size:15px;">
-                <input type="text" id="new-lot-code" placeholder="Code (ex: TSK123)" style="flex:1; padding: 8px; border: 1px solid #dfe1e6; border-radius: 4px; font-size:15px;">
-                <button class="btn" style="padding: 8px 15px; font-size:15px;" onclick="submitLot()">Ajouter</button>
-            </div>
-        </div>
-    <?php endif; ?>
-
-    <h4 style="margin-bottom: 10px; font-size:15px; color: #172b4d; border-top: 2px solid #ebecf0; padding-top:20px;">Pièces Jointes :</h4>
-    <div id="panel-attachments-container" style="margin-bottom: 15px;"></div>
-    
-    <?php if($is_logged_in): ?>
-        <div style="background: #fafbfc; border: 1px dashed #dfe1e6; padding: 10px; border-radius: 8px; margin-bottom: 25px; display:flex; gap:10px; align-items:center;">
-            <input type="text" id="new-attachment-title" placeholder="Titre (optionnel)" style="flex:1; max-width: 200px; font-size:15px; padding: 6px; border: 1px solid #dfe1e6; border-radius: 4px;">
-            <input type="file" id="new-attachment-file" style="flex:1; font-size:15px;">
-            <button class="btn" style="padding: 6px 15px; font-size:15px;" onclick="uploadAttachment()">Ajouter le fichier</button>
-        </div>
-        
-        <h4 id="note-form-title" style="margin-bottom: 10px; border-top: 2px solid #ebecf0; padding-top:20px; font-size:15px; color: #172b4d;">Saisir un point de suivi :</h4>
-        <div class="note-meta-inputs" style="flex-wrap: wrap;">
-            <select id="new-note-target" style="flex: 1; min-width: 150px; background: #e3f2fd; font-weight: 600;">
-                <option value="">🎯 Tâche principale</option>
-            </select>
-            <input type="date" id="new-note-date" title="Date de la note" style="max-width: 130px;">
-            <select id="new-note-reunion" style="flex: 1;">
-                <option value="">-- Contexte / Réunion --</option>
-                <?php foreach($settings['reunions'] as $r): ?>
-                    <option value="<?= htmlspecialchars($r) ?>"><?= htmlspecialchars($r) ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-
-        <textarea id="new-note-text" style="width:100%; height:120px; margin-bottom:12px; padding: 10px; border: 1px solid #dfe1e6; border-radius: 4px; font-family:inherit; box-sizing: border-box; resize: vertical;"></textarea>
-        
-        <div style="display:flex; gap:10px;">
-            <button id="btn-submit-note" class="btn" style="flex: 1; padding: 12px; font-size: 15px;" onclick="submitNote()">Enregistrer la note</button>
-            <button id="btn-cancel-edit" class="btn" style="display: none; background: #ebecf0; color: #42526e; padding: 12px; font-size: 15px;" onclick="cancelEditNote()">Annuler</button>
-        </div>
-    <?php endif; ?>
-
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 40px; border-bottom: 2px solid #ebecf0; padding-bottom: 10px;">
-        <h4 style="margin: 0; font-size:15px; color: #172b4d;">Historique global (Tâche + Lots)</h4>
-        <select id="history-lot-filter" style="padding: 4px 8px; border: 1px solid #dfe1e6; border-radius: 4px; font-size:15px; color: #5e6c84; background: #fafbfc; max-width: 200px;" onchange="renderHistoryNotes()">
-            <option value="">Toutes les notes</option>
-        </select>
+    <div class="details-tabs">
+        <button class="details-tab-btn active" id="btn-tab-suivi" onclick="switchDetailsTab('suivi')">Suivi & Historique</button>
+        <button class="details-tab-btn" id="btn-tab-lots" onclick="switchDetailsTab('lots')">Lots / Sous-tâches</button>
+        <button class="details-tab-btn" id="btn-tab-attachments" onclick="switchDetailsTab('attachments')">Pièces Jointes</button>
     </div>
-    <div id="panel-notes-list"></div>
+
+    <!-- ONGLET LOTS -->
+    <div id="tab-lots" class="details-tab-content">
+        <h4 style="margin-bottom: 10px; margin-top: 0; font-size:15px; color: #172b4d;">Liste des Lots :</h4>
+        <div id="panel-lots-container" style="margin-bottom: 15px;"></div>
+        
+        <?php if($is_logged_in): ?>
+            <div style="background: #fafbfc; border: 1px dashed #dfe1e6; padding: 15px; border-radius: 8px; margin-bottom: 25px;">
+                <h5 style="margin: 0 0 10px 0; color: #5e6c84; font-size:15px;">+ Déclarer un nouveau Lot</h5>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="new-lot-titre" placeholder="Intitulé du lot (ex: Front-end)" style="flex:2; padding: 8px; border: 1px solid #dfe1e6; border-radius: 4px; font-size:15px;">
+                    <input type="text" id="new-lot-code" placeholder="Code (ex: TSK123)" style="flex:1; padding: 8px; border: 1px solid #dfe1e6; border-radius: 4px; font-size:15px;">
+                    <button class="btn" style="padding: 8px 15px; font-size:15px;" onclick="submitLot()">Ajouter</button>
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
+
+    <!-- ONGLET PIECES JOINTES -->
+    <div id="tab-attachments" class="details-tab-content">
+        <h4 style="margin-bottom: 10px; margin-top: 0; font-size:15px; color: #172b4d;">Pièces Jointes :</h4>
+        <div id="panel-attachments-container" style="margin-bottom: 15px;"></div>
+        
+        <?php if($is_logged_in): ?>
+            <div style="background: #fafbfc; border: 1px dashed #dfe1e6; padding: 10px; border-radius: 8px; margin-bottom: 25px; display:flex; gap:10px; align-items:center;">
+                <input type="text" id="new-attachment-title" placeholder="Titre (optionnel)" style="flex:1; max-width: 200px; font-size:15px; padding: 6px; border: 1px solid #dfe1e6; border-radius: 4px;">
+                <input type="file" id="new-attachment-file" style="flex:1; font-size:15px;">
+                <button class="btn" style="padding: 6px 15px; font-size:15px;" onclick="uploadAttachment()">Ajouter le fichier</button>
+            </div>
+        <?php endif; ?>
+    </div>
+
+    <!-- ONGLET SUIVI -->
+    <div id="tab-suivi" class="details-tab-content active">
+        <?php if($is_logged_in): ?>
+            <h4 id="note-form-title" style="margin-bottom: 10px; margin-top: 0; font-size:15px; color: #172b4d;">Saisir un point de suivi :</h4>
+            <div class="note-meta-inputs" style="flex-wrap: wrap;">
+                <select id="new-note-target" style="flex: 1; min-width: 150px; background: #e3f2fd; font-weight: 600;">
+                    <option value="">🎯 Tâche principale</option>
+                </select>
+                <input type="date" id="new-note-date" title="Date de la note" style="max-width: 130px;">
+                <select id="new-note-reunion" style="flex: 1;">
+                    <option value="">-- Contexte / Réunion --</option>
+                    <?php foreach($settings['reunions'] as $r): ?>
+                        <option value="<?= htmlspecialchars($r) ?>"><?= htmlspecialchars($r) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <textarea id="new-note-text" style="width:100%; height:120px; margin-bottom:12px; padding: 10px; border: 1px solid #dfe1e6; border-radius: 4px; font-family:inherit; box-sizing: border-box; resize: vertical;"></textarea>
+            
+            <div style="display:flex; gap:10px;">
+                <button id="btn-submit-note" class="btn" style="flex: 1; padding: 12px; font-size: 15px;" onclick="submitNote()">Enregistrer la note</button>
+                <button id="btn-cancel-edit" class="btn" style="display: none; background: #ebecf0; color: #42526e; padding: 12px; font-size: 15px;" onclick="cancelEditNote()">Annuler</button>
+            </div>
+        <?php endif; ?>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 40px; border-bottom: 2px solid #ebecf0; padding-bottom: 10px;">
+            <h4 style="margin: 0; font-size:15px; color: #172b4d;">Historique global (Tâche + Lots)</h4>
+            <select id="history-lot-filter" style="padding: 4px 8px; border: 1px solid #dfe1e6; border-radius: 4px; font-size:15px; color: #5e6c84; background: #fafbfc; max-width: 200px;" onchange="renderHistoryNotes()">
+                <option value="">Toutes les notes</option>
+            </select>
+        </div>
+        <div id="panel-notes-list" style="margin-top: 15px;"></div>
+    </div>
 </div>
 
 <!-- Modale À Propos -->
