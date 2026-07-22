@@ -89,7 +89,20 @@ function log_action($action_type, $details) {
     file_put_contents($history_file, json_encode($history, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
 
-function create_system_backup($db_file, $settings_file, $history_file, $admin_file, $uploads_dir, $prefix = 'Backup_Chantiers_') {
+function create_system_backup($db_file, $settings_file, $history_file, $admin_file, $uploads_dir, $prefix = null) {
+    if ($prefix === null) {
+        $prefix = 'Backup_Chantiers_';
+        if (file_exists($settings_file)) {
+            $settings_content = json_decode(file_get_contents($settings_file), true);
+            if (!empty($settings_content['app_title'])) {
+                // Remove spaces and special characters
+                $clean_title = preg_replace('/[^A-Za-z0-9]/', '', $settings_content['app_title']);
+                if (!empty($clean_title)) {
+                    $prefix = 'Backup_' . $clean_title . '_';
+                }
+            }
+        }
+    }
     $zip = new ZipArchive();
     $tmp_file = tempnam(sys_get_temp_dir(), 'zip');
     
