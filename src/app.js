@@ -116,40 +116,6 @@ function handleFiltersChange() {
     }
 }
 
-function applyFilters() {
-    saveFilters();
-    const searchEl = document.getElementById('filter-search');
-    const projetEl = document.getElementById('filter-projet');
-    const statutEl = document.getElementById('filter-statut');
-    const prioEl = document.getElementById('filter-prio');
-    const acteurEl = document.getElementById('filter-acteur');
-
-    const search = searchEl ? searchEl.value.toLowerCase() : '';
-    const projet = projetEl ? projetEl.value : '';
-    const statut = statutEl ? statutEl.value : '';
-    const prio = prioEl ? prioEl.value : '';
-    const acteur = acteurEl ? acteurEl.value : '';
-
-    document.querySelectorAll('.filter-item').forEach(item => {
-        const text = item.dataset.search || '';
-        const p = item.dataset.projet || '';
-        const s = item.dataset.statut || '';
-        const pr = item.dataset.prio || '';
-        const a = item.dataset.acteur || '';
-
-        let matchSearch = search === '' || text.includes(search);
-        let matchProjet = projet === '' || p === projet;
-        let matchStatut = statut === '' || s === statut;
-        let matchPrio = prio === '' || pr === prio;
-        let matchActeur = acteur === '' || a === acteur;
-
-        if (matchSearch && matchProjet && matchStatut && matchPrio && matchActeur) {
-            item.style.display = '';
-        } else {
-            item.style.display = 'none';
-        }
-    });
-
     // Hide empty compact project headers
     document.querySelectorAll('.compact-project-header').forEach(header => {
         const nextCards = [];
@@ -583,11 +549,11 @@ function applyFilters() {
     localStorage.setItem('filters', JSON.stringify({search, projet, statut, prio, acteur, compactMode}));
 
     document.querySelectorAll('.filter-item').forEach(item => {
-        const text = item.dataset.search;
-        const p = item.dataset.projet;
-        const s = item.dataset.statut;
-        const pr = item.dataset.prio;
-        const a = item.dataset.acteur;
+        const text = item.dataset.search || '';
+        const p = item.dataset.projet || '';
+        const s = item.dataset.statut || '';
+        const pr = item.dataset.prio || '';
+        const a = item.dataset.acteur || '';
         
         const matchSearch = search === '' || text.includes(search);
         const matchProjet = projet === '' || p === projet;
