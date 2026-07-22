@@ -294,6 +294,7 @@ function renderBoard() {
                 tr.dataset.projet = pAttr;
                 tr.dataset.acteur = aAttr;
                 tr.dataset.statut = status;
+                tr.dataset.index = index;
                 tr.dataset.prio = prAttr;
                 tr.dataset.titre = task.titre.toLowerCase();
                 const majParts = task.maj ? task.maj.split('/') : [];
@@ -416,29 +417,41 @@ function renderBoard() {
 }
 
 async function exportToExcel() {
+    if (typeof ExcelJS === 'undefined') {
+        alert("La bibliothèque d'export Excel n'est pas disponible.");
+        return;
+    }
+
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Suivi des Chantiers');
 
     worksheet.columns = [
-        { header: 'Projet', key: 'projet', width: 15 },
-        { header: 'Tâche', key: 'tache', width: 45 },
-        { header: 'Statut', key: 'statut', width: 15 },
+        { header: 'Projet', key: 'projet', width: 18 },
+        { header: 'Tâche', key: 'tache', width: 40 },
+        { header: 'Statut', key: 'statut', width: 16 },
         { header: 'Prio.', key: 'prio', width: 10 },
         { header: 'Acteur', key: 'acteur', width: 18 },
         { header: 'MAJ', key: 'maj', width: 12 },
-        { header: 'Dernières notes (Historique)', key: 'notes', width: 75 }
+        { header: 'Historique des Notes', key: 'notes', width: 85 }
     ];
 
     worksheet.getRow(1).eachCell((cell) => {
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4472C4' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F497D' } };
         cell.font = { color: { argb: 'FFFFFFFF' }, bold: true, name: 'Calibri', size: 11 };
         cell.alignment = { vertical: 'middle', horizontal: 'center' };
         cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
     });
+    worksheet.getRow(1).height = 26;
 
     const rows = document.querySelectorAll('#list-table-body tr');
     rows.forEach(row => {
         if (row.style.display !== 'none') {
+            const statusKey = row.dataset.statut;
+            const taskIndex = row.dataset.index;
+            const task = (boardData && statusKey && boardData[statusKey] && boardData[statusKey][taskIndex]) 
+                ? boardData[statusKey][taskIndex] 
+                : null;
+
             const cells = row.querySelectorAll('td');
             const projet = cells[0].innerText.replace('📁 ', '').trim();
             const tache = cells[1].innerText.trim();
@@ -447,14 +460,41 @@ async function exportToExcel() {
             const acteur = cells[4].innerText.replace('🧑‍💻 ', '').trim();
             const maj = cells[5].innerText.replace('🕒 ', '').trim();
 
-            let notesText = '';
-            const noteDivs = cells[6].querySelectorAll('.note-entry');
-            if (noteDivs.length > 0) {
-                const noteLines = Array.from(noteDivs).map(div => div.innerText.trim());
-                notesText = noteLines.join('\n');
+            let notesCellValue = null;
+
+            if (task) {
+                const allNotes = getAllNotesAggregated(task);
+                if (allNotes && allNotes.length > 0) {
+                    const richText = [];
+                    allNotes.forEach((note, idx) => {
+                        let headerStr = `• ${note.date || ''}`;
+                        if (note.reunion) headerStr += ` (${note.reunion})`;
+                        if (note.sourceName) headerStr += ` [${note.sourceName}]`;
+                        headerStr += ` : `;
+
+                        richText.push({
+                            font: { bold: true, size: 10, color: { argb: 'FF0052CC' }, name: 'Calibri' },
+                            text: headerStr
+                        });
+
+                        const bodyStr = note.texte + (idx < allNotes.length - 1 ? '\n\n' : '');
+                        richText.push({
+                            font: { bold: false, size: 10, color: { argb: 'FF172B4D' }, name: 'Calibri' },
+                            text: bodyStr
+                        });
+                    });
+                    notesCellValue = { richText };
+                } else {
+                    notesCellValue = {
+                        richText: [{
+                            font: { italic: true, size: 10, color: { argb: 'FF888888' }, name: 'Calibri' },
+                            text: 'Aucune note'
+                        }]
+                    };
+                }
             } else {
-                notesText = cells[6].innerText.trim();
-                if (notesText === 'Aucune note') notesText = '';
+                notesCellValue = cells[6].innerText.trim();
+                if (notesCellValue === 'Aucune note') notesCellValue = '';
             }
 
             const excelRow = worksheet.addRow({
@@ -464,17 +504,16 @@ async function exportToExcel() {
                 prio: prio !== '-' ? prio : '',
                 acteur: acteur !== '-' ? acteur : '',
                 maj: maj,
-                notes: notesText
+                notes: notesCellValue
             });
 
             excelRow.eachCell((cell, colNumber) => {
-                cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
+                cell.border = { top: {style:'thin', color: {argb:'FFD9D9D9'}}, left: {style:'thin', color: {argb:'FFD9D9D9'}}, bottom: {style:'thin', color: {argb:'FFD9D9D9'}}, right: {style:'thin', color: {argb:'FFD9D9D9'}} };
                 cell.alignment = { vertical: 'top', wrapText: true };
                 cell.font = { name: 'Calibri', size: 11 };
                 
                 if (colNumber === 6) {
-                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF00B0F0' } };
-                    cell.font = { color: { argb: 'FFFFFFFF' }, bold: true, name: 'Calibri', size: 11 };
+                    cell.font = { color: { argb: 'FF595959' }, name: 'Calibri', size: 10 };
                     cell.alignment = { vertical: 'top', horizontal: 'center' };
                 }
                 
