@@ -89,6 +89,41 @@ function log_action($action_type, $details) {
     file_put_contents($history_file, json_encode($history, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
 
+function create_system_backup($db_file, $settings_file, $history_file, $admin_file, $uploads_dir, $prefix = 'Backup_Chantiers_') {
+    $zip = new ZipArchive();
+    $tmp_file = tempnam(sys_get_temp_dir(), 'zip');
+    
+    if ($zip->open($tmp_file, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
+        if (file_exists($db_file)) $zip->addFile($db_file, 'kanban.json');
+        if (file_exists($settings_file)) $zip->addFile($settings_file, 'settings.json');
+        if (file_exists($history_file)) $zip->addFile($history_file, 'history.json');
+        if (file_exists($admin_file)) $zip->addFile($admin_file, 'admin.json');
+        
+        if (is_dir($uploads_dir)) {
+            $files = scandir($uploads_dir);
+            foreach ($files as $f) {
+                if ($f !== '.' && $f !== '..' && $f !== 'backup___') {
+                    if (is_file($uploads_dir . '/' . $f)) {
+                        $zip->addFile($uploads_dir . '/' . $f, 'uploads/' . $f);
+                    }
+                }
+            }
+        }
+        
+        $zip->close();
+        
+        $backup_name = $prefix . date('Ymd_His') . '.zip';
+        $backup_dir = $uploads_dir . '/backup___';
+        if (!is_dir($backup_dir)) {
+            mkdir($backup_dir, 0755, true);
+        }
+        copy($tmp_file, $backup_dir . '/' . $backup_name);
+        unlink($tmp_file);
+        return $backup_name;
+    }
+    return false;
+}
+
 $action = $_GET['action'] ?? '';
 $write_actions = ['archive_task', 'save_settings', 'save_security', 'move', 'add_task', 'edit_task', 'add_lot', 'edit_lot', 'add_note', 'edit_note', 'upload_attachment', 'delete_attachment', 'upload_logo', 'save_raw_json', 'import_backup_zip'];
 
@@ -559,36 +594,7 @@ switch ($action) {
         exit;
 
     case 'export_backup_zip':
-        $zip = new ZipArchive();
-        $tmp_file = tempnam(sys_get_temp_dir(), 'zip');
-        
-        if ($zip->open($tmp_file, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
-            if (file_exists($db_file)) $zip->addFile($db_file, 'kanban.json');
-            if (file_exists($settings_file)) $zip->addFile($settings_file, 'settings.json');
-            if (file_exists($history_file)) $zip->addFile($history_file, 'history.json');
-            if (file_exists($admin_file)) $zip->addFile($admin_file, 'admin.json');
-            
-            if (is_dir($uploads_dir)) {
-                $files = scandir($uploads_dir);
-                foreach ($files as $f) {
-                    if ($f !== '.' && $f !== '..' && $f !== 'backup___') {
-                        if (is_file($uploads_dir . '/' . $f)) {
-                            $zip->addFile($uploads_dir . '/' . $f, 'uploads/' . $f);
-                        }
-                    }
-                }
-            }
-            
-            $zip->close();
-            
-            $backup_name = 'Backup_Chantiers_'.date('Ymd_His').'.zip';
-            $backup_dir = $uploads_dir . '/backup___';
-            if (!is_dir($backup_dir)) {
-                mkdir($backup_dir, 0755, true);
-            }
-            copy($tmp_file, $backup_dir . '/' . $backup_name);
-            unlink($tmp_file);
-            
+        if (create_system_backup($db_file, $settings_file, $history_file, $admin_file, $uploads_dir)) {
             header('Location: admin.php?status=backup_ok');
             exit;
         }
@@ -597,6 +603,9 @@ switch ($action) {
 
     case 'import_backup_zip':
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['backup_zip']) && $_FILES['backup_zip']['error'] === UPLOAD_ERR_OK) {
+            // Sauvegarde automatique avant restauration
+            create_system_backup($db_file, $settings_file, $history_file, $admin_file, $uploads_dir, 'AutoBackup_BeforeRestore_');
+            
             $zip = new ZipArchive();
             if ($zip->open($_FILES['backup_zip']['tmp_name']) === TRUE) {
                 $tmp_extract = sys_get_temp_dir() . '/kanban_restore_' . uniqid();
@@ -658,6 +667,9 @@ switch ($action) {
             $backup_file = $uploads_dir . '/backup___/' . $filename;
             
             if (file_exists($backup_file)) {
+                // Sauvegarde automatique avant restauration
+                create_system_backup($db_file, $settings_file, $history_file, $admin_file, $uploads_dir, 'AutoBackup_BeforeRestore_');
+                
                 $zip = new ZipArchive();
                 if ($zip->open($backup_file) === TRUE) {
                     $tmp_extract = sys_get_temp_dir() . '/kanban_restore_' . uniqid();
