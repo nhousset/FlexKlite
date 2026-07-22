@@ -114,41 +114,6 @@ function handleFiltersChange() {
     } else {
         applyFilters(); // Just hide/show items
     }
-}
-
-function applyFilters() {
-    saveFilters();
-    const searchEl = document.getElementById('filter-search');
-    const projetEl = document.getElementById('filter-projet');
-    const statutEl = document.getElementById('filter-statut');
-    const prioEl = document.getElementById('filter-prio');
-    const acteurEl = document.getElementById('filter-acteur');
-
-    const search = searchEl ? searchEl.value.toLowerCase() : '';
-    const projet = projetEl ? projetEl.value : '';
-    const statut = statutEl ? statutEl.value : '';
-    const prio = prioEl ? prioEl.value : '';
-    const acteur = acteurEl ? acteurEl.value : '';
-
-    document.querySelectorAll('.filter-item').forEach(item => {
-        const text = item.dataset.search || '';
-        const p = item.dataset.projet || '';
-        const s = item.dataset.statut || '';
-        const pr = item.dataset.prio || '';
-        const a = item.dataset.acteur || '';
-
-        let matchSearch = search === '' || text.includes(search);
-        let matchProjet = projet === '' || p === projet;
-        let matchStatut = statut === '' || s === statut;
-        let matchPrio = prio === '' || pr === prio;
-        let matchActeur = acteur === '' || a === acteur;
-
-        if (matchSearch && matchProjet && matchStatut && matchPrio && matchActeur) {
-            item.style.display = '';
-        } else {
-            item.style.display = 'none';
-        }
-    });
 
     // Hide empty compact project headers
     document.querySelectorAll('.compact-project-header').forEach(header => {
@@ -208,7 +173,7 @@ function renderBoard() {
     const listTableBody = document.getElementById('list-table-body');
     if(listTableBody) listTableBody.innerHTML = '';
     
-    let kpi = { total: 0, status: { todo: 0, in_progress: 0, blocked: 0, done: 0 }, acteur: {}, prio: {} };
+    let kpi = { total: 0, totalJH: 0, status: { todo: 0, in_progress: 0, blocked: 0, done: 0 }, acteur: {}, acteurJH: {}, prio: {} };
     let allNotesForActivity = [];
 
     Object.keys(data).forEach(status => {
@@ -348,9 +313,16 @@ function renderBoard() {
             }
 
             // 3. KPI & ACTIVITÉ
+            let taskJH = parseFloat(task.charge_jh) || 0;
             kpi.total++; kpi.status[status]++;
-            const acteur = task.acteur || 'Non assigné'; kpi.acteur[acteur] = (kpi.acteur[acteur] || 0) + 1;
-            const prio = task.prio || 'Aucune'; kpi.prio[prio] = (kpi.prio[prio] || 0) + 1;
+            kpi.totalJH += taskJH;
+            
+            const acteur = task.acteur || 'Non assigné'; 
+            kpi.acteur[acteur] = (kpi.acteur[acteur] || 0) + 1;
+            kpi.acteurJH[acteur] = (kpi.acteurJH[acteur] || 0) + taskJH;
+            
+            const prio = task.prio || 'Aucune'; 
+            kpi.prio[prio] = (kpi.prio[prio] || 0) + 1;
 
             if (allTaskNotes.length > 0) {
                 allTaskNotes.forEach(note => {
@@ -576,11 +548,11 @@ function applyFilters() {
     localStorage.setItem('filters', JSON.stringify({search, projet, statut, prio, acteur, compactMode}));
 
     document.querySelectorAll('.filter-item').forEach(item => {
-        const text = item.dataset.search;
-        const p = item.dataset.projet;
-        const s = item.dataset.statut;
-        const pr = item.dataset.prio;
-        const a = item.dataset.acteur;
+        const text = item.dataset.search || '';
+        const p = item.dataset.projet || '';
+        const s = item.dataset.statut || '';
+        const pr = item.dataset.prio || '';
+        const a = item.dataset.acteur || '';
         
         const matchSearch = search === '' || text.includes(search);
         const matchProjet = projet === '' || p === projet;
@@ -597,35 +569,99 @@ function applyFilters() {
     });
 }
 
+let chartStatus = null;
+let chartActeur = null;
+
 function renderKPIs(kpi) {
     const kpiContainer = document.getElementById('kpi-container');
     if(!kpiContainer) return;
 
-    const sortedActors = Object.entries(kpi.acteur).sort((a, b) => b[1] - a[1]);
     const sortedPrios = Object.entries(kpi.prio).sort((a, b) => b[1] - a[1]);
 
     kpiContainer.innerHTML = `
-        <div class="kpi-card" style="display:flex; flex-direction:column; justify-content:center; align-items:center;">
+        <div class="kpi-card" style="display:flex; flex-direction:column; justify-content:center; align-items:center; grid-column: span 1;">
             <h3>Total des tâches</h3><div class="kpi-value-main">${kpi.total}</div><div class="kpi-value-label">Chantiers actifs et terminés</div>
         </div>
-        <div class="kpi-card">
-            <h3>Par Statut</h3>
-            <ul class="kpi-list">
-                <li><span>À Faire</span> <span class="kpi-count">${kpi.status.todo}</span></li>
-                <li><span>En Cours</span> <span class="kpi-count">${kpi.status.in_progress}</span></li>
-                <li><span>En attente / Bloqué</span> <span class="kpi-count">${kpi.status.blocked}</span></li>
-                <li><span>Terminé</span> <span class="kpi-count">${kpi.status.done}</span></li>
+        <div class="kpi-card" style="display:flex; flex-direction:column; justify-content:center; align-items:center; grid-column: span 1;">
+            <h3>Charge Totale (JH)</h3><div class="kpi-value-main" style="color:#0052cc;">${kpi.totalJH.toFixed(1)}</div><div class="kpi-value-label">Volume de travail estimé</div>
+        </div>
+        
+        <div class="kpi-card" style="position:relative; height: 350px; grid-column: 1 / -1; display:flex; gap:20px; padding:0; background:transparent; border:none; box-shadow:none;">
+            <div style="flex:1; background:var(--card-bg); padding:24px; border-radius:var(--card-radius); border:1px solid var(--border-color); box-shadow:var(--shadow-main);">
+                <h3 style="text-align:center; margin-bottom: 20px; font-size: 15px; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">Répartition par Statut</h3>
+                <div style="position:relative; height: 260px;">
+                    <canvas id="chart-status"></canvas>
+                </div>
+            </div>
+            <div style="flex:1; background:var(--card-bg); padding:24px; border-radius:var(--card-radius); border:1px solid var(--border-color); box-shadow:var(--shadow-main);">
+                <h3 style="text-align:center; margin-bottom: 20px; font-size: 15px; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">Charge (JH) par Acteur</h3>
+                <div style="position:relative; height: 260px;">
+                    <canvas id="chart-acteur"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="kpi-card" style="grid-column: 1 / -1;">
+            <h3>Par Priorité</h3>
+            <ul class="kpi-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:15px;">
+                ${sortedPrios.map(p => `<li><span>${p[0]}</span> <span class="kpi-count">${p[1]}</span></li>`).join('')}
             </ul>
         </div>
-        <div class="kpi-card">
-            <h3>Charge par Acteur</h3>
-            <ul class="kpi-list">${sortedActors.map(([actor, count]) => `<li><span>${actor}</span> <span class="kpi-count">${count}</span></li>`).join('')}</ul>
-        </div>
-        <div class="kpi-card">
-            <h3>Par Priorité</h3>
-            <ul class="kpi-list">${sortedPrios.map(([prio, count]) => `<li><span>${prio === 'Aucune' ? 'Non définie' : prio}</span> <span class="kpi-count">${count}</span></li>`).join('')}</ul>
-        </div>
     `;
+
+    // Initialisation des graphiques
+    if(chartStatus) chartStatus.destroy();
+    if(chartActeur) chartActeur.destroy();
+
+    const ctxStatus = document.getElementById('chart-status');
+    const ctxActeur = document.getElementById('chart-acteur');
+
+    if (ctxStatus && window.Chart) {
+        chartStatus = new Chart(ctxStatus, {
+            type: 'doughnut',
+            data: {
+                labels: ['À Faire', 'En Cours', 'En attente / Bloqué', 'Terminé'],
+                datasets: [{
+                    data: [kpi.status.todo, kpi.status.in_progress, kpi.status.blocked, kpi.status.done],
+                    backgroundColor: ['#dfe1e6', '#0052cc', '#ff991f', '#36b37e'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right', labels: { font: { family: "'Inter', sans-serif" } } }
+                }
+            }
+        });
+    }
+
+    if (ctxActeur && window.Chart) {
+        // Trier les acteurs par JH décroissant
+        const sortedActorsJH = Object.entries(kpi.acteurJH).sort((a, b) => b[1] - a[1]);
+        chartActeur = new Chart(ctxActeur, {
+            type: 'bar',
+            data: {
+                labels: sortedActorsJH.map(a => a[0]),
+                datasets: [{
+                    label: 'Charge (JH)',
+                    data: sortedActorsJH.map(a => a[1]),
+                    backgroundColor: '#0052cc',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#ebecf0' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
 }
 
 function renderRecentActivity(notes) {
