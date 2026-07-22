@@ -210,23 +210,21 @@
 <div id="notes-modal" class="modal-overlay" onclick="closeModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
         <div class="panel-header-container">
-            <h2 class="panel-header-title">
+            <h2 class="panel-header-title" style="margin: 0; line-height: 1.3;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
                 </svg>
-                Historique de la tâche
+                <span id="modal-title"></span>
             </h2>
             <div style="display:flex; gap: 15px; align-items:center;">
                 <?php if($is_logged_in): ?>
-                    <button class="btn-modal-add" onclick="switchToAddNote()">➕ Ajouter un point</button>
+                    <button class="btn-modal-add" onclick="switchToAddNote()">✏️ Détails / Modifications</button>
                 <?php endif; ?>
                 <div class="close-panel" onclick="closeModal(event)">×</div>
             </div>
         </div>
         
-        <h3 id="modal-title" style="margin-top: 0; color: #091e42; font-size: 20px; margin-bottom: 20px;"></h3>
-        
-        <div class="task-meta-info">
+        <div class="task-meta-info" style="margin-top: 20px;">
             <div>Projet : <strong id="modal-project"></strong></div>
             <div id="modal-code-projet-container" style="display:none;">Code Projet : <strong id="modal-code-projet"></strong></div>
             <div id="modal-itbm-container" style="display:none;">ITBM : <strong id="modal-itbm"></strong></div>
@@ -235,15 +233,39 @@
             <div id="modal-prerequis-container" style="display:none;">Prérequis : <strong id="modal-prerequis"></strong></div>
         </div>
 
-        <!-- ZONE DES PIÈCES JOINTES EN MODE LECTURE SEULE -->
-        <div id="modal-attachments-container" style="margin-bottom: 20px;"></div>
+        <div class="details-tabs">
+            <button class="details-tab-btn active" id="btn-modal-tab-suivi" onclick="switchModalTab('suivi')">Suivi & Historique</button>
+            <button class="details-tab-btn" id="btn-modal-tab-lots" onclick="switchModalTab('lots')">Lots / Sous-tâches</button>
+            <button class="details-tab-btn" id="btn-modal-tab-attachments" onclick="switchModalTab('attachments')">Pièces Jointes</button>
+        </div>
+
+        <!-- ONGLET LOTS (Lecture seule) -->
+        <div id="modal-tab-lots" class="details-tab-content">
+            <h4 style="margin-bottom: 10px; margin-top: 0; font-size:15px; color: #172b4d;">Liste des Lots :</h4>
+            <div id="modal-lots-container" style="margin-bottom: 15px;"></div>
+        </div>
+
+        <!-- ONGLET PIECES JOINTES (Lecture seule) -->
+        <div id="modal-tab-attachments" class="details-tab-content">
+            <h4 style="margin-bottom: 10px; margin-top: 0; font-size:15px; color: #172b4d;">Pièces Jointes :</h4>
+            <div id="modal-attachments-container" style="margin-bottom: 20px;"></div>
+        </div>
         
-        <table class="notes-table">
-            <thead>
-                <tr><th style="width: 120px;">Date</th><th style="width: 150px;">Contexte</th><th>Détails du suivi</th></tr>
-            </thead>
-            <tbody id="modal-table-body"></tbody>
-        </table>
+        <!-- ONGLET SUIVI -->
+        <div id="modal-tab-suivi" class="details-tab-content active">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h4 style="margin: 0; font-size:15px; color: #172b4d;">Historique global (Tâche + Lots)</h4>
+                <select id="modal-history-lot-filter" style="padding: 4px 8px; border: 1px solid #dfe1e6; border-radius: 4px; font-size:15px; color: #5e6c84; background: #fafbfc; max-width: 200px;" onchange="renderModalHistoryNotes()">
+                    <option value="">Toutes les notes</option>
+                </select>
+            </div>
+            <table class="notes-table" style="margin-top: 0;">
+                <thead>
+                    <tr><th style="width: 120px;">Date</th><th style="width: 150px;">Contexte</th><th>Détails du suivi</th></tr>
+                </thead>
+                <tbody id="modal-table-body"></tbody>
+            </table>
+        </div>
     </div>
 </div>
 
