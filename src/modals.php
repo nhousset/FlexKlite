@@ -215,6 +215,9 @@
                     <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
                 </svg>
                 <span id="modal-title"></span>
+                <?php if($is_logged_in): ?>
+                    <button type="button" onclick="closeModal(); openEditTaskModal();" style="background: none; border: none; cursor: pointer; font-size: 16px; margin-left: 6px; padding: 2px 6px; border-radius: 4px; transition: background 0.2s;" title="Modifier le titre / la tâche" onmouseover="this.style.background='#ebecf0'" onmouseout="this.style.background='none'">✏️</button>
+                <?php endif; ?>
             </h2>
             <div style="display:flex; gap: 15px; align-items:center;">
                 <?php if($is_logged_in): ?>
