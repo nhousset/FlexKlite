@@ -90,7 +90,7 @@ function log_action($action_type, $details) {
 }
 
 $action = $_GET['action'] ?? '';
-$write_actions = ['archive_task', 'save_settings', 'save_security', 'move', 'add_task', 'edit_task', 'add_lot', 'add_note', 'edit_note', 'upload_attachment', 'delete_attachment', 'upload_logo', 'save_raw_json', 'import_backup_zip'];
+$write_actions = ['archive_task', 'save_settings', 'save_security', 'move', 'add_task', 'edit_task', 'add_lot', 'edit_lot', 'add_note', 'edit_note', 'upload_attachment', 'delete_attachment', 'upload_logo', 'save_raw_json', 'import_backup_zip'];
 
 if (in_array($action, $write_actions) && !$is_logged_in) {
     echo json_encode(['success' => false, 'error' => 'Action non autorisée. Vous êtes en mode invité.']);
@@ -311,6 +311,36 @@ switch ($action) {
             echo json_encode(['success' => true, 'task' => $kanban[$col][$idx]]);
         } else {
             echo json_encode(['success' => false]);
+        }
+        break;
+
+    case 'edit_lot':
+        $data = json_decode(file_get_contents('php://input'), true);
+        $col = $data['column'];
+        $idx = (int)$data['index'];
+        $lot_id = $data['lot_id'] ?? '';
+        $titre = trim($data['titre'] ?? '');
+        $code = trim($data['code'] ?? '');
+
+        if (!empty($titre) && isset($kanban[$col][$idx]) && isset($kanban[$col][$idx]['lots'])) {
+            $lot_found = false;
+            foreach ($kanban[$col][$idx]['lots'] as &$lot) {
+                if ($lot['id'] === $lot_id) {
+                    $lot['titre'] = $titre;
+                    $lot['code_itbm'] = $code;
+                    $lot_found = true;
+                    break;
+                }
+            }
+            if ($lot_found) {
+                $kanban[$col][$idx]['maj'] = date('d/m');
+                write_db($db_file, $kanban);
+                echo json_encode(['success' => true, 'task' => $kanban[$col][$idx]]);
+            } else {
+                echo json_encode(['success' => false, 'error' => 'Lot introuvable.']);
+            }
+        } else {
+            echo json_encode(['success' => false, 'error' => 'Données invalides.']);
         }
         break;
 
