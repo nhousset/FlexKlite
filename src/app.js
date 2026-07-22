@@ -725,6 +725,8 @@ function closeEditTaskModal(e) { if(e) e.stopPropagation(); document.getElementB
 function openHistoryModal(task, column, index) {
     currentTaskRef = { column, index, task };
     
+    if(typeof switchModalTab === 'function') switchModalTab('suivi');
+    
     document.getElementById('modal-title').innerText = task.titre;
     document.getElementById('modal-project').innerText = task.projet;
     document.getElementById('modal-acteur').innerText = task.acteur || 'Non assigné';
@@ -810,22 +812,29 @@ function openHistoryModal(task, column, index) {
         attContainer.style.display = 'none';
     }
 
-    const tbody = document.getElementById('modal-table-body');
-    tbody.innerHTML = '';
-    
-    const allNotes = getAllNotesAggregated(task);
-    
-    if (allNotes.length > 0) {
-        allNotes.forEach(note => {
-            const tr = document.createElement('tr');
-            const badge = note.reunion ? `<span class="badge-reunion">${note.reunion}</span>` : '<span style="color:#aaa;">-</span>';
-            const srcBadge = note.sourceName ? `<span class="note-target-badge">${note.sourceName}</span><br>` : '';
-            tr.innerHTML = `<td>${note.date}</td><td>${badge}</td><td style="white-space: pre-wrap;">${srcBadge}${note.texte}</td>`;
-            tbody.appendChild(tr);
+    const lotsContainer = document.getElementById('modal-lots-container');
+    const filterSelect = document.getElementById('modal-history-lot-filter');
+    lotsContainer.innerHTML = '';
+    if(filterSelect) filterSelect.innerHTML = '<option value="">Toutes les notes</option><option value="main">Tâche principale</option>';
+
+    if (task.lots && task.lots.length > 0) {
+        task.lots.forEach(lot => {
+            if(filterSelect) {
+                const opt = document.createElement('option');
+                opt.value = lot.id;
+                opt.innerText = 'Lot : ' + lot.titre;
+                filterSelect.appendChild(opt);
+            }
+            
+            const codeBadge = lot.code_itbm ? `<span class="lot-code" style="margin-left:10px;">${lot.code_itbm}</span>` : '';
+            lotsContainer.innerHTML += `<div class="lot-card" style="padding:15px; border-bottom:1px solid #ebecf0;"><div class="lot-header" style="display:flex; align-items:center;"><span class="lot-title" style="margin-right:10px;">${lot.titre}</span>${codeBadge}</div></div>`;
         });
     } else {
-        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#888; font-style:italic;">Aucun historique.</td></tr>';
+        lotsContainer.innerHTML = '<span style="font-size:13px; color:#888; font-style:italic;">Aucun lot créé pour le moment.</span>';
     }
+
+    currentTaskRef.allNotes = getAllNotesAggregated(task);
+    renderModalHistoryNotes();
     document.getElementById('notes-modal').style.display = 'flex';
 }
 function closeModal(e) { if(e) e.stopPropagation(); document.getElementById('notes-modal').style.display = 'none'; }
@@ -1586,4 +1595,45 @@ function switchDetailsTab(tabId) {
     
     const selectedBtn = document.getElementById('btn-tab-' + tabId);
     if(selectedBtn) selectedBtn.classList.add('active');
+}
+
+function switchModalTab(tabId) {
+    const contents = document.querySelectorAll('#notes-modal .details-tab-content');
+    contents.forEach(c => c.classList.remove('active'));
+    
+    const btns = document.querySelectorAll('#notes-modal .details-tab-btn');
+    btns.forEach(b => b.classList.remove('active'));
+    
+    const selectedContent = document.getElementById('modal-tab-' + tabId);
+    if(selectedContent) selectedContent.classList.add('active');
+    
+    const selectedBtn = document.getElementById('btn-modal-tab-' + tabId);
+    if(selectedBtn) selectedBtn.classList.add('active');
+}
+
+function renderModalHistoryNotes() {
+    const filter = document.getElementById('modal-history-lot-filter').value;
+    const tbody = document.getElementById('modal-table-body');
+    tbody.innerHTML = '';
+    
+    if(!currentTaskRef || !currentTaskRef.allNotes) return;
+    
+    let notesToShow = currentTaskRef.allNotes;
+    if(filter === 'main') {
+        notesToShow = notesToShow.filter(n => n.sourceId === 'main');
+    } else if(filter !== '') {
+        notesToShow = notesToShow.filter(n => n.sourceId === filter);
+    }
+    
+    if (notesToShow.length > 0) {
+        notesToShow.forEach(note => {
+            const tr = document.createElement('tr');
+            const badge = note.reunion ? `<span class="badge-reunion">${note.reunion}</span>` : '<span style="color:#aaa;">-</span>';
+            const srcBadge = note.sourceName ? `<span class="note-target-badge">${note.sourceName}</span><br>` : '';
+            tr.innerHTML = `<td>${note.date}</td><td>${badge}</td><td style="white-space: pre-wrap;">${srcBadge}${note.texte}</td>`;
+            tbody.appendChild(tr);
+        });
+    } else {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#888; font-style:italic;">Aucun historique.</td></tr>';
+    }
 }
