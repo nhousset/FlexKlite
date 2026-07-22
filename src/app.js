@@ -767,6 +767,10 @@ function openEditTaskModal() {
     if (prerequisSelect) prerequisSelect.value = task.prerequis || '';
 
     document.getElementById('edit-task-modal').style.display = 'flex';
+    setTimeout(() => {
+        const titleInput = document.getElementById('edit_titre');
+        if (titleInput) { titleInput.focus(); titleInput.select(); }
+    }, 100);
 }
 function closeEditTaskModal(e) { if(e) e.stopPropagation(); document.getElementById('edit-task-modal').style.display = 'none'; }
 
