@@ -103,6 +103,18 @@ function saveFilters() {
     localStorage.setItem('flexklite_filters', JSON.stringify(f));
 }
 
+function resetFilters() {
+    localStorage.removeItem('flexklite_filters');
+    localStorage.removeItem('filters');
+    if (document.getElementById('filter-search')) document.getElementById('filter-search').value = '';
+    if (document.getElementById('filter-projet')) document.getElementById('filter-projet').value = '';
+    if (document.getElementById('filter-statut')) document.getElementById('filter-statut').value = '';
+    if (document.getElementById('filter-prio')) document.getElementById('filter-prio').value = '';
+    if (document.getElementById('filter-acteur')) document.getElementById('filter-acteur').value = '';
+    if (document.getElementById('compact-mode')) document.getElementById('compact-mode').checked = false;
+    handleFiltersChange();
+}
+
 let lastCompactState = false;
 
 function handleFiltersChange() {
@@ -539,13 +551,13 @@ function applyFilters() {
     const acteurEl = document.getElementById('filter-acteur');
     const compactMode = document.getElementById('compact-mode')?.checked || false;
 
-    const search = searchEl ? searchEl.value.toLowerCase() : '';
+    const search = searchEl ? searchEl.value.toLowerCase().trim() : '';
     const projet = projetEl ? projetEl.value : '';
     const statut = statutEl ? statutEl.value : '';
     const prio = prioEl ? prioEl.value : '';
     const acteur = acteurEl ? acteurEl.value : '';
 
-    localStorage.setItem('filters', JSON.stringify({search, projet, statut, prio, acteur, compactMode}));
+    saveFilters();
 
     document.querySelectorAll('.filter-item').forEach(item => {
         const text = item.dataset.search || '';
@@ -561,7 +573,7 @@ function applyFilters() {
         const matchActeur = acteur === '' || a === acteur;
 
         if (matchSearch && matchProjet && matchStatut && matchPrio && matchActeur) {
-            item.style.display = item.tagName === 'TR' ? (compactMode ? 'table-row' : 'table-row') : 'block';
+            item.style.display = item.tagName === 'TR' ? 'table-row' : 'block';
             if (compactMode) item.classList.add('compact'); else item.classList.remove('compact');
         } else {
             item.style.display = 'none';
