@@ -114,7 +114,6 @@ function handleFiltersChange() {
     } else {
         applyFilters(); // Just hide/show items
     }
-}
 
     // Hide empty compact project headers
     document.querySelectorAll('.compact-project-header').forEach(header => {
