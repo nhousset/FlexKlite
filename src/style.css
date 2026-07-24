@@ -280,6 +280,13 @@ body {
 #done { border-top-color: var(--col-done); }
 .column h3 { margin: 0 0 16px 0; font-size: 15px; color: var(--text-main); font-weight: 600; }
 .list { min-height: 500px; }
+.list:has(.compact) {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+    align-items: start;
+    align-content: start;
+}
 
 /* Post-it */
 .card { padding: 16px; margin-bottom: 16px; border-radius: 2px 2px 15px 2px / 2px 2px 5px 2px; box-shadow: 2px 4px 6px rgba(0,0,0,0.08); cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; position: relative; border: 1px solid rgba(0,0,0,0.05); }
