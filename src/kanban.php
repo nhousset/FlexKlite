@@ -12,9 +12,6 @@
             <h3>En attente / Bloqué</h3>
             <div class="list" data-status="blocked"></div>
         </div>
-        <div class="column" id="done">
-            <h3>Terminé</h3>
-            <div class="list" data-status="done"></div>
-        </div>
+
     </div>
 </div>
